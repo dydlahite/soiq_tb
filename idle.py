@@ -54,13 +54,10 @@ def ensure_idle_db():
 
     if get_setting("idle_messages", None) is None:
         set_setting("idle_messages", "off")
-
     if get_setting("idle_hours", None) is None:
         set_setting("idle_hours", "24")
-
     if get_setting("idle_chance", None) is None:
         set_setting("idle_chance", "35")
-
     if get_setting("idle_check_minutes", None) is None:
         set_setting("idle_check_minutes", "60")
 
@@ -87,7 +84,6 @@ def touch_chat(user_id, chat_id):
 def parse_dt(value):
     if not value:
         return None
-
     try:
         return datetime.fromisoformat(value)
     except ValueError:
@@ -140,7 +136,6 @@ def load_idle_thoughts():
 
     for block in raw.split("\n\n"):
         thought = block.strip()
-
         if thought and not thought.startswith("#"):
             thoughts.append(thought)
 
@@ -179,8 +174,6 @@ def get_idle_targets(limit=5):
         if last_active is None:
             continue
 
-        # Пишем только один раз за один период молчания.
-        # Пользователь ответит - last_active обновится, и можно будет писать снова через idle_hours.
         if last_idle_sent and last_idle_sent >= last_active:
             continue
 
@@ -227,6 +220,14 @@ async def idle_check_job(context):
             print(error)
 
 
+async def send_idle_now(bot, chat_id):
+    ensure_idle_db()
+    thought = choose_idle_thought()
+    await bot.send_message(chat_id=chat_id, text=thought, parse_mode=None)
+    mark_idle_sent(chat_id)
+    return thought
+
+
 def schedule_idle_jobs(app):
     ensure_idle_db()
 
@@ -236,6 +237,5 @@ def schedule_idle_jobs(app):
         print("Idle messages disabled: JobQueue is not available. Install python-telegram-bot[job-queue].")
         return
 
-    # Проверяем чаще, чем idle_hours. Сам шанс и период простоя регулируются настройками.
     job_queue.run_repeating(idle_check_job, interval=300, first=60)
     print("Idle messages scheduler started.")

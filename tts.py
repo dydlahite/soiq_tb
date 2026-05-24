@@ -13,6 +13,11 @@ from database import get_setting, set_setting
 
 VOICE_MODES = ["off", "on", "random"]
 
+SUPPORTED_TTS_VOICES = [
+    "alloy", "ash", "ballad", "coral", "echo", "fable",
+    "nova", "onyx", "sage", "shimmer", "verse",
+]
+
 
 def ensure_voice_defaults():
     if get_setting("voice_mode", None) is None:
@@ -42,6 +47,30 @@ def set_voice_mode(mode):
     if mode not in VOICE_MODES:
         mode = "off"
     set_setting("voice_mode", mode)
+
+
+def get_tts_voice():
+    ensure_voice_defaults()
+    return get_setting("tts_voice", PROXYAPI_TTS_VOICE or "nova")
+
+
+def set_tts_voice(voice):
+    voice = (voice or "").strip().lower()
+    if not voice:
+        voice = "nova"
+    set_setting("tts_voice", voice)
+
+
+def get_tts_model():
+    ensure_voice_defaults()
+    return get_setting("tts_model", PROXYAPI_TTS_MODEL or "tts-1")
+
+
+def set_tts_model(model):
+    model = (model or "").strip()
+    if not model:
+        model = "tts-1"
+    set_setting("tts_model", model)
 
 
 def get_int_setting(key, default, min_value=0, max_value=100000):
@@ -123,13 +152,19 @@ def user_asks_voice(user_text):
 
 def is_technical_text(text):
     text_l = (text or "").lower()
-    technical_triggers = ["код", "ошибка", "traceback", "exception", "systemctl", "journalctl", "python", "api", "токен", "сервер", "github", "патч", "лог", "команда", "установи", "настрой"]
+    technical_triggers = [
+        "код", "ошибка", "traceback", "exception", "systemctl", "journalctl", "python",
+        "api", "токен", "сервер", "github", "патч", "лог", "команда", "установи", "настрой",
+    ]
     return any(trigger in text_l for trigger in technical_triggers)
 
 
 def is_emotional_voice_moment(answer, user_text, mood=""):
     text_l = ((answer or "") + "\n" + (user_text or "") + "\n" + (mood or "")).lower()
-    emotional_triggers = ["грустно", "печально", "тоскливо", "устала", "пусто", "жалко", "больно", "молч", "меланхол", "одиноч", "скуч", "* .. :) *", ".. :)"]
+    emotional_triggers = [
+        "грустно", "печально", "тоскливо", "устала", "пусто", "жалко", "больно",
+        "молч", "меланхол", "одиноч", "скуч", "* .. :) *", ".. :)",
+    ]
     return any(trigger in text_l for trigger in emotional_triggers)
 
 
@@ -143,15 +178,19 @@ def should_send_voice(answer, user_text="", mood=""):
         return False
     if not can_send_voice():
         return False
+
     emotional = is_emotional_voice_moment(answer, user_text, mood)
     asked_voice = user_asks_voice(user_text)
+
     if not emotional and not asked_voice:
         return False
+
     probability = get_voice_chance()
     if asked_voice:
         probability += 8
     if emotional:
         probability += 6
+
     probability = min(probability, 35)
     return random.randint(1, 100) <= probability
 
@@ -159,6 +198,7 @@ def should_send_voice(answer, user_text="", mood=""):
 def strip_for_tts(text):
     text = text or ""
     text = text.replace("* .. :) *", "..")
+    text = text.replace(".. :)", "..")
     text = text.replace(":)", "")
     text = text.replace("*", "")
     return text.strip()[:520]
@@ -178,11 +218,14 @@ def convert_mp3_to_ogg(mp3_path):
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         return None
+
     ogg_path = mp3_path.with_suffix(".ogg")
     command = [ffmpeg, "-y", "-i", str(mp3_path), "-c:a", "libopus", "-b:a", "48k", str(ogg_path)]
     result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
     if result.returncode != 0 or not ogg_path.exists():
         return None
+
     return ogg_path
 
 
@@ -192,22 +235,28 @@ def write_speech_response(response, mp3_path):
         return
     except AttributeError:
         pass
+
     with open(mp3_path, "wb") as file:
         file.write(response.read())
 
 
-def make_tts_file(text):
+def make_tts_file(text, voice_override=None, model_override=None):
     ensure_voice_defaults()
     clean_text = strip_for_tts(text)
+
     if not clean_text:
         raise RuntimeError("empty tts text")
+
     client = make_tts_client()
-    model = get_setting("tts_model", PROXYAPI_TTS_MODEL or "tts-1")
-    voice = get_setting("tts_voice", PROXYAPI_TTS_VOICE or "nova")
+    model = (model_override or get_tts_model()).strip()
+    voice = (voice_override or get_tts_voice()).strip().lower()
+
     temp_dir = Path(tempfile.gettempdir())
     mp3_path = temp_dir / f"soiq_voice_{uuid.uuid4().hex}.mp3"
+
     response = client.audio.speech.create(model=model, voice=voice, input=clean_text)
     write_speech_response(response, mp3_path)
+
     ogg_path = convert_mp3_to_ogg(mp3_path)
     if ogg_path:
         try:
@@ -215,6 +264,7 @@ def make_tts_file(text):
         except Exception:
             pass
         return ogg_path, True
+
     return mp3_path, False
 
 
