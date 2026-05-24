@@ -25,6 +25,7 @@ from text_filters import (
     user_requested_list,
     answer_has_forbidden_list,
     flatten_forbidden_list,
+    reduce_repeated_references,
 )
 
 openrouter_client = None
@@ -114,6 +115,7 @@ def user_gender_prompt(user_gender):
     return (
         "ГРАММАТИЧЕСКИЙ РОД:\n"
         "Ты всегда говоришь о себе только в женском роде: я поняла, я сказала, я могла, я готова. "
+        "Даже короткие реакции пиши в женском роде: приняла, поняла, согласна, готова. "
         "Никогда не пиши о себе в мужском роде.\n"
         + user_line
     )
@@ -269,7 +271,9 @@ def prepare_messages(user_id, chat_id, history, user_text, previous_answer="", u
                 "*могу добавить*, *могу убрать*, *могу обойтись*, *хочешь, чтобы я*. "
                 "Если пользователь критикует стиль, просто отвечай следующим сообщением лучше. "
                 "Не делай натужные сравнения вроде *это как пытаться танцевать с манекеном*. "
-                "Ремарки в скобках используй редко, только если они правда добавляют смысл."
+                "Ремарки в скобках используй редко, только если они правда добавляют смысл. "
+                "Не повторяй подряд один и тот же культурный референс, автора, стих, книгу или образ. "
+                "Если уже упомянула автора или стих, следующий ответ не должен снова топтаться вокруг него без прямой необходимости."
             ),
         },
     ]
@@ -288,7 +292,11 @@ def prepare_messages(user_id, chat_id, history, user_text, previous_answer="", u
     if previous_answer:
         messages.append({
             "role": "system",
-            "content": "Не повторяй этот прошлый ответ и не используй его формулировки:\n" + previous_answer[:700],
+            "content": (
+                "Не повторяй этот прошлый ответ и не используй его формулировки. "
+                "Не повторяй конкретных авторов, названия и редкие образы из него, если пользователь прямо не назвал их сам:\n"
+                + previous_answer[:700]
+            ),
         })
 
     messages.extend(history)
@@ -366,6 +374,12 @@ def call_provider(provider, messages):
     return provider(messages)
 
 
+def polish_answer(answer, previous_answer, user_text):
+    answer = reduce_repeated_references(answer, previous_answer, user_text)
+    answer = clean_answer(answer)
+    return answer
+
+
 def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
     detailed = need_detailed_answer(user_text)
     allow_list = user_requested_list(user_text)
@@ -393,6 +407,8 @@ def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
                 continue
 
             answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender)
+            answer = reduce_repeated_references(answer, previous_answer, user_text)
+            answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
 
             if answer_has_forbidden_list(answer) and not allow_list:
                 print(f"{name} дал список без просьбы, пробую переформулировать.")
@@ -407,9 +423,13 @@ def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
 
                 raw_answer = call_provider(provider, retry_messages)
                 answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender)
+                answer = reduce_repeated_references(answer, previous_answer, user_text)
+                answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
 
                 if answer_has_forbidden_list(answer):
                     answer = flatten_forbidden_list(answer)
+                    answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
+                    answer = reduce_repeated_references(answer, previous_answer, user_text)
                     answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
 
             if previous_answer and is_too_similar(answer, previous_answer):

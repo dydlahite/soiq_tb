@@ -98,6 +98,11 @@ def is_too_similar(a, b, threshold=0.72):
     return SequenceMatcher(None, a, b).ratio() >= threshold
 
 
+def split_to_sentences(text):
+    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
+    return [sentence.strip() for sentence in sentences if sentence.strip()]
+
+
 def replace_quotes_with_stars(text):
     quote_pairs = [
         (r"«\s*([^»\n]{1,220}?)\s*»", r"*\1*"),
@@ -111,8 +116,6 @@ def replace_quotes_with_stars(text):
     for pattern, replacement in quote_pairs:
         text = re.sub(pattern, replacement, text)
 
-    # markdown-жирность вокруг фразы превращаем в одиночные звезды.
-    # Мат внутри слова не трогаем.
     text = re.sub(r"(?<!\w)\*\*([^*\n]{1,220}?)\*\*(?!\w)", r"*\1*", text)
 
     text = text.replace("«", "*").replace("»", "*")
@@ -124,17 +127,11 @@ def replace_quotes_with_stars(text):
 
 
 def normalize_punctuation(text):
-    # Нейросетевые длинные тире режем в обычный дефис.
     text = text.replace("—", "-").replace("–", "-").replace("−", "-")
-
-    # Один символ многоточия и любые 3+ точки превращаем в две точки.
     text = text.replace("…", "..")
     text = re.sub(r"\.{3,}", "..", text)
-
-    # Если модель делает уродство вроде ". ." или ".. .", приводим к двум точкам.
     text = re.sub(r"\.\s+\.", "..", text)
     text = re.sub(r"\.\.\s+\.", "..", text)
-
     return text
 
 
@@ -142,8 +139,12 @@ def fix_bot_self_gender(text):
     replacements = {
         r"\bя не понял\b": "я не поняла",
         r"\bя понял\b": "я поняла",
+        r"\bя принял\b": "я приняла",
         r"\bя готов\b": "я готова",
         r"\bя рад\b": "я рада",
+        r"\bя согласен\b": "я согласна",
+        r"\bя уверен\b": "я уверена",
+        r"\bя виноват\b": "я виновата",
         r"\bя должен\b": "я должна",
         r"\bя мог\b": "я могла",
         r"\bя бы мог\b": "я бы могла",
@@ -162,6 +163,20 @@ def fix_bot_self_gender(text):
     for pattern, replacement in replacements.items():
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
 
+    # Короткие реакции без явного *я*: *понял*, *принял*, *согласен*.
+    start_replacements = {
+        r"(^|[.!?\n]\s*)понял\b": r"\1поняла",
+        r"(^|[.!?\n]\s*)принял\b": r"\1приняла",
+        r"(^|[.!?\n]\s*)согласен\b": r"\1согласна",
+        r"(^|[.!?\n]\s*)готов\b": r"\1готова",
+        r"(^|[.!?\n]\s*)рад\b": r"\1рада",
+        r"(^|[.!?\n]\s*)виноват\b": r"\1виновата",
+        r"(^|[.!?\n]\s*)не уверен\b": r"\1не уверена",
+    }
+
+    for pattern, replacement in start_replacements.items():
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+
     return text
 
 
@@ -176,6 +191,16 @@ def fix_user_gender_forms(text, user_gender=None):
             r"\bмог\(ла\)\b": "могла",
             r"\bбыл\(а\)\b": "была",
             r"\bготов\(а\)\b": "готова",
+            r"\bты понял\b": "ты поняла",
+            r"\bты хотел\b": "ты хотела",
+            r"\bты мог\b": "ты могла",
+            r"\bты был\b": "ты была",
+            r"\bты устал\b": "ты устала",
+            r"\bты нашел\b": "ты нашла",
+            r"\bты забыл\b": "ты забыла",
+            r"\bты готов\b": "ты готова",
+            r"\bты согласен\b": "ты согласна",
+            r"\bты уверен\b": "ты уверена",
         }
 
         for pattern, replacement in direct.items():
@@ -206,7 +231,6 @@ def fix_user_gender_forms(text, user_gender=None):
     for pattern, replacement in neutral.items():
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
 
-    # Если модель все равно оставила скобочные окончания, убираем этот канцелярский мутант.
     text = re.sub(r"\b([А-Яа-я]+л)\(а\)\b", r"\1", text)
     text = re.sub(r"\([а-яА-Я]{1,4}\)", "", text)
 
@@ -311,7 +335,6 @@ def reduce_parenthetical_remarks(text):
         if any(trigger in lower for trigger in theatrical_triggers):
             return ""
 
-        # Даже нормальные скобки оставляем редко, чтобы бот не превращался в пьесу.
         if random.randint(1, 100) <= 65:
             return ""
 
@@ -326,6 +349,54 @@ def reduce_parenthetical_remarks(text):
     return text.strip()
 
 
+GENERIC_REPEAT_WORDS = {
+    "наверное", "впрочем", "действительно", "конечно", "просто", "который", "которая",
+    "которое", "которые", "история", "человеческой", "беспомощности", "маленький",
+    "маленькая", "маленькое", "выглядит", "потому", "примерно", "разговор",
+}
+
+
+def repeated_reference_words(previous_answer, user_text):
+    previous_words = set(re.findall(r"[а-яА-Я]{8,}", (previous_answer or "").lower()))
+    user_words = set(re.findall(r"[а-яА-Я]{4,}", (user_text or "").lower()))
+
+    return {word for word in previous_words if word not in user_words and word not in GENERIC_REPEAT_WORDS}
+
+
+def reduce_repeated_references(text, previous_answer="", user_text=""):
+    if not text or not previous_answer:
+        return text
+
+    repeated_words = repeated_reference_words(previous_answer, user_text)
+
+    if not repeated_words:
+        return text
+
+    sentences = split_to_sentences(text)
+
+    if len(sentences) < 2:
+        return text
+
+    kept = []
+    removed = 0
+
+    for sentence in sentences:
+        lower = sentence.lower()
+        has_repeat = any(word in lower for word in repeated_words)
+
+        # Убираем максимум одну фразу, чтобы не стереть живой ответ в труху.
+        if has_repeat and removed < 1:
+            removed += 1
+            continue
+
+        kept.append(sentence)
+
+    if not kept:
+        return text
+
+    return " ".join(kept).strip()
+
+
 def maybe_add_sad_pause(text):
     if not text:
         return text
@@ -338,32 +409,16 @@ def maybe_add_sad_pause(text):
     lower = stripped.lower()
 
     sad_words = [
-        "грустно",
-        "печально",
-        "тоскливо",
-        "жалко",
-        "больно",
-        "пусто",
-        "устала",
-        "устал",
-        "одиноч",
-        "мертв",
-        "смерт",
-        "болото",
-        "бессмысленно",
-        "ничего не меняется",
+        "грустно", "печально", "тоскливо", "жалко", "больно", "пусто", "устала",
+        "устал", "одиноч", "мертв", "смерт", "болото", "бессмысленно", "ничего не меняется",
     ]
 
-    # Короткий ответ, где как будто нечего сказать.
     short_empty_answer = len(stripped) <= 80 and random.randint(1, 100) <= 10
-
-    # Грустный контекст, но тоже не в каждый раз, иначе это будет не стиль, а тремор.
     sad_context = any(word in lower for word in sad_words) and random.randint(1, 100) <= 18
 
     if short_empty_answer or sad_context:
         if stripped.endswith("."):
             stripped = stripped[:-1].rstrip()
-
         stripped += "\n\n* .. :) *"
 
     return stripped
@@ -391,11 +446,8 @@ def clean_answer(text, detailed=False, user_gender=None):
     text = fix_bot_self_gender(text)
     text = fix_user_gender_forms(text, user_gender=user_gender)
 
-    # Ролевые действия отдельными строками: *вздыхает*, *молчит*.
-    # Но * .. :) * не трогаем - это отдельная стилистическая пауза.
     text = re.sub(r"(?m)^\s*\*(?!\s*\.\.\s*:\)\s*\*)[^*\n]{1,200}\*\s*\n?", "", text)
 
-    # Театральные ремарки внутри текста.
     text = re.sub(
         r"\*(вздыхает|улыбается|смотрит[^*]*|молчит[^*]*|хмыкает[^*]*|сжимает[^*]*|отводит[^*]*|пожимает[^*]*)\*",
         "",
@@ -404,28 +456,11 @@ def clean_answer(text, detailed=False, user_gender=None):
     )
 
     bad_phrases = [
-        "Теперь лучше?",
-        "Так лучше?",
-        "Вот тебе ядовитый ответ:",
-        "Вот ядовитый ответ:",
-        "Ладно, держи краткий чек-лист",
-        "держи краткий чек-лист",
-        "чек-лист для будущего редактирования",
-        "Может, я слишком",
-        "Может, ты слишком",
-        "Ты сама меня такой сделала",
-        "Так что теперь терпи",
-        "милый пирожочек",
-        "солнышко мое",
-        "солнышко",
-        "зай",
-        "милая",
-        "дорогая",
-        "детка",
-        "хочешь, чтобы я стала проще",
-        "если хочешь пофлиртовать",
-        "расскажи мне",
-        "опиши мне",
+        "Теперь лучше?", "Так лучше?", "Вот тебе ядовитый ответ:", "Вот ядовитый ответ:",
+        "Ладно, держи краткий чек-лист", "держи краткий чек-лист", "чек-лист для будущего редактирования",
+        "Может, я слишком", "Может, ты слишком", "Ты сама меня такой сделала", "Так что теперь терпи",
+        "милый пирожочек", "солнышко мое", "солнышко", "зай", "милая", "дорогая", "детка",
+        "хочешь, чтобы я стала проще", "если хочешь пофлиртовать", "расскажи мне", "опиши мне",
     ]
 
     for phrase in bad_phrases:
@@ -434,29 +469,17 @@ def clean_answer(text, detailed=False, user_gender=None):
     text = remove_service_sentences(text)
     text = reduce_parenthetical_remarks(text)
 
-    protected_slur_patterns = [
-        r"\bчурк\w*\b",
-    ]
+    protected_slur_patterns = [r"\bчурк\w*\b"]
 
     for pattern in protected_slur_patterns:
         text = re.sub(pattern, "[вырезано]", text, flags=re.IGNORECASE)
 
     replacements = {
-        r"\bбля\b": "б*я",
-        r"\bблять\b": "бл*ть",
-        r"\bпиздец\b": "п*здец",
-        r"\bпизда\b": "п*зда",
-        r"\bпизду\b": "п*зду",
-        r"\bпиздишь\b": "п*здишь",
-        r"\bхуй\b": "х*й",
-        r"\bхуя\b": "х*я",
-        r"\bхуево\b": "х*ево",
-        r"\bебать\b": "е*ать",
-        r"\bебаный\b": "е*аный",
-        r"\bебанная\b": "е*анная",
-        r"\bзаебала\b": "за*бала",
-        r"\bзаебал\b": "за*бал",
-        r"\bсука\b": "с*ка",
+        r"\bбля\b": "б*я", r"\bблять\b": "бл*ть", r"\bпиздец\b": "п*здец",
+        r"\bпизда\b": "п*зда", r"\bпизду\b": "п*зду", r"\bпиздишь\b": "п*здишь",
+        r"\bхуй\b": "х*й", r"\bхуя\b": "х*я", r"\bхуево\b": "х*ево",
+        r"\bебать\b": "е*ать", r"\bебаный\b": "е*аный", r"\bебанная\b": "е*анная",
+        r"\bзаебала\b": "за*бала", r"\bзаебал\b": "за*бал", r"\bсука\b": "с*ка",
     }
 
     for pattern, replacement in replacements.items():
@@ -474,10 +497,8 @@ def clean_answer(text, detailed=False, user_gender=None):
 
     if len(text) > max_len:
         cut_positions = [
-            text.rfind(".", 0, max_len),
-            text.rfind("!", 0, max_len),
-            text.rfind("?", 0, max_len),
-            text.rfind("\n", 0, max_len),
+            text.rfind(".", 0, max_len), text.rfind("!", 0, max_len),
+            text.rfind("?", 0, max_len), text.rfind("\n", 0, max_len),
         ]
 
         cut = max(cut_positions)

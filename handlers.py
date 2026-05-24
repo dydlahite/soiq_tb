@@ -19,6 +19,36 @@ def split_sentences_safely(text):
     return [part.strip() for part in parts if part.strip()]
 
 
+def add_human_line_breaks(text):
+    if not text or "\n" in text:
+        return text
+
+    if len(text) < 75 or len(text) > 520:
+        return text
+
+    # Не в каждый ответ. Иначе получится не живая речь, а стихотворная лесенка имени нейросети.
+    if random.randint(1, 100) > 46:
+        return text
+
+    sentences = split_sentences_safely(text)
+
+    if len(sentences) < 2 or len(sentences) > 5:
+        return text
+
+    lines = []
+
+    for sentence in sentences:
+        if lines and len(lines[-1]) + len(sentence) < 62 and random.randint(1, 100) <= 30:
+            lines[-1] += " " + sentence
+        else:
+            lines.append(sentence)
+
+    if len(lines) < 2:
+        return text
+
+    return "\n".join(lines)
+
+
 def split_answer_randomly(text):
     if not text:
         return []
@@ -70,6 +100,8 @@ async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYP
     parts = split_answer_randomly(answer)
 
     for index, part in enumerate(parts):
+        part = add_human_line_breaks(part)
+
         # Чем длиннее кусок, тем дольше "печатает".
         delay = len(part) / random.uniform(45, 75)
         delay += random.uniform(0.3, 1.0)
