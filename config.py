@@ -8,11 +8,8 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 
-# ProxyAPI совместим с OpenAI SDK. Ключ хранится только в .env на сервере.
-PROXYAPI_API_KEY = (
-    os.getenv("PROXYAPI_API_KEY", "").strip()
-    or os.getenv("PROXYAPI_KEY", "").strip()
-)
+# ProxyAPI. Ключ хранится только в /root/bot/.env на сервере, не в GitHub.
+PROXYAPI_API_KEY = os.getenv("PROXYAPI_API_KEY", "").strip() or os.getenv("PROXYAPI_KEY", "").strip()
 PROXYAPI_BASE_URL = os.getenv("PROXYAPI_BASE_URL", "https://api.proxyapi.ru/openai/v1").strip()
 PROXYAPI_MODEL = os.getenv("PROXYAPI_MODEL", "gpt-4o-mini").strip()
 PROXYAPI_TTS_MODEL = os.getenv("PROXYAPI_TTS_MODEL", "tts-1").strip()
@@ -26,11 +23,7 @@ OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini").strip()
 DATABASE_PATH = os.getenv("DATABASE_PATH", "bot.db").strip()
 PERSONALITY_PATH = os.getenv("PERSONALITY_PATH", "personality.txt").strip()
 
-ADMIN_IDS = [
-    int(x.strip())
-    for x in os.getenv("ADMIN_IDS", "").split(",")
-    if x.strip().isdigit()
-]
+ADMIN_IDS = [int(x.strip()) for x in os.getenv("ADMIN_IDS", "").split(",") if x.strip().isdigit()]
 
 DEFAULT_HISTORY_LIMIT = int(os.getenv("DEFAULT_HISTORY_LIMIT", "18"))
 DEFAULT_MEDIA_CHANCE = int(os.getenv("DEFAULT_MEDIA_CHANCE", "10"))
