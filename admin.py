@@ -20,6 +20,8 @@ from tts import (
     set_voice_mode,
     get_voice_chance,
     set_voice_chance,
+    get_voice_max_per_day,
+    get_voice_cooldown_hours,
     ensure_voice_defaults,
 )
 
@@ -172,9 +174,9 @@ def voice_keyboard():
             InlineKeyboardButton("voice random", callback_data="admin_voice_mode:random"),
         ],
         [
-            InlineKeyboardButton("шанс 10%", callback_data="admin_voice_chance:10"),
-            InlineKeyboardButton("шанс 25%", callback_data="admin_voice_chance:25"),
-            InlineKeyboardButton("шанс 50%", callback_data="admin_voice_chance:50"),
+            InlineKeyboardButton("шанс 8%", callback_data="admin_voice_chance:8"),
+            InlineKeyboardButton("шанс 12%", callback_data="admin_voice_chance:12"),
+            InlineKeyboardButton("шанс 20%", callback_data="admin_voice_chance:20"),
         ],
         [
             InlineKeyboardButton("voice nova", callback_data="admin_tts_voice:nova"),
@@ -475,7 +477,7 @@ async def voice_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Нет доступа.")
         return
     set_voice_mode("on")
-    await update.message.reply_text("Голосовые включены. Если OpenAI опять без квоты, будет текст. Сюрпризов ноль.")
+    await update.message.reply_text("Голос разрешен, но не будет орать каждый раз. У него теперь есть тормоза.")
 
 
 async def voice_random_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -483,7 +485,7 @@ async def voice_random_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Нет доступа.")
         return
     set_voice_mode("random")
-    await update.message.reply_text(f"Голосовые random включены. Шанс: {get_voice_chance()}%")
+    await update.message.reply_text(f"Голос random включен. Шанс: {get_voice_chance()}%")
 
 
 async def set_voice_chance_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -764,7 +766,7 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"voice mode: {get_voice_mode()}\n"
             f"voice chance: {get_voice_chance()}%\n"
             f"tts voice: {get_setting('tts_voice', 'nova')}\n\n"
-            "Голос работает через OpenAI TTS. Если там нет квоты, бот упадет обратно в текст, как приличный трус.",
+            "Голос работает через ProxyAPI/OpenAI TTS и включается только как редкое событие.",
             reply_markup=voice_keyboard(),
         )
         return

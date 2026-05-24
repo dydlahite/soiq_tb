@@ -8,6 +8,16 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 
+# ProxyAPI совместим с OpenAI SDK. Ключ хранится только в .env на сервере.
+PROXYAPI_API_KEY = (
+    os.getenv("PROXYAPI_API_KEY", "").strip()
+    or os.getenv("PROXYAPI_KEY", "").strip()
+)
+PROXYAPI_BASE_URL = os.getenv("PROXYAPI_BASE_URL", "https://api.proxyapi.ru/openai/v1").strip()
+PROXYAPI_MODEL = os.getenv("PROXYAPI_MODEL", "gpt-4o-mini").strip()
+PROXYAPI_TTS_MODEL = os.getenv("PROXYAPI_TTS_MODEL", "tts-1").strip()
+PROXYAPI_TTS_VOICE = os.getenv("PROXYAPI_TTS_VOICE", "nova").strip()
+
 OPENROUTER_DEEPSEEK_MODEL = os.getenv("OPENROUTER_DEEPSEEK_MODEL", "deepseek/deepseek-chat").strip()
 OPENROUTER_AUTO_MODEL = os.getenv("OPENROUTER_AUTO_MODEL", "openrouter/auto").strip()
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip()

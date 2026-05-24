@@ -12,7 +12,7 @@ from memory import save_message, get_history, get_last_assistant_answer
 from moods import get_current_mood
 from media import maybe_send_media
 from idle import touch_chat, schedule_idle_jobs
-from tts import should_send_voice, make_tts_file, cleanup_voice_file
+from tts import should_send_voice, make_tts_file, cleanup_voice_file, record_voice_sent
 
 
 PROVIDER_FAILURE_PREFIX = "Все нейросети сейчас недоступны"
@@ -118,6 +118,7 @@ async def send_voice_reply(update: Update, answer: str):
                 # Без ffmpeg будет mp3. Это не "кружочек-voice", но хотя бы аудио.
                 await update.message.reply_audio(audio=file)
 
+        record_voice_sent()
         return True
 
     except Exception as error:
@@ -129,8 +130,8 @@ async def send_voice_reply(update: Update, answer: str):
         cleanup_voice_file(voice_path)
 
 
-async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, answer: str):
-    if should_send_voice(answer):
+async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, answer: str, user_text: str = ""):
+    if should_send_voice(answer, user_text=user_text, mood=get_current_mood()):
         await context.bot.send_chat_action(
             chat_id=update.effective_chat.id,
             action=ChatAction.RECORD_VOICE,
@@ -202,7 +203,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_provider_failure_answer(answer):
         save_message(user_id, chat_id, "assistant", answer)
 
-    await send_humanized_reply(update, context, answer)
+    await send_humanized_reply(update, context, answer, user_text=user_text)
 
     if not is_provider_failure_answer(answer):
         await maybe_send_media(update, user_text + "\n" + answer, get_current_mood())

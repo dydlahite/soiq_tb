@@ -9,6 +9,9 @@ from config import (
     OPENROUTER_API_KEY,
     GROQ_API_KEY,
     OPENAI_API_KEY,
+    PROXYAPI_API_KEY,
+    PROXYAPI_BASE_URL,
+    PROXYAPI_MODEL,
     OPENROUTER_DEEPSEEK_MODEL,
     OPENROUTER_AUTO_MODEL,
     GROQ_MODEL,
@@ -43,6 +46,13 @@ openai_client = None
 if OPENAI_API_KEY:
     openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
+proxyapi_client = None
+if PROXYAPI_API_KEY:
+    proxyapi_client = OpenAI(
+        api_key=PROXYAPI_API_KEY,
+        base_url=PROXYAPI_BASE_URL,
+    )
+
 
 STYLE_MODES = {
     "normal": "Обычный режим: живо, коротко, язвительно, без лишнего украшательства.",
@@ -59,6 +69,12 @@ STYLE_MODES = {
     "soft": "Мягкий режим: спокойнее и бережнее, но без ванильной открытки.",
 }
 
+MAX_PERSONALITY_CHARS = 3200
+MAX_PATTERNS_CHARS = 2200
+MAX_INTERESTS_CHARS = 1400
+MAX_SPEECH_MARKERS_CHARS = 700
+MAX_STYLE_MODES_CHARS = 900
+
 
 FEMALE_HINTS = [
     r"\bя\b[^.!?\n]{0,40}\b(ехала|писала|забыла|устала|нашла|хотела|могла|была|сделала|сказала|поняла|пошла|пришла|родилась|решила|думала|выбрала|поставила|загрузила|открыла|готова|рада|согласна|виновата|уверена|злая|одна)\b",
@@ -69,6 +85,71 @@ MALE_HINTS = [
     r"\bя\b[^.!?\n]{0,40}\b(ехал|писал|забыл|устал|нашел|хотел|мог|был|сделал|сказал|понял|пошел|пришел|родился|решил|думал|выбрал|поставил|загрузил|открыл|готов|рад|согласен|виноват|уверен|злой|один)\b",
     r"\b(сам|готов|рад|согласен|устал|забыл|нашел|ехал|понял)\b",
 ]
+
+
+
+def compact_prompt_text(text, max_chars):
+    if not text:
+        return ""
+
+    text = str(text).strip()
+
+    if len(text) <= max_chars:
+        return text
+
+    cut = max(
+        text.rfind("\n\n", 0, max_chars),
+        text.rfind(".", 0, max_chars),
+        text.rfind("\n", 0, max_chars),
+    )
+
+    if cut > 500:
+        return text[:cut].strip() + "\n\n[обрезано, чтобы не сжечь токены]"
+
+    return text[:max_chars].strip() + "\n\n[обрезано, чтобы не сжечь токены]"
+
+
+def is_complex_message(text):
+    text_l = (text or "").lower().strip()
+
+    if len(text_l) >= 450:
+        return True
+
+    if len(text_l.split()) >= 70:
+        return True
+
+    complex_triggers = [
+        "разбери",
+        "проанализируй",
+        "объясни подробно",
+        "подробно",
+        "почему не работает",
+        "ошибка",
+        "traceback",
+        "exception",
+        "код",
+        "архитектур",
+        "логика",
+        "алгоритм",
+        "патч",
+        "сделай план",
+        "сложный вопрос",
+        "сравни",
+        "инструкция",
+        "как настроить",
+        "как исправить",
+    ]
+
+    score = 0
+
+    for trigger in complex_triggers:
+        if trigger in text_l:
+            score += 1
+
+    if "```" in text_l or "journalctl" in text_l or "systemctl" in text_l:
+        score += 2
+
+    return score >= 2
 
 
 def ensure_text_file(path, default_text):
@@ -221,10 +302,11 @@ def get_effective_style_mode():
 
 def build_system_prompt(user_id, chat_id):
     memory_prompt = build_memory_prompt(user_id, chat_id)
-    interests = load_interests()
-    patterns = load_patterns()
-    speech_markers = load_speech_markers()
-    style_modes_text = load_style_modes_file()
+    interests = compact_prompt_text(load_interests(), MAX_INTERESTS_CHARS)
+    patterns = compact_prompt_text(load_patterns(), MAX_PATTERNS_CHARS)
+    speech_markers = compact_prompt_text(load_speech_markers(), MAX_SPEECH_MARKERS_CHARS)
+    style_modes_text = compact_prompt_text(load_style_modes_file(), MAX_STYLE_MODES_CHARS)
+    personality = compact_prompt_text(load_personality(), MAX_PERSONALITY_CHARS)
 
     style_mode = get_effective_style_mode()
     style_mode_prompt = STYLE_MODES.get(style_mode, STYLE_MODES["normal"])
@@ -361,13 +443,36 @@ def ask_openai(messages):
     return response.choices[0].message.content
 
 
-def provider_order(detailed):
-    return [
+
+def ask_proxyapi_openai(messages):
+    if not proxyapi_client:
+        raise RuntimeError("Нет PROXYAPI_API_KEY")
+
+    response = proxyapi_client.chat.completions.create(
+        model=PROXYAPI_MODEL,
+        messages=messages,
+        temperature=0.55,
+        max_tokens=450,
+    )
+
+    return response.choices[0].message.content
+
+
+def provider_order(use_expensive_model=False):
+    cheap = [
         ("OpenRouter DeepSeek", ask_openrouter_deepseek),
         ("Groq", ask_groq),
         ("OpenRouter Auto", ask_openrouter_auto),
-        ("OpenAI", ask_openai),
     ]
+
+    # ProxyAPI/OpenAI не основной мозг. Он включается только для сложных/развернутых задач
+    # и стоит последним, чтобы обычная болтовня не сжигала деньги.
+    if use_expensive_model and PROXYAPI_API_KEY:
+        cheap.append(("ProxyAPI OpenAI", ask_proxyapi_openai))
+    elif use_expensive_model and OPENAI_API_KEY:
+        cheap.append(("OpenAI", ask_openai))
+
+    return cheap
 
 
 def call_provider(provider, messages):
@@ -383,6 +488,8 @@ def polish_answer(answer, previous_answer, user_text):
 def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
     detailed = need_detailed_answer(user_text)
     allow_list = user_requested_list(user_text)
+    use_expensive_model = is_complex_message(user_text) or detailed
+    set_setting("last_complex_message", "yes" if use_expensive_model else "no")
     user_gender = infer_user_gender(user_text, history)
     set_setting("last_user_gender", user_gender)
 
@@ -397,7 +504,7 @@ def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
 
     last_error = None
 
-    for name, provider in provider_order(detailed):
+    for name, provider in provider_order(use_expensive_model=use_expensive_model):
         try:
             print(f"Пробую: {name}")
             set_setting("last_provider_try", name)
