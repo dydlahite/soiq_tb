@@ -11,6 +11,8 @@ from ai import generate_answer
 from memory import save_message, get_history, get_last_assistant_answer
 from moods import get_current_mood
 from media import maybe_send_media
+from idle import touch_chat, schedule_idle_jobs
+from tts import should_send_voice, make_tts_file, cleanup_voice_file
 
 
 PROVIDER_FAILURE_PREFIX = "Все нейросети сейчас недоступны"
@@ -103,7 +105,40 @@ def split_answer_randomly(text):
     return chunks
 
 
+async def send_voice_reply(update: Update, answer: str):
+    voice_path = None
+
+    try:
+        voice_path, is_voice = make_tts_file(answer)
+
+        with open(voice_path, "rb") as file:
+            if is_voice:
+                await update.message.reply_voice(voice=file)
+            else:
+                # Без ffmpeg будет mp3. Это не "кружочек-voice", но хотя бы аудио.
+                await update.message.reply_audio(audio=file)
+
+        return True
+
+    except Exception as error:
+        print("TTS failed:")
+        print(error)
+        return False
+
+    finally:
+        cleanup_voice_file(voice_path)
+
+
 async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, answer: str):
+    if should_send_voice(answer):
+        await context.bot.send_chat_action(
+            chat_id=update.effective_chat.id,
+            action=ChatAction.RECORD_VOICE,
+        )
+
+        if await send_voice_reply(update, answer):
+            return
+
     parts = split_answer_randomly(answer)
 
     for index, part in enumerate(parts):
@@ -130,6 +165,9 @@ async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user and update.effective_chat:
+        touch_chat(update.effective_user.id, update.effective_chat.id)
+
     await update.message.reply_text(
         "Qq.\nПозвони, как напишешь.\nВпрочем, интереса отвечать тебе все еще нет.\n:)",
         parse_mode=None,
@@ -143,6 +181,8 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
     user_text = update.message.text
+
+    touch_chat(user_id, chat_id)
 
     history = get_history(user_id, chat_id)
     previous_answer = get_last_assistant_answer(user_id, chat_id)
@@ -169,6 +209,8 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def register_handlers(app):
+    schedule_idle_jobs(app)
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("myid", admin.myid))
     app.add_handler(CommandHandler("admin", admin.admin_menu))
@@ -206,5 +248,13 @@ def register_handlers(app):
     app.add_handler(CommandHandler("reload_style", admin.reload_style))
     app.add_handler(CommandHandler("clear_my_memory", admin.clear_my_memory_cmd))
     app.add_handler(CommandHandler("clear_all_memory", admin.clear_all_memory_cmd))
+    app.add_handler(CommandHandler("idle_on", admin.idle_on_cmd))
+    app.add_handler(CommandHandler("idle_off", admin.idle_off_cmd))
+    app.add_handler(CommandHandler("set_idle_hours", admin.set_idle_hours_cmd))
+    app.add_handler(CommandHandler("set_idle_chance", admin.set_idle_chance_cmd))
+    app.add_handler(CommandHandler("voice_off", admin.voice_off_cmd))
+    app.add_handler(CommandHandler("voice_on", admin.voice_on_cmd))
+    app.add_handler(CommandHandler("voice_random", admin.voice_random_cmd))
+    app.add_handler(CommandHandler("set_voice_chance", admin.set_voice_chance_cmd))
     app.add_handler(CallbackQueryHandler(admin.admin_callback, pattern="^admin_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
