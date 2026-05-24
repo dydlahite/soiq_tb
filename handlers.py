@@ -13,6 +13,13 @@ from moods import get_current_mood
 from media import maybe_send_media
 
 
+PROVIDER_FAILURE_PREFIX = "Все нейросети сейчас недоступны"
+
+
+def is_provider_failure_answer(answer):
+    return bool(answer and answer.strip().startswith(PROVIDER_FAILURE_PREFIX))
+
+
 def split_sentences_safely(text):
     # Не режем после 1. 2. 3., чтобы не получалось "2." отдельно от текста пункта.
     parts = re.split(r"(?<!\b\d)(?<=[.!?])\s+(?=[А-ЯA-Zа-яa-z])", text.strip())
@@ -149,11 +156,16 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     save_message(user_id, chat_id, "user", user_text)
-    save_message(user_id, chat_id, "assistant", answer)
+
+    # Аварийную заглушку не сохраняем в историю, иначе бот потом сам себе
+    # подсовывает этот мусор и повторяет его, как маленький серверный попугай.
+    if not is_provider_failure_answer(answer):
+        save_message(user_id, chat_id, "assistant", answer)
 
     await send_humanized_reply(update, context, answer)
 
-    await maybe_send_media(update, user_text + "\n" + answer, get_current_mood())
+    if not is_provider_failure_answer(answer):
+        await maybe_send_media(update, user_text + "\n" + answer, get_current_mood())
 
 
 def register_handlers(app):

@@ -1,7 +1,36 @@
 from database import cursor, db, now_iso
 
 
+MAX_HISTORY_MESSAGES = 8
+MAX_HISTORY_ITEM_CHARS = 650
+MAX_MEMORY_VALUE_CHARS = 450
+
+
+def compact_text(text, max_chars=MAX_HISTORY_ITEM_CHARS):
+    if not text:
+        return ""
+
+    text = str(text).strip()
+
+    if len(text) <= max_chars:
+        return text
+
+    cut = max(
+        text.rfind(".", 0, max_chars),
+        text.rfind("!", 0, max_chars),
+        text.rfind("?", 0, max_chars),
+        text.rfind("\n", 0, max_chars),
+    )
+
+    if cut > 120:
+        return text[: cut + 1].strip()
+
+    return text[:max_chars].strip() + ".."
+
+
 def save_message(user_id, chat_id, role, content):
+    content = compact_text(content, max_chars=1400)
+
     cursor.execute(
         """
         INSERT INTO messages (user_id, chat_id, role, content, created_at)
@@ -12,7 +41,9 @@ def save_message(user_id, chat_id, role, content):
     db.commit()
 
 
-def get_history(user_id, chat_id, limit=18):
+def get_history(user_id, chat_id, limit=MAX_HISTORY_MESSAGES):
+    limit = min(int(limit or MAX_HISTORY_MESSAGES), MAX_HISTORY_MESSAGES)
+
     cursor.execute(
         """
         SELECT role, content
@@ -27,7 +58,15 @@ def get_history(user_id, chat_id, limit=18):
     rows = cursor.fetchall()
     rows.reverse()
 
-    return [{"role": row["role"], "content": row["content"]} for row in rows]
+    history = []
+
+    for row in rows:
+        content = compact_text(row["content"])
+
+        if content:
+            history.append({"role": row["role"], "content": content})
+
+    return history
 
 
 def get_last_assistant_answer(user_id, chat_id):
@@ -66,6 +105,7 @@ def count_messages():
 
 def remember(scope, key, value, user_id=None, chat_id=None):
     now = now_iso()
+    value = compact_text(value, max_chars=MAX_MEMORY_VALUE_CHARS)
 
     cursor.execute(
         """
@@ -119,11 +159,17 @@ def build_memory_prompt(user_id, chat_id):
     parts = []
 
     if global_memories:
-        lines = "\n".join([f"- {key}: {value}" for key, value in global_memories])
+        lines = "\n".join([
+            f"- {key}: {compact_text(value, max_chars=MAX_MEMORY_VALUE_CHARS)}"
+            for key, value in global_memories[:12]
+        ])
         parts.append("Глобальная память бота:\n" + lines)
 
     if user_memories:
-        lines = "\n".join([f"- {key}: {value}" for key, value in user_memories])
+        lines = "\n".join([
+            f"- {key}: {compact_text(value, max_chars=MAX_MEMORY_VALUE_CHARS)}"
+            for key, value in user_memories[:12]
+        ])
         parts.append("Память об этом пользователе:\n" + lines)
 
     return "\n\n".join(parts)
