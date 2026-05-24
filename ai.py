@@ -1,5 +1,6 @@
 import os
 import random
+import re
 
 from openai import OpenAI
 from groq import Groq
@@ -58,6 +59,17 @@ STYLE_MODES = {
 }
 
 
+FEMALE_HINTS = [
+    r"\bя\b[^.!?\n]{0,40}\b(ехала|писала|забыла|устала|нашла|хотела|могла|была|сделала|сказала|поняла|пошла|пришла|родилась|решила|думала|выбрала|поставила|загрузила|открыла|готова|рада|согласна|виновата|уверена|злая|одна)\b",
+    r"\b(сама|готова|рада|согласна|устала|забыла|нашла|ехала|поняла)\b",
+]
+
+MALE_HINTS = [
+    r"\bя\b[^.!?\n]{0,40}\b(ехал|писал|забыл|устал|нашел|хотел|мог|был|сделал|сказал|понял|пошел|пришел|родился|решил|думал|выбрал|поставил|загрузил|открыл|готов|рад|согласен|виноват|уверен|злой|один)\b",
+    r"\b(сам|готов|рад|согласен|устал|забыл|нашел|ехал|понял)\b",
+]
+
+
 def ensure_text_file(path, default_text):
     if not os.path.exists(path):
         with open(path, "w", encoding="utf-8") as file:
@@ -65,6 +77,46 @@ def ensure_text_file(path, default_text):
 
     with open(path, "r", encoding="utf-8") as file:
         return file.read().strip()
+
+
+def infer_user_gender(user_text, history):
+    user_chunks = [user_text]
+
+    for item in history[-12:]:
+        if item.get("role") == "user":
+            user_chunks.append(item.get("content", ""))
+
+    corpus = "\n".join(user_chunks).lower()
+
+    female_score = sum(1 for pattern in FEMALE_HINTS if re.search(pattern, corpus, flags=re.IGNORECASE))
+    male_score = sum(1 for pattern in MALE_HINTS if re.search(pattern, corpus, flags=re.IGNORECASE))
+
+    if female_score > male_score:
+        return "female"
+
+    if male_score > female_score:
+        return "male"
+
+    return "unknown"
+
+
+def user_gender_prompt(user_gender):
+    if user_gender == "female":
+        user_line = "Собеседник, судя по речи, женщина. Обращайся к ней в женском роде: поняла, хотела, устала, готова."
+    elif user_gender == "male":
+        user_line = "Собеседник, судя по речи, мужчина. Обращайся к нему в мужском роде: понял, хотел, устал, готов."
+    else:
+        user_line = (
+            "Пол собеседника не определен. Не угадывай и не пиши формы вроде понял(а), хотел(а), мог(ла). "
+            "Перефразируй нейтрально: *чтобы было понятно*, *если хотелось*, *если нужно* и т.п."
+        )
+
+    return (
+        "ГРАММАТИЧЕСКИЙ РОД:\n"
+        "Ты всегда говоришь о себе только в женском роде: я поняла, я сказала, я могла, я готова. "
+        "Никогда не пиши о себе в мужском роде.\n"
+        + user_line
+    )
 
 
 def load_interests():
@@ -137,12 +189,12 @@ def load_style_modes_file():
     return ensure_text_file(
         "style_modes.txt",
         """
-normal — обычный стиль: живо, коротко, язвительно.
-ornate — высокопарный стиль: книжнее, витиеватее, чуть театральнее, но без ремарок.
-messy — рваный стиль: проще, хаотичнее, меньше пунктуации, ближе к потоку мыслей.
-dry — сухой стиль: коротко и холодно.
-angry — раздраженный стиль: резче, но без реального вреда.
-soft — мягкий стиль: спокойнее, если разговор тяжелый.
+normal - обычный стиль: живо, коротко, язвительно.
+ornate - высокопарный стиль: книжнее, витиеватее, чуть театральнее, но без ремарок.
+messy - рваный стиль: проще, хаотичнее, меньше пунктуации, ближе к потоку мыслей.
+dry - сухой стиль: коротко и холодно.
+angry - раздраженный стиль: резче, но без реального вреда.
+soft - мягкий стиль: спокойнее, если разговор тяжелый.
 """,
     )
 
@@ -152,7 +204,6 @@ def get_effective_style_mode():
     selected = get_setting("style_mode", "normal")
 
     if auto_style == "on":
-        # Не слишком часто мягкий/злой, чаще normal/ornate/messy.
         selected = random.choices(
             ["normal", "ornate", "messy", "dry", "angry", "soft"],
             weights=[34, 22, 22, 10, 7, 5],
@@ -205,10 +256,23 @@ def build_system_prompt(user_id, chat_id):
     return "\n\n".join(parts)
 
 
-def prepare_messages(user_id, chat_id, history, user_text, previous_answer=""):
+def prepare_messages(user_id, chat_id, history, user_text, previous_answer="", user_gender="unknown"):
     system_prompt = build_system_prompt(user_id, chat_id)
 
-    messages = [{"role": "system", "content": system_prompt}]
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "system", "content": user_gender_prompt(user_gender)},
+        {
+            "role": "system",
+            "content": (
+                "НЕ УТОЧНЯЙ, как тебе себя вести. Не пиши: *дай знать*, *если не нравится*, "
+                "*могу добавить*, *могу убрать*, *могу обойтись*, *хочешь, чтобы я*. "
+                "Если пользователь критикует стиль, просто отвечай следующим сообщением лучше. "
+                "Не делай натужные сравнения вроде *это как пытаться танцевать с манекеном*. "
+                "Ремарки в скобках используй редко, только если они правда добавляют смысл."
+            ),
+        },
+    ]
 
     if not user_requested_list(user_text):
         messages.append({
@@ -305,7 +369,17 @@ def call_provider(provider, messages):
 def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
     detailed = need_detailed_answer(user_text)
     allow_list = user_requested_list(user_text)
-    messages = prepare_messages(user_id, chat_id, history, user_text, previous_answer)
+    user_gender = infer_user_gender(user_text, history)
+    set_setting("last_user_gender", user_gender)
+
+    messages = prepare_messages(
+        user_id,
+        chat_id,
+        history,
+        user_text,
+        previous_answer,
+        user_gender=user_gender,
+    )
 
     last_error = None
 
@@ -318,7 +392,7 @@ def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
             if not raw_answer:
                 continue
 
-            answer = clean_answer(raw_answer, detailed=detailed)
+            answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender)
 
             if answer_has_forbidden_list(answer) and not allow_list:
                 print(f"{name} дал список без просьбы, пробую переформулировать.")
@@ -332,11 +406,11 @@ def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
                 }]
 
                 raw_answer = call_provider(provider, retry_messages)
-                answer = clean_answer(raw_answer, detailed=detailed)
+                answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender)
 
                 if answer_has_forbidden_list(answer):
                     answer = flatten_forbidden_list(answer)
-                    answer = clean_answer(answer, detailed=detailed)
+                    answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
 
             if previous_answer and is_too_similar(answer, previous_answer):
                 print(f"{name} дал слишком похожий ответ, пробую дальше.")

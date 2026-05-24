@@ -138,13 +138,201 @@ def normalize_punctuation(text):
     return text
 
 
+def fix_bot_self_gender(text):
+    replacements = {
+        r"\bя не понял\b": "я не поняла",
+        r"\bя понял\b": "я поняла",
+        r"\bя готов\b": "я готова",
+        r"\bя рад\b": "я рада",
+        r"\bя должен\b": "я должна",
+        r"\bя мог\b": "я могла",
+        r"\bя бы мог\b": "я бы могла",
+        r"\bя был\b": "я была",
+        r"\bя сказал\b": "я сказала",
+        r"\bя написал\b": "я написала",
+        r"\bя сделал\b": "я сделала",
+        r"\bя исправил\b": "я исправила",
+        r"\bя стал\b": "я стала",
+        r"\bя подумал\b": "я подумала",
+        r"\bя решил\b": "я решила",
+        r"\bя пытался\b": "я пыталась",
+        r"\bя ошибся\b": "я ошиблась",
+    }
+
+    for pattern, replacement in replacements.items():
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+
+    return text
+
+
+def fix_user_gender_forms(text, user_gender=None):
+    user_gender = user_gender or "unknown"
+
+    if user_gender == "female":
+        direct = {
+            r"\bпонимал\(а\)\b": "понимала",
+            r"\bпонял\(а\)\b": "поняла",
+            r"\bхотел\(а\)\b": "хотела",
+            r"\bмог\(ла\)\b": "могла",
+            r"\bбыл\(а\)\b": "была",
+            r"\bготов\(а\)\b": "готова",
+        }
+
+        for pattern, replacement in direct.items():
+            text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+
+        text = re.sub(r"\b([А-Яа-я]+л)\(а\)\b", r"\1а", text)
+        return text
+
+    if user_gender == "male":
+        text = re.sub(r"\bмог\(ла\)\b", "мог", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bбыл\(а\)\b", "был", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bготов\(а\)\b", "готов", text, flags=re.IGNORECASE)
+        text = re.sub(r"\(а\)", "", text)
+        return text
+
+    neutral = {
+        r"\bчтобы ты понимал\(а\)\b": "чтобы было понятно",
+        r"\bты понимал\(а\)\b": "было понятно",
+        r"\bпонимал\(а\)\b": "было понятно",
+        r"\bпонял\(а\)\b": "было понятно",
+        r"\bты хотел\(а\)\b": "тебе хотелось",
+        r"\bхотел\(а\)\b": "хотелось",
+        r"\bмог\(ла\)\b": "можно было",
+        r"\bбыл\(а\)\b": "было",
+        r"\bготов\(а\)\b": "готово",
+    }
+
+    for pattern, replacement in neutral.items():
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+
+    # Если модель все равно оставила скобочные окончания, убираем этот канцелярский мутант.
+    text = re.sub(r"\b([А-Яа-я]+л)\(а\)\b", r"\1", text)
+    text = re.sub(r"\([а-яА-Я]{1,4}\)", "", text)
+
+    return text
+
+
+SERVICE_PATTERNS = [
+    r"\bдай знать\b",
+    r"\bесли\b.{0,60}\bне нравится\b",
+    r"\bесли хочешь\b",
+    r"\bесли тебе\b.{0,80}\b(не нравится|не подходит|нужно)\b",
+    r"\bмогу\b.{0,60}\b(добавить|убрать|изменить|поменять|подстроиться|обойтись|сделать|поправить)\b",
+    r"\bмогу ли я\b",
+    r"\bхочешь, чтобы я\b",
+    r"\bчто добавить\b",
+    r"\bчто убрать\b",
+    r"\bкак мне себя вести\b",
+    r"\bкак мне отвечать\b",
+    r"\bкак ей себя вести\b",
+    r"\bкак тебе отвечать\b",
+    r"\bтак лучше\??\b",
+    r"\bтеперь лучше\??\b",
+    r"\bможешь тыкнуть\b",
+    r"\bможешь сказать\b.{0,40}\b(если|что)\b",
+]
+
+BAD_SIMILE_PATTERNS = [
+    r"\bэто как\b.{10,160}",
+    r"\bкак пытаться\b.{5,160}",
+]
+
+
+def sentence_is_bad(sentence):
+    lower = sentence.lower()
+
+    for pattern in SERVICE_PATTERNS:
+        if re.search(pattern, lower, flags=re.IGNORECASE):
+            return True
+
+    for pattern in BAD_SIMILE_PATTERNS:
+        if re.search(pattern, lower, flags=re.IGNORECASE):
+            return True
+
+    return False
+
+
+def remove_service_sentences(text):
+    blocks = re.split(r"(\n+)", text)
+    result_blocks = []
+
+    for block in blocks:
+        if not block or block.startswith("\n"):
+            result_blocks.append(block)
+            continue
+
+        sentences = re.split(r"(?<=[.!?])\s+", block)
+        kept = [sentence.strip() for sentence in sentences if sentence.strip() and not sentence_is_bad(sentence)]
+
+        result_blocks.append(" ".join(kept))
+
+    result = "".join(result_blocks)
+    result = re.sub(r"\n{3,}", "\n\n", result)
+    result = re.sub(r"[ \t]{2,}", " ", result)
+
+    return result.strip()
+
+
+def reduce_parenthetical_remarks(text):
+    matches = list(re.finditer(r"\(([^()\n]{1,140})\)", text))
+
+    if not matches:
+        return text
+
+    kept_count = 0
+
+    def repl(match):
+        nonlocal kept_count
+
+        content = match.group(1).strip()
+        lower = content.lower()
+
+        if lower in [".. :)", "* .. :) *"]:
+            return match.group(0)
+
+        theatrical_triggers = [
+            "дым",
+            "молча",
+            "вздох",
+            "смотр",
+            "хотя",
+            "это тоже",
+            "атмосфер",
+            "диалог",
+            "ремарк",
+            "занавес",
+            "сцена",
+        ]
+
+        if kept_count >= 1:
+            return ""
+
+        if any(trigger in lower for trigger in theatrical_triggers):
+            return ""
+
+        # Даже нормальные скобки оставляем редко, чтобы бот не превращался в пьесу.
+        if random.randint(1, 100) <= 65:
+            return ""
+
+        kept_count += 1
+        return match.group(0)
+
+    text = re.sub(r"\(([^()\n]{1,140})\)", repl, text)
+    text = re.sub(r"\s{2,}", " ", text)
+    text = re.sub(r"\s+\.", ".", text)
+    text = re.sub(r"\s+,", ",", text)
+
+    return text.strip()
+
+
 def maybe_add_sad_pause(text):
     if not text:
         return text
 
     stripped = text.strip()
 
-    if stripped.endswith(":)") or stripped.endswith(".. :)"):
+    if stripped.endswith("* .. :) *") or stripped.endswith(".. :)"):
         return text
 
     lower = stripped.lower()
@@ -167,16 +355,16 @@ def maybe_add_sad_pause(text):
     ]
 
     # Короткий ответ, где как будто нечего сказать.
-    short_empty_answer = len(stripped) <= 80 and random.randint(1, 100) <= 14
+    short_empty_answer = len(stripped) <= 80 and random.randint(1, 100) <= 10
 
     # Грустный контекст, но тоже не в каждый раз, иначе это будет не стиль, а тремор.
-    sad_context = any(word in lower for word in sad_words) and random.randint(1, 100) <= 22
+    sad_context = any(word in lower for word in sad_words) and random.randint(1, 100) <= 18
 
     if short_empty_answer or sad_context:
         if stripped.endswith("."):
             stripped = stripped[:-1].rstrip()
 
-        stripped += ".. :)"
+        stripped += "\n\n* .. :) *"
 
     return stripped
 
@@ -193,16 +381,19 @@ def apply_lowercase_mode(text):
     return text
 
 
-def clean_answer(text, detailed=False):
+def clean_answer(text, detailed=False, user_gender=None):
     if not text:
         return ""
 
     text = text.replace("ё", "е").replace("Ё", "Е")
     text = replace_quotes_with_stars(text)
     text = normalize_punctuation(text)
+    text = fix_bot_self_gender(text)
+    text = fix_user_gender_forms(text, user_gender=user_gender)
 
     # Ролевые действия отдельными строками: *вздыхает*, *молчит*.
-    text = re.sub(r"(?m)^\s*\*[^*\n]{1,200}\*\s*\n?", "", text)
+    # Но * .. :) * не трогаем - это отдельная стилистическая пауза.
+    text = re.sub(r"(?m)^\s*\*(?!\s*\.\.\s*:\)\s*\*)[^*\n]{1,200}\*\s*\n?", "", text)
 
     # Театральные ремарки внутри текста.
     text = re.sub(
@@ -239,6 +430,9 @@ def clean_answer(text, detailed=False):
 
     for phrase in bad_phrases:
         text = text.replace(phrase, "")
+
+    text = remove_service_sentences(text)
+    text = reduce_parenthetical_remarks(text)
 
     protected_slur_patterns = [
         r"\bчурк\w*\b",
@@ -297,4 +491,7 @@ def clean_answer(text, detailed=False):
     text = normalize_punctuation(text)
     text = apply_lowercase_mode(text)
 
-    return text
+    if not text.strip():
+        text = "приняла. без протокольной паники."
+
+    return text.strip()
