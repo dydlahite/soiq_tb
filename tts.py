@@ -14,8 +14,17 @@ from database import get_setting, set_setting
 VOICE_MODES = ["off", "on", "random"]
 
 SUPPORTED_TTS_VOICES = [
-    "alloy", "ash", "ballad", "coral", "echo", "fable",
-    "nova", "onyx", "sage", "shimmer", "verse",
+    "alloy",
+    "ash",
+    "ballad",
+    "coral",
+    "echo",
+    "fable",
+    "nova",
+    "onyx",
+    "sage",
+    "shimmer",
+    "verse",
 ]
 
 
@@ -56,8 +65,12 @@ def get_tts_voice():
 
 def set_tts_voice(voice):
     voice = (voice or "").strip().lower()
+
     if not voice:
         voice = "nova"
+
+    # Не валим команду, если ProxyAPI поддерживает голос, которого нет в нашем списке.
+    # Но для кнопок/подсказки держим нормальный список известных вариантов.
     set_setting("tts_voice", voice)
 
 
@@ -68,8 +81,10 @@ def get_tts_model():
 
 def set_tts_model(model):
     model = (model or "").strip()
+
     if not model:
         model = "tts-1"
+
     set_setting("tts_model", model)
 
 
@@ -154,7 +169,7 @@ def is_technical_text(text):
     text_l = (text or "").lower()
     technical_triggers = [
         "код", "ошибка", "traceback", "exception", "systemctl", "journalctl", "python",
-        "api", "токен", "сервер", "github", "патч", "лог", "команда", "установи", "настрой",
+        "api", "токен", "сервер", "github", "патч", "лог", "команда", "установи", "настрой"
     ]
     return any(trigger in text_l for trigger in technical_triggers)
 
@@ -163,7 +178,7 @@ def is_emotional_voice_moment(answer, user_text, mood=""):
     text_l = ((answer or "") + "\n" + (user_text or "") + "\n" + (mood or "")).lower()
     emotional_triggers = [
         "грустно", "печально", "тоскливо", "устала", "пусто", "жалко", "больно",
-        "молч", "меланхол", "одиноч", "скуч", "* .. :) *", ".. :)",
+        "молч", "меланхол", "одиноч", "скуч", "* .. :) *", ".. :)"
     ]
     return any(trigger in text_l for trigger in emotional_triggers)
 

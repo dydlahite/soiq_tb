@@ -85,6 +85,24 @@ def init_db():
     ON media_seen(user_id, chat_id, media_id)
     """)
 
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS important_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        chat_id INTEGER NOT NULL,
+        message_id INTEGER NOT NULL,
+        source_text TEXT NOT NULL,
+        note TEXT,
+        created_at TEXT NOT NULL
+    )
+    """)
+
+    cursor.execute("""
+    CREATE INDEX IF NOT EXISTS idx_important_messages_chat
+    ON important_messages(chat_id, id)
+    """)
+
     db.commit()
 
 

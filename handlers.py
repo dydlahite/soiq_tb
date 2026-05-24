@@ -11,6 +11,12 @@ from telegram.ext import ContextTypes, CommandHandler, MessageHandler, CallbackQ
 import admin
 from ai import generate_answer
 from database import get_setting, set_setting
+from important import (
+    add_important_message,
+    list_important_messages,
+    delete_important_message,
+    clear_important_messages,
+)
 from forbidden import clean_forbidden_phrases
 from memory import save_message, get_history, get_last_assistant_answer
 from moods import get_current_mood
@@ -40,6 +46,137 @@ from tts import (
 PROVIDER_FAILURE_PREFIX = "Все нейросети сейчас недоступны"
 TEST_VOICE_TEXT = "проверка голоса. звучит терпимо или опять как лифт в поликлинике."
 REACTION_RULES_PATH = "reaction_rules.txt"
+PENDING_TEXT_BUFFERS = {}
+
+
+
+def setting_int(key, default, min_value=0, max_value=100):
+    try:
+        value = int(get_setting(key, str(default)))
+    except (TypeError, ValueError):
+        value = default
+
+    return min(max_value, max(min_value, value))
+
+
+def get_message_buffer_mode():
+    return get_setting("message_buffer", "on")
+
+
+def get_message_buffer_seconds():
+    return setting_int("message_buffer_seconds", 6, min_value=1, max_value=30)
+
+
+def get_reply_mode():
+    return get_setting("reply_mode", "random")
+
+
+def get_reply_chance():
+    return setting_int("reply_chance", 18, min_value=0, max_value=100)
+
+
+def set_last_bot_message(chat_id, message_id):
+    if chat_id and message_id:
+        set_setting(f"last_bot_message_id:{chat_id}", str(message_id))
+
+
+def get_last_bot_message(chat_id):
+    raw = get_setting(f"last_bot_message_id:{chat_id}", "")
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return None
+
+
+def message_preview(message):
+    if not message:
+        return ""
+
+    text = message.text or message.caption or ""
+    if text:
+        return text.strip()[:900]
+
+    if message.photo:
+        return "[фото без подписи]"
+    if message.voice:
+        return "[голосовое сообщение]"
+    if message.sticker:
+        return "[стикер]"
+    if message.animation:
+        return "[gif/animation]"
+    if message.video:
+        return "[видео]"
+    if message.document:
+        return f"[файл: {message.document.file_name or 'без названия'}]"
+
+    return "[сообщение без текста]"
+
+
+def build_reply_context_text(update: Update, user_text: str):
+    replied = update.message.reply_to_message if update.message else None
+
+    if not replied:
+        return user_text
+
+    quoted_text = message_preview(replied)
+    if not quoted_text:
+        return user_text
+
+    author = "собеседника"
+    if replied.from_user:
+        author = replied.from_user.full_name or "собеседника"
+
+    return (
+        "[контекст Telegram-ответа]\n"
+        f"Пользователь отвечает на сообщение от {author}:\n"
+        f"{quoted_text}\n\n"
+        "[новое сообщение пользователя]\n"
+        f"{user_text}"
+    )
+
+
+def choose_reply_to_message_id(update: Update, grouped_messages_count=1):
+    if not update.message:
+        return None
+
+    mode = get_reply_mode()
+
+    if mode == "off":
+        return None
+
+    if mode == "on":
+        return update.message.message_id
+
+    # random: не цитируем каждое сообщение, а только когда это выглядит уместно.
+    chance = get_reply_chance()
+
+    if update.message.reply_to_message:
+        chance = max(chance, 70)
+    elif grouped_messages_count and grouped_messages_count > 1:
+        chance = max(chance, 30)
+
+    if random.randint(1, 100) <= chance:
+        return update.message.message_id
+
+    return None
+
+
+def make_grouped_user_text(items):
+    if len(items) <= 1:
+        return items[0]["ai_text"]
+
+    lines = ["[пользователь отправил несколько сообщений подряд]"]
+    for index, item in enumerate(items, start=1):
+        lines.append(f"{index}. {item['ai_text']}")
+
+    return "\n".join(lines)
+
+
+def make_grouped_save_text(items):
+    if len(items) <= 1:
+        return items[0]["raw_text"]
+
+    return "\n".join(item["raw_text"] for item in items)
 
 
 
@@ -248,7 +385,7 @@ async def maybe_react_to_user_message(update: Update, context: ContextTypes.DEFA
         print(error)
 
 
-async def send_voice_file(update: Update, text: str, voice_override=None, model_override=None):
+async def send_voice_file(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, voice_override=None, model_override=None, reply_to_message_id=None):
     voice_path = None
 
     try:
@@ -260,24 +397,37 @@ async def send_voice_file(update: Update, text: str, voice_override=None, model_
 
         with open(voice_path, "rb") as file:
             if is_voice:
-                await update.message.reply_voice(voice=file)
+                sent = await context.bot.send_voice(
+                    chat_id=update.effective_chat.id,
+                    voice=file,
+                    reply_to_message_id=reply_to_message_id,
+                )
             else:
-                await update.message.reply_audio(audio=file)
+                sent = await context.bot.send_audio(
+                    chat_id=update.effective_chat.id,
+                    audio=file,
+                    reply_to_message_id=reply_to_message_id,
+                )
 
+        set_last_bot_message(update.effective_chat.id, sent.message_id)
         return True
 
     except Exception as error:
         print("TTS failed:")
         print(error)
-        await update.message.reply_text(f"Голос {voice_override or get_tts_voice()} не вышел. Провайдер снова устроил цирк в серверной.")
+        sent = await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Голос {voice_override or get_tts_voice()} не вышел. Провайдер снова устроил цирк в серверной.",
+            reply_to_message_id=reply_to_message_id,
+        )
+        set_last_bot_message(update.effective_chat.id, sent.message_id)
         return False
 
     finally:
         cleanup_voice_file(voice_path)
 
-
-async def send_voice_reply(update: Update, answer: str):
-    ok = await send_voice_file(update, answer)
+async def send_voice_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, answer: str, reply_to_message_id=None):
+    ok = await send_voice_file(update, context, answer, reply_to_message_id=reply_to_message_id)
 
     if ok:
         record_voice_sent()
@@ -285,7 +435,7 @@ async def send_voice_reply(update: Update, answer: str):
     return ok
 
 
-async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, answer: str, user_text: str = ""):
+async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, answer: str, user_text: str = "", reply_to_message_id=None):
     answer = ensure_visible_punctuation(answer)
 
     if should_send_voice(answer, user_text=user_text, mood=get_current_mood()):
@@ -294,7 +444,7 @@ async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYP
             action=ChatAction.RECORD_VOICE,
         )
 
-        if await send_voice_reply(update, answer):
+        if await send_voice_reply(update, context, answer, reply_to_message_id=reply_to_message_id):
             return
 
     parts = split_answer_randomly(answer)
@@ -318,7 +468,13 @@ async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYP
         )
 
         await asyncio.sleep(delay)
-        await update.message.reply_text(part, parse_mode=None)
+        sent = await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=part,
+            parse_mode=None,
+            reply_to_message_id=reply_to_message_id if index == 0 else None,
+        )
+        set_last_bot_message(update.effective_chat.id, sent.message_id)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -497,6 +653,230 @@ async def multimodal_status_cmd(update: Update, context: ContextTypes.DEFAULT_TY
     )
 
 
+async def message_buffer_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("message_buffer", "on")
+    await update.message.reply_text("Буфер сообщений включен. Теперь она немного подождет, прежде чем отвечать на обрывок мысли.")
+
+
+async def message_buffer_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("message_buffer", "off")
+    await update.message.reply_text("Буфер сообщений выключен. Будет отвечать на каждое сообщение отдельно, как нервная кофемолка.")
+
+
+async def set_message_buffer_seconds_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("Пиши так: /set_buffer_seconds 6")
+        return
+
+    value = min(30, max(1, int(context.args[0])))
+    set_setting("message_buffer_seconds", str(value))
+    await update.message.reply_text(f"Пауза буфера сообщений: {value} сек.")
+
+
+async def message_buffer_status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    await update.message.reply_text(
+        f"message_buffer: {get_message_buffer_mode()}\n"
+        f"buffer seconds: {get_message_buffer_seconds()}\n"
+        f"pending buffers: {len(PENDING_TEXT_BUFFERS)}"
+    )
+
+
+async def reply_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("reply_mode", "on")
+    await update.message.reply_text("Reply включен всегда. Странновато, но приказ есть приказ.")
+
+
+async def reply_random_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("reply_mode", "random")
+    await update.message.reply_text("Reply random включен. Будет отвечать цитированием иногда, а не как липучка на каждую реплику.")
+
+
+async def reply_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("reply_mode", "off")
+    await update.message.reply_text("Reply выключен. Будет писать просто в чат.")
+
+
+async def set_reply_chance_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("Пиши так: /set_reply_chance 18")
+        return
+
+    value = min(100, max(0, int(context.args[0])))
+    set_setting("reply_chance", str(value))
+    await update.message.reply_text(f"Шанс reply: {value}%.")
+
+
+async def reply_status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    await update.message.reply_text(
+        f"reply_mode: {get_reply_mode()}\n"
+        f"reply_chance: {get_reply_chance()}%\n"
+        f"last bot message id: {get_last_bot_message(update.effective_chat.id) or 'нет'}"
+    )
+
+
+async def pin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    target = update.message.reply_to_message
+    if not target:
+        await update.message.reply_text("Пиши /pin ответом на сообщение, которое надо закрепить.")
+        return
+
+    try:
+        await context.bot.pin_chat_message(
+            chat_id=update.effective_chat.id,
+            message_id=target.message_id,
+            disable_notification=True,
+        )
+        await update.message.reply_text("Закрепила. Маленький гвоздь в стену чата.")
+    except Exception as error:
+        print("pin failed:")
+        print(error)
+        await update.message.reply_text("Не смогла закрепить. В группе мне нужны права админа на закрепы, вот этот прекрасный бюрократический цветок.")
+
+
+async def pin_last_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    message_id = get_last_bot_message(update.effective_chat.id)
+    if not message_id:
+        await update.message.reply_text("Не вижу последнего сообщения бота для закрепа.")
+        return
+
+    try:
+        await context.bot.pin_chat_message(
+            chat_id=update.effective_chat.id,
+            message_id=message_id,
+            disable_notification=True,
+        )
+        await update.message.reply_text("Последнее сообщение бота закреплено.")
+    except Exception as error:
+        print("pin_last failed:")
+        print(error)
+        await update.message.reply_text("Не смогла закрепить последнее сообщение. Опять права, админка и прочий человеческий феодализм.")
+
+
+async def unpin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    try:
+        target = update.message.reply_to_message
+        await context.bot.unpin_chat_message(
+            chat_id=update.effective_chat.id,
+            message_id=target.message_id if target else None,
+        )
+        await update.message.reply_text("Открепила.")
+    except Exception as error:
+        print("unpin failed:")
+        print(error)
+        await update.message.reply_text("Не смогла открепить. Видимо, чат опять держит оборону.")
+
+
+async def important_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    target = update.message.reply_to_message
+    if not target:
+        await update.message.reply_text("Пиши /important ответом на сообщение, которое надо сохранить как важное.")
+        return
+
+    note = " ".join(context.args).strip() or None
+    source_text = message_preview(target)
+    item_id = add_important_message(
+        user_id=update.effective_user.id,
+        chat_id=update.effective_chat.id,
+        message_id=target.message_id,
+        source_text=source_text,
+        note=note,
+    )
+    await update.message.reply_text(f"Сохранила как важное #{item_id}.")
+
+
+async def important_list_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    rows = list_important_messages(update.effective_chat.id)
+    if not rows:
+        await update.message.reply_text("Важных сообщений нет. Удивительно здоровая ситуация.")
+        return
+
+    lines = []
+    for row in rows:
+        text = row["source_text"].replace("\n", " ")[:180]
+        note = f" - {row['note']}" if row["note"] else ""
+        lines.append(f"#{row['id']} / msg {row['message_id']}{note}\n{text}")
+
+    await update.message.reply_text("\n\n".join(lines)[:3500])
+
+
+async def important_delete_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("Пиши так: /important_delete 3")
+        return
+
+    ok = delete_important_message(int(context.args[0]), chat_id=update.effective_chat.id)
+    await update.message.reply_text("Удалено." if ok else "Не нашла такое важное сообщение.")
+
+
+async def important_clear_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    deleted = clear_important_messages(chat_id=update.effective_chat.id)
+    await update.message.reply_text(f"Важные сообщения этого чата очищены: {deleted}.")
+
+
 async def clear_media_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not admin.is_admin(update):
         await update.message.reply_text("Нет доступа.")
@@ -581,7 +961,7 @@ async def test_voice_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = " ".join(context.args[1:]).strip() if len(context.args) > 1 else TEST_VOICE_TEXT
 
     await update.message.reply_text(f"Тестирую голос: {voice}.")
-    await send_voice_file(update, text, voice_override=voice)
+    await send_voice_file(update, context, text, voice_override=voice)
 
 
 async def test_voices_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -603,7 +983,7 @@ async def test_voices_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     for voice in voices:
         await update.message.reply_text(f"{voice}:")
-        ok = await send_voice_file(update, TEST_VOICE_TEXT, voice_override=voice)
+        ok = await send_voice_file(update, context, TEST_VOICE_TEXT, voice_override=voice)
 
         if not ok:
             break
@@ -611,7 +991,7 @@ async def test_voices_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await asyncio.sleep(0.8)
 
 
-async def answer_user_text(update: Update, context: ContextTypes.DEFAULT_TYPE, user_text: str, save_text: str = None):
+async def answer_user_text(update: Update, context: ContextTypes.DEFAULT_TYPE, user_text: str, save_text: str = None, grouped_messages_count=1):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
 
@@ -635,17 +1015,93 @@ async def answer_user_text(update: Update, context: ContextTypes.DEFAULT_TYPE, u
         save_message(user_id, chat_id, "assistant", answer)
 
     await maybe_react_to_user_message(update, context, user_text, answer)
-    await send_humanized_reply(update, context, answer, user_text=user_text)
+
+    reply_to_message_id = choose_reply_to_message_id(update, grouped_messages_count=grouped_messages_count)
+    await send_humanized_reply(
+        update,
+        context,
+        answer,
+        user_text=user_text,
+        reply_to_message_id=reply_to_message_id,
+    )
 
     if not is_provider_failure_answer(answer):
         await maybe_send_media(update, user_text + "\n" + answer, get_current_mood())
+
+
+async def process_text_buffer_job(context: ContextTypes.DEFAULT_TYPE):
+    key = context.job.data.get("key") if context.job and context.job.data else None
+    if not key:
+        return
+
+    entry = PENDING_TEXT_BUFFERS.pop(key, None)
+    if not entry:
+        return
+
+    items = entry.get("items") or []
+    if not items:
+        return
+
+    update = entry["update"]
+    user_text = make_grouped_user_text(items)
+    save_text = make_grouped_save_text(items)
+
+    set_setting("last_buffer_messages_count", str(len(items)))
+    await answer_user_text(
+        update,
+        context,
+        user_text,
+        save_text=save_text,
+        grouped_messages_count=len(items),
+    )
+
+
+async def queue_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.job_queue:
+        ai_text = build_reply_context_text(update, update.message.text)
+        await answer_user_text(update, context, ai_text, save_text=update.message.text)
+        return
+
+    user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
+    key = f"{chat_id}:{user_id}"
+    delay = get_message_buffer_seconds()
+
+    entry = PENDING_TEXT_BUFFERS.get(key)
+    if entry and entry.get("job"):
+        try:
+            entry["job"].schedule_removal()
+        except Exception:
+            pass
+
+    if not entry:
+        entry = {"items": []}
+
+    raw_text = update.message.text
+    ai_text = build_reply_context_text(update, raw_text)
+
+    entry["items"].append({"raw_text": raw_text, "ai_text": ai_text})
+    entry["update"] = update
+    entry["job"] = context.job_queue.run_once(
+        process_text_buffer_job,
+        when=delay,
+        data={"key": key},
+        name=f"message_buffer:{key}",
+    )
+
+    PENDING_TEXT_BUFFERS[key] = entry
 
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
 
-    await answer_user_text(update, context, update.message.text)
+    if get_message_buffer_mode() == "on":
+        await queue_text_message(update, context)
+        return
+
+    ai_text = build_reply_context_text(update, update.message.text)
+    await answer_user_text(update, context, ai_text, save_text=update.message.text)
 
 
 async def voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -669,7 +1125,8 @@ async def voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         user_text = "[голосовое сообщение]\n" + transcript
-        await answer_user_text(update, context, user_text, save_text=user_text)
+        user_text_with_context = build_reply_context_text(update, user_text)
+        await answer_user_text(update, context, user_text_with_context, save_text=user_text)
 
     except Exception as error:
         print("voice input failed:")
@@ -710,7 +1167,8 @@ async def photo_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if caption:
             user_text += "\nПодпись пользователя: " + caption
 
-        await answer_user_text(update, context, user_text, save_text=user_text)
+        user_text_with_context = build_reply_context_text(update, user_text)
+        await answer_user_text(update, context, user_text_with_context, save_text=user_text)
 
     except Exception as error:
         print("image input failed:")
@@ -795,6 +1253,22 @@ def register_handlers(app):
     app.add_handler(CommandHandler("clear_media", clear_media_cmd))
     app.add_handler(CommandHandler("clear_media_all", clear_media_all_cmd))
     app.add_handler(CommandHandler("clear_media_seen", clear_media_seen_cmd))
+    app.add_handler(CommandHandler("buffer_on", message_buffer_on_cmd))
+    app.add_handler(CommandHandler("buffer_off", message_buffer_off_cmd))
+    app.add_handler(CommandHandler("set_buffer_seconds", set_message_buffer_seconds_cmd))
+    app.add_handler(CommandHandler("buffer_status", message_buffer_status_cmd))
+    app.add_handler(CommandHandler("reply_on", reply_on_cmd))
+    app.add_handler(CommandHandler("reply_random", reply_random_cmd))
+    app.add_handler(CommandHandler("reply_off", reply_off_cmd))
+    app.add_handler(CommandHandler("set_reply_chance", set_reply_chance_cmd))
+    app.add_handler(CommandHandler("reply_status", reply_status_cmd))
+    app.add_handler(CommandHandler("pin", pin_cmd))
+    app.add_handler(CommandHandler("pin_last", pin_last_cmd))
+    app.add_handler(CommandHandler("unpin", unpin_cmd))
+    app.add_handler(CommandHandler("important", important_cmd))
+    app.add_handler(CommandHandler("important_list", important_list_cmd))
+    app.add_handler(CommandHandler("important_delete", important_delete_cmd))
+    app.add_handler(CommandHandler("important_clear", important_clear_cmd))
     app.add_handler(CallbackQueryHandler(admin.admin_callback, pattern="^admin_"))
     app.add_handler(MessageHandler(filters.VOICE, voice_message))
     app.add_handler(MessageHandler(filters.PHOTO, photo_message))
