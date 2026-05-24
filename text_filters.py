@@ -123,6 +123,64 @@ def replace_quotes_with_stars(text):
     return text
 
 
+def normalize_punctuation(text):
+    # Нейросетевые длинные тире режем в обычный дефис.
+    text = text.replace("—", "-").replace("–", "-").replace("−", "-")
+
+    # Один символ многоточия и любые 3+ точки превращаем в две точки.
+    text = text.replace("…", "..")
+    text = re.sub(r"\.{3,}", "..", text)
+
+    # Если модель делает уродство вроде ". ." или ".. .", приводим к двум точкам.
+    text = re.sub(r"\.\s+\.", "..", text)
+    text = re.sub(r"\.\.\s+\.", "..", text)
+
+    return text
+
+
+def maybe_add_sad_pause(text):
+    if not text:
+        return text
+
+    stripped = text.strip()
+
+    if stripped.endswith(":)") or stripped.endswith(".. :)"):
+        return text
+
+    lower = stripped.lower()
+
+    sad_words = [
+        "грустно",
+        "печально",
+        "тоскливо",
+        "жалко",
+        "больно",
+        "пусто",
+        "устала",
+        "устал",
+        "одиноч",
+        "мертв",
+        "смерт",
+        "болото",
+        "бессмысленно",
+        "ничего не меняется",
+    ]
+
+    # Короткий ответ, где как будто нечего сказать.
+    short_empty_answer = len(stripped) <= 80 and random.randint(1, 100) <= 14
+
+    # Грустный контекст, но тоже не в каждый раз, иначе это будет не стиль, а тремор.
+    sad_context = any(word in lower for word in sad_words) and random.randint(1, 100) <= 22
+
+    if short_empty_answer or sad_context:
+        if stripped.endswith("."):
+            stripped = stripped[:-1].rstrip()
+
+        stripped += ".. :)"
+
+    return stripped
+
+
 def apply_lowercase_mode(text):
     mode = get_setting("lowercase_mode", "off")
 
@@ -141,6 +199,7 @@ def clean_answer(text, detailed=False):
 
     text = text.replace("ё", "е").replace("Ё", "Е")
     text = replace_quotes_with_stars(text)
+    text = normalize_punctuation(text)
 
     # Ролевые действия отдельными строками: *вздыхает*, *молчит*.
     text = re.sub(r"(?m)^\s*\*[^*\n]{1,200}\*\s*\n?", "", text)
@@ -232,8 +291,10 @@ def clean_answer(text, detailed=False):
         if cut > 180:
             text = text[: cut + 1].strip()
         else:
-            text = text[:max_len].strip() + "..."
+            text = text[:max_len].strip() + ".."
 
+    text = maybe_add_sad_pause(text)
+    text = normalize_punctuation(text)
     text = apply_lowercase_mode(text)
 
     return text
