@@ -1,3 +1,7 @@
+import random
+import re
+import asyncio
+
 from telegram import Update
 from telegram.ext import ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
@@ -7,6 +11,30 @@ from memory import save_message, get_history, get_last_assistant_answer
 from moods import get_current_mood
 from media import maybe_send_media
 
+def split_answer_randomly(text):
+    if not text:
+        return []
+
+    # Часто оставляем одним сообщением, чтобы бот не строчил как нервный человек в 3 ночи.
+    if len(text) < 140 or random.randint(1, 100) <= 55:
+        return [text]
+
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    sentences = [s.strip() for s in sentences if s.strip()]
+
+    if len(sentences) < 2:
+        return [text]
+
+    parts_count = random.randint(2, min(5, len(sentences)))
+    chunks = [[] for _ in range(parts_count)]
+
+    for index, sentence in enumerate(sentences):
+        chunk_index = min(index * parts_count // len(sentences), parts_count - 1)
+        chunks[chunk_index].append(sentence)
+
+    result = [" ".join(chunk).strip() for chunk in chunks if chunk]
+
+    return result[:10]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Qq.\nПозвони, как напишешь.\nВпрочем, интереса отвечать тебе все еще нет.\n:)")
@@ -34,7 +62,9 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_message(user_id, chat_id, "user", user_text)
     save_message(user_id, chat_id, "assistant", answer)
 
-    await update.message.reply_text(answer)
+    for part in split_answer_randomly(answer):
+    await update.message.reply_text(part)
+    await asyncio.sleep(random.uniform(0.4, 1.3))
 
     await maybe_send_media(update, user_text + "\n" + answer, get_current_mood())
 
