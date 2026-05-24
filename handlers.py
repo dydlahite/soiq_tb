@@ -1,6 +1,8 @@
 import random
 import re
 import asyncio
+import tempfile
+from pathlib import Path
 
 from telegram import Update
 from telegram.constants import ChatAction
@@ -9,10 +11,19 @@ from telegram.ext import ContextTypes, CommandHandler, MessageHandler, CallbackQ
 import admin
 from ai import generate_answer
 from database import get_setting, set_setting
+from forbidden import clean_forbidden_phrases
 from memory import save_message, get_history, get_last_assistant_answer
 from moods import get_current_mood
-from media import maybe_send_media
+from media import maybe_send_media, clear_media, clear_media_seen, get_random_media, send_media_item
 from idle import touch_chat, schedule_idle_jobs, send_idle_now
+from multimodal import (
+    transcribe_audio_file,
+    describe_image_file,
+    set_voice_input,
+    set_image_input,
+    get_voice_input,
+    get_image_input,
+)
 from tts import (
     should_send_voice,
     make_tts_file,
@@ -28,6 +39,8 @@ from tts import (
 
 PROVIDER_FAILURE_PREFIX = "Все нейросети сейчас недоступны"
 TEST_VOICE_TEXT = "проверка голоса. звучит терпимо или опять как лифт в поликлинике."
+REACTION_RULES_PATH = "reaction_rules.txt"
+
 
 
 def is_provider_failure_answer(answer):
@@ -148,19 +161,65 @@ def get_reaction_chance():
         return 12
 
 
+DEFAULT_REACTION_RULES = """
+# Формат: эмодзи | ключевые слова через запятую | заметка для себя
+# Бот ставит реакцию только если нашел ключевые слова. Случайной реакции без причины больше нет.
+
+💔 | грустно, больно, плохо, пусто, печально, устала, плачу, тяжело | когда собеседнику плохо или в ответе тоскливо
+😔 | печально, жалко, жаль, тоскливо, грусть, усталость | мягкая грусть без драматического сердца
+🖤 | романтично, нежно, люблю, скучаю, ночь, мягко, тепло | теплая/романтичная окраска
+😏 | ахах, хаха, смешно, ну да, конечно, ирония, сарказм | ирония и смешки
+👌 | спасибо, поняла, хорошо, ок, принято, супер, отлично | подтверждение и спокойное принятие
+👀 | странно, интересно, что, как, почему, внезапно, подозрительно | любопытство или странность
+""".strip()
+
+
+def ensure_reaction_rules_file():
+    try:
+        with open(REACTION_RULES_PATH, "x", encoding="utf-8") as file:
+            file.write(DEFAULT_REACTION_RULES + "\n")
+    except FileExistsError:
+        pass
+
+
+def load_reaction_rules():
+    ensure_reaction_rules_file()
+
+    rules = []
+
+    with open(REACTION_RULES_PATH, "r", encoding="utf-8") as file:
+        for raw_line in file:
+            line = raw_line.strip()
+
+            if not line or line.startswith("#"):
+                continue
+
+            parts = [part.strip() for part in line.split("|", 2)]
+
+            if len(parts) < 2:
+                continue
+
+            emoji = parts[0]
+            triggers = [item.strip().lower() for item in parts[1].split(",") if item.strip()]
+
+            if emoji and triggers:
+                rules.append((emoji, triggers))
+
+    return rules
+
+
 def choose_reaction(user_text, answer):
     text_l = ((user_text or "") + "\n" + (answer or "")).lower()
+    candidates = []
 
-    if any(x in text_l for x in [":(", "грустно", "устала", "больно", "плохо"]):
-        return random.choice(["💔", "😔", "🫂"])
+    for emoji, triggers in load_reaction_rules():
+        if any(trigger in text_l for trigger in triggers):
+            candidates.append(emoji)
 
-    if any(x in text_l for x in ["хаха", "ахах", ":)", "смешно"]):
-        return random.choice(["😁", "😏", "💅"])
+    if not candidates:
+        return None
 
-    if any(x in text_l for x in ["спасибо", "поняла", "супер", "хорошо"]):
-        return random.choice(["👌", "💅", "🖤"])
-
-    return random.choice(["👀", "👌", "😏", "🖤"])
+    return random.choice(candidates)
 
 
 async def maybe_react_to_user_message(update: Update, context: ContextTypes.DEFAULT_TYPE, user_text: str, answer: str):
@@ -174,6 +233,10 @@ async def maybe_react_to_user_message(update: Update, context: ContextTypes.DEFA
         from telegram import ReactionTypeEmoji
 
         emoji = choose_reaction(user_text, answer)
+
+        if not emoji:
+            return
+
         await context.bot.set_message_reaction(
             chat_id=update.effective_chat.id,
             message_id=update.message.message_id,
@@ -308,6 +371,171 @@ async def set_reaction_chance_cmd(update: Update, context: ContextTypes.DEFAULT_
     await update.message.reply_text(f"Шанс реакции: {chance}%.")
 
 
+async def reactions_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    rules_text = DEFAULT_REACTION_RULES
+
+    try:
+        ensure_reaction_rules_file()
+        with open(REACTION_RULES_PATH, "r", encoding="utf-8") as file:
+            rules_text = file.read().strip()
+    except Exception:
+        pass
+
+    await update.message.reply_text(
+        f"Реакции: {get_setting('reactions', 'on')}\n"
+        f"Шанс: {get_reaction_chance()}%\n\n"
+        f"Правила в файле {REACTION_RULES_PATH}:\n\n"
+        f"{rules_text[:3000]}"
+    )
+
+
+async def paid_fallback_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("paid_fallback", "on")
+    await update.message.reply_text("Платный аварийный резерв включен. ProxyAPI сможет спасать даже обычные ответы.")
+
+
+async def paid_fallback_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("paid_fallback", "off")
+    await update.message.reply_text("Платный аварийный резерв выключен. Обычные ответы не будут спасаться ProxyAPI.")
+
+
+async def paid_complex_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("paid_complex", "on")
+    await update.message.reply_text("Намеренный платный режим включен. ProxyAPI OpenAI сможет включаться для реально технически сложных запросов.")
+
+
+async def paid_complex_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("paid_complex", "off")
+    await update.message.reply_text("Намеренный платный режим выключен. В дебаге ProxyAPI должен появляться только как Emergency.")
+
+
+async def paid_status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    await update.message.reply_text(
+        f"paid_fallback: {get_setting('paid_fallback', 'on')}\n"
+        f"paid_complex: {get_setting('paid_complex', 'off')}\n"
+        f"last provider: {get_setting('last_provider', 'нет')}\n"
+        f"last try: {get_setting('last_provider_try', 'нет')}\n"
+        f"last complex: {get_setting('last_complex_message', 'нет')}\n"
+        f"last paid complex: {get_setting('last_paid_complex', 'нет')}\n"
+        f"last use expensive: {get_setting('last_use_expensive_model', 'нет')}\n"
+        f"last prompt chars: {get_setting('last_prompt_chars', 'нет')}"
+    )
+
+
+async def voice_input_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_voice_input(True)
+    await update.message.reply_text("Распознавание входящих голосовых включено. Теперь у нас еще и уши, трагедия прогресса.")
+
+
+async def voice_input_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_voice_input(False)
+    await update.message.reply_text("Распознавание входящих голосовых выключено.")
+
+
+async def vision_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_image_input(True)
+    await update.message.reply_text("Распознавание картинок включено. Любая картинка теперь может стоить денег, потому что реальность решила быть платной.")
+
+
+async def vision_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_image_input(False)
+    await update.message.reply_text("Распознавание картинок выключено.")
+
+
+async def multimodal_status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    await update.message.reply_text(
+        f"voice input: {get_voice_input()}\n"
+        f"image input: {get_image_input()}\n"
+        f"provider: {get_setting('multimodal_provider', 'proxyapi')}\n"
+        f"last multimodal provider: {get_setting('last_multimodal_provider', 'нет')}\n"
+        f"stt model: {get_setting('stt_model', 'whisper-1')}\n"
+        f"vision model: {get_setting('vision_model', 'gpt-4o-mini')}"
+    )
+
+
+async def clear_media_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Пиши так: /clear_media sad\nИли /clear_media_all, если правда хочешь снести весь медиа-склад.")
+        return
+
+    category = context.args[0].lower()
+    deleted = clear_media(category=category)
+    clear_media_seen()
+    await update.message.reply_text(f"Медиа категории {category} удалено: {deleted}. История показов медиа сброшена.")
+
+
+async def clear_media_all_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    deleted = clear_media()
+    clear_media_seen()
+    await update.message.reply_text(f"Все медиа удалены: {deleted}. Отдельная кнопка с топором, поздравляю.")
+
+
+async def clear_media_seen_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if context.args and context.args[0].lower() == "all":
+        deleted = clear_media_seen()
+        await update.message.reply_text(f"История показов медиа очищена везде: {deleted}.")
+        return
+
+    deleted = clear_media_seen(chat_id=update.effective_chat.id)
+    await update.message.reply_text(f"История показов медиа очищена для этого чата: {deleted}.")
+
+
 async def set_tts_voice_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not admin.is_admin(update):
         await update.message.reply_text("Нет доступа.")
@@ -383,13 +611,9 @@ async def test_voices_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await asyncio.sleep(0.8)
 
 
-async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message or not update.message.text:
-        return
-
+async def answer_user_text(update: Update, context: ContextTypes.DEFAULT_TYPE, user_text: str, save_text: str = None):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
-    user_text = update.message.text
 
     touch_chat(user_id, chat_id)
 
@@ -403,9 +627,9 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         history=history,
         previous_answer=previous_answer,
     )
-    answer = ensure_visible_punctuation(answer)
+    answer = clean_forbidden_phrases(ensure_visible_punctuation(answer))
 
-    save_message(user_id, chat_id, "user", user_text)
+    save_message(user_id, chat_id, "user", save_text or user_text)
 
     if not is_provider_failure_answer(answer):
         save_message(user_id, chat_id, "assistant", answer)
@@ -415,6 +639,90 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not is_provider_failure_answer(answer):
         await maybe_send_media(update, user_text + "\n" + answer, get_current_mood())
+
+
+async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
+
+    await answer_user_text(update, context, update.message.text)
+
+
+async def voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.voice:
+        return
+
+    if get_voice_input() != "on":
+        return
+
+    voice_path = None
+    try:
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+        file = await update.message.voice.get_file()
+        temp_dir = Path(tempfile.gettempdir())
+        voice_path = temp_dir / f"soiq_in_voice_{update.message.message_id}.ogg"
+        await file.download_to_drive(custom_path=str(voice_path))
+
+        transcript = transcribe_audio_file(voice_path)
+        if not transcript:
+            await update.message.reply_text("Не разобрала голосовое. Технологии опять сделали вид, что они цивилизация.")
+            return
+
+        user_text = "[голосовое сообщение]\n" + transcript
+        await answer_user_text(update, context, user_text, save_text=user_text)
+
+    except Exception as error:
+        print("voice input failed:")
+        print(error)
+        await update.message.reply_text("Голосовое не распозналось. Где-то в платной трубе опять застрял звук.")
+
+    finally:
+        try:
+            if voice_path:
+                Path(voice_path).unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+async def photo_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.photo:
+        return
+
+    if get_image_input() != "on":
+        return
+
+    image_path = None
+    try:
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+        photo = update.message.photo[-1]
+        file = await photo.get_file()
+        temp_dir = Path(tempfile.gettempdir())
+        image_path = temp_dir / f"soiq_in_image_{update.message.message_id}.jpg"
+        await file.download_to_drive(custom_path=str(image_path))
+
+        caption = update.message.caption or ""
+        description = describe_image_file(image_path, caption=caption)
+        if not description:
+            await update.message.reply_text("Картинку не разобрала. Великолепная эпоха умных машин, да.")
+            return
+
+        user_text = "[картинка]\n" + description
+        if caption:
+            user_text += "\nПодпись пользователя: " + caption
+
+        await answer_user_text(update, context, user_text, save_text=user_text)
+
+    except Exception as error:
+        print("image input failed:")
+        print(error)
+        await update.message.reply_text("Картинку не распознала. Провайдер снова лег лицом в серверный пол.")
+
+    finally:
+        try:
+            if image_path:
+                Path(image_path).unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 def register_handlers(app):
@@ -470,8 +778,24 @@ def register_handlers(app):
     app.add_handler(CommandHandler("set_tts_model", set_tts_model_cmd))
     app.add_handler(CommandHandler("test_voice", test_voice_cmd))
     app.add_handler(CommandHandler("test_voices", test_voices_cmd))
+    app.add_handler(CommandHandler("reactions", reactions_cmd))
     app.add_handler(CommandHandler("reactions_on", reactions_on_cmd))
     app.add_handler(CommandHandler("reactions_off", reactions_off_cmd))
     app.add_handler(CommandHandler("set_reaction_chance", set_reaction_chance_cmd))
+    app.add_handler(CommandHandler("paid_fallback_on", paid_fallback_on_cmd))
+    app.add_handler(CommandHandler("paid_fallback_off", paid_fallback_off_cmd))
+    app.add_handler(CommandHandler("paid_complex_on", paid_complex_on_cmd))
+    app.add_handler(CommandHandler("paid_complex_off", paid_complex_off_cmd))
+    app.add_handler(CommandHandler("paid_status", paid_status_cmd))
+    app.add_handler(CommandHandler("voice_input_on", voice_input_on_cmd))
+    app.add_handler(CommandHandler("voice_input_off", voice_input_off_cmd))
+    app.add_handler(CommandHandler("vision_on", vision_on_cmd))
+    app.add_handler(CommandHandler("vision_off", vision_off_cmd))
+    app.add_handler(CommandHandler("multimodal_status", multimodal_status_cmd))
+    app.add_handler(CommandHandler("clear_media", clear_media_cmd))
+    app.add_handler(CommandHandler("clear_media_all", clear_media_all_cmd))
+    app.add_handler(CommandHandler("clear_media_seen", clear_media_seen_cmd))
     app.add_handler(CallbackQueryHandler(admin.admin_callback, pattern="^admin_"))
+    app.add_handler(MessageHandler(filters.VOICE, voice_message))
+    app.add_handler(MessageHandler(filters.PHOTO, photo_message))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))

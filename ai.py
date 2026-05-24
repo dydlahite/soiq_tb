@@ -30,6 +30,7 @@ from text_filters import (
     flatten_forbidden_list,
     reduce_repeated_references,
 )
+from forbidden import clean_forbidden_phrases, load_forbidden_phrases
 
 openrouter_client = None
 if OPENROUTER_API_KEY:
@@ -123,10 +124,35 @@ def compact_message_text(text, max_chars=300):
     return text[:max_chars].strip() + ".."
 
 
-def is_complex_message(text):
+def is_paid_complex_message(text):
+    """
+    Строгая проверка для намеренного платного ProxyAPI.
+    Обычная развернутая болтовня больше не считается платной сложностью.
+    ProxyAPI OpenAI включится только для технички/кода/логов, и то если /paid_complex_on.
+    """
     text_l = (text or "").lower().strip()
 
-    if len(text_l) >= 450 or len(text_l.split()) >= 70:
+    hard_triggers = [
+        "```", "traceback", "exception", "systemctl", "journalctl", "py_compile",
+        "ошибка", "лог", "логи", "код", "патч", "github", "git pull", "venv",
+        "python", "telegram", "api", "proxyapi", "openrouter", "groq", "сервер",
+        "конфиг", "конфигурац", "systemd", "requirements", "импорт", "модуль",
+    ]
+
+    if any(trigger in text_l for trigger in hard_triggers):
+        return True
+
+    if len(text_l) >= 1200 and any(trigger in text_l for trigger in ["инструкция", "пошагово", "настроить", "исправить", "архитектур"]):
+        return True
+
+    return False
+
+
+def is_complex_message(text):
+    # Оставлено для совместимости старой логики/debug. Это НЕ значит, что надо идти в платный ProxyAPI.
+    text_l = (text or "").lower().strip()
+
+    if len(text_l) >= 700 or len(text_l.split()) >= 110:
         return True
 
     complex_triggers = [
@@ -233,6 +259,7 @@ def build_system_prompt(user_id, chat_id):
     patterns = compact_prompt_text(load_patterns(), MAX_PATTERNS_CHARS)
     speech_markers = compact_prompt_text(load_speech_markers(), MAX_SPEECH_MARKERS_CHARS)
     style_modes_text = compact_prompt_text(load_style_modes_file(), MAX_STYLE_MODES_CHARS)
+    forbidden_text = compact_prompt_text("\n".join(load_forbidden_phrases()), 500)
 
     style_mode = get_effective_style_mode()
     style_mode_prompt = STYLE_MODES.get(style_mode, STYLE_MODES["normal"])
@@ -247,6 +274,7 @@ def build_system_prompt(user_id, chat_id):
         "Не пиши *дай знать*, *если не нравится*, *могу добавить*. "
         "Не делай списки без просьбы. Не делай театральные ремарки. "
         "Не повторяй один и тот же референс подряд.",
+        "ЗАПРЕТНЫЕ ФРАЗЫ:\n" + forbidden_text,
         "РЕЧЕВЫЕ МАРКЕРЫ:\n" + speech_markers,
         "ВКУС:\n" + interests,
         "ПАТТЕРНЫ:\n" + patterns,
@@ -383,7 +411,7 @@ def provider_order(use_expensive_model=False, prompt_chars=0):
     elif use_expensive_model and OPENAI_API_KEY:
         order.append(("OpenAI", ask_openai))
 
-    # Дорогой аварийный резерв: не основной мозг, а последний шанс, чтобы бот не падал через раз.
+    # Аварийный резерв: только когда дешевые модели не ответили.
     if PROXYAPI_API_KEY and not proxy_added and get_setting("paid_fallback", "on") == "on":
         order.append(("ProxyAPI Emergency", ask_proxyapi_openai))
 
@@ -397,9 +425,15 @@ def call_provider(provider, messages):
 def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
     detailed = need_detailed_answer(user_text)
     allow_list = user_requested_list(user_text)
-    use_expensive_model = is_complex_message(user_text) or detailed
 
-    set_setting("last_complex_message", "yes" if use_expensive_model else "no")
+    general_complex = is_complex_message(user_text)
+    paid_complex = is_paid_complex_message(user_text)
+    paid_complex_enabled = get_setting("paid_complex", "off") == "on"
+    use_expensive_model = paid_complex and paid_complex_enabled
+
+    set_setting("last_complex_message", "yes" if general_complex else "no")
+    set_setting("last_paid_complex", "yes" if paid_complex else "no")
+    set_setting("last_use_expensive_model", "yes" if use_expensive_model else "no")
 
     user_gender = infer_user_gender(user_text, history)
     set_setting("last_user_gender", user_gender)
@@ -428,8 +462,10 @@ def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
                 continue
 
             answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender)
+            answer = clean_forbidden_phrases(answer)
             answer = reduce_repeated_references(answer, previous_answer, user_text)
             answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
+            answer = clean_forbidden_phrases(answer)
 
             if answer_has_forbidden_list(answer) and not allow_list:
                 print(f"{name} дал список без просьбы, пробую переформулировать.")
@@ -441,12 +477,15 @@ def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
 
                 raw_answer = call_provider(provider, retry_messages)
                 answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender)
+                answer = clean_forbidden_phrases(answer)
                 answer = reduce_repeated_references(answer, previous_answer, user_text)
                 answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
+                answer = clean_forbidden_phrases(answer)
 
                 if answer_has_forbidden_list(answer):
                     answer = flatten_forbidden_list(answer)
                     answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
+                    answer = clean_forbidden_phrases(answer)
 
             if previous_answer and is_too_similar(answer, previous_answer):
                 print(f"{name} дал слишком похожий ответ, пробую дальше.")

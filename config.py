@@ -20,6 +20,11 @@ OPENROUTER_AUTO_MODEL = os.getenv("OPENROUTER_AUTO_MODEL", "openrouter/auto").st
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini").strip()
 
+# Распознавание голосовых и картинок. По умолчанию через ProxyAPI, чтобы не трогать прямой OpenAI.
+MULTIMODAL_PROVIDER = os.getenv("MULTIMODAL_PROVIDER", "proxyapi").strip().lower()
+STT_MODEL = os.getenv("STT_MODEL", "whisper-1").strip()
+VISION_MODEL = os.getenv("VISION_MODEL", PROXYAPI_MODEL or "gpt-4o-mini").strip()
+
 DATABASE_PATH = os.getenv("DATABASE_PATH", "bot.db").strip()
 PERSONALITY_PATH = os.getenv("PERSONALITY_PATH", "personality.txt").strip()
 

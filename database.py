@@ -60,6 +60,17 @@ def init_db():
     """)
 
     cursor.execute("""
+    CREATE TABLE IF NOT EXISTS media_seen (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        chat_id INTEGER NOT NULL,
+        media_id INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE(user_id, chat_id, media_id)
+    )
+    """)
+
+    cursor.execute("""
     CREATE INDEX IF NOT EXISTS idx_messages_user_chat
     ON messages(user_id, chat_id, id)
     """)
@@ -67,6 +78,11 @@ def init_db():
     cursor.execute("""
     CREATE INDEX IF NOT EXISTS idx_media_category
     ON media(category)
+    """)
+
+    cursor.execute("""
+    CREATE INDEX IF NOT EXISTS idx_media_seen_chat
+    ON media_seen(user_id, chat_id, media_id)
     """)
 
     db.commit()
