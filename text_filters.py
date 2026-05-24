@@ -1,5 +1,8 @@
+import random
 import re
 from difflib import SequenceMatcher
+
+from database import get_setting
 
 
 def need_detailed_answer(text):
@@ -24,6 +27,57 @@ def need_detailed_answer(text):
     return any(word in text_lower for word in keywords)
 
 
+def user_requested_list(text):
+    text_lower = text.lower()
+
+    triggers = [
+        "список",
+        "списком",
+        "перечисли",
+        "подборк",
+        "топ",
+        "варианты",
+        "вариантов",
+        "пункты",
+        "по пунктам",
+        "пошагово",
+        "по шагам",
+        "команды",
+        "что посмотреть",
+        "что почитать",
+        "что послушать",
+    ]
+
+    return any(trigger in text_lower for trigger in triggers)
+
+
+def answer_has_forbidden_list(text):
+    if not text:
+        return False
+
+    numbered = re.findall(r"(?m)^\s*\d+[.)]\s+", text)
+    bullets = re.findall(r"(?m)^\s*[-•]\s+", text)
+
+    return len(numbered) >= 2 or len(bullets) >= 2
+
+
+def flatten_forbidden_list(text):
+    lines = text.splitlines()
+    cleaned = []
+
+    for line in lines:
+        line = re.sub(r"^\s*\d+[.)]\s*", "", line)
+        line = re.sub(r"^\s*[-•]\s*", "", line)
+        line = line.strip()
+
+        if line:
+            cleaned.append(line)
+
+    result = " ".join(cleaned)
+    result = re.sub(r"\s{2,}", " ", result)
+    return result.strip()
+
+
 def normalize_for_compare(text):
     text = text.lower()
     text = re.sub(r"\s+", " ", text)
@@ -44,22 +98,60 @@ def is_too_similar(a, b, threshold=0.72):
     return SequenceMatcher(None, a, b).ratio() >= threshold
 
 
+def replace_quotes_with_stars(text):
+    quote_pairs = [
+        (r"«\s*([^»\n]{1,220}?)\s*»", r"*\1*"),
+        (r"„\s*([^“\n]{1,220}?)\s*“", r"*\1*"),
+        (r"“\s*([^”\n]{1,220}?)\s*”", r"*\1*"),
+        (r"”\s*([^”\n]{1,220}?)\s*”", r"*\1*"),
+        (r"<<\s*([^>\n]{1,220}?)\s*>>", r"*\1*"),
+        (r"\"\s*([^\"\n]{1,220}?)\s*\"", r"*\1*"),
+    ]
+
+    for pattern, replacement in quote_pairs:
+        text = re.sub(pattern, replacement, text)
+
+    # markdown-жирность вокруг фразы превращаем в одиночные звезды.
+    # Мат внутри слова не трогаем.
+    text = re.sub(r"(?<!\w)\*\*([^*\n]{1,220}?)\*\*(?!\w)", r"*\1*", text)
+
+    text = text.replace("«", "*").replace("»", "*")
+    text = text.replace("“", "*").replace("”", "*").replace("„", "*")
+    text = text.replace("<<", "*").replace(">>", "*")
+    text = text.replace('"', "*")
+
+    return text
+
+
+def apply_lowercase_mode(text):
+    mode = get_setting("lowercase_mode", "off")
+
+    if mode == "on":
+        return text.lower()
+
+    if mode == "random" and random.randint(1, 100) <= 35:
+        return text.lower()
+
+    return text
+
+
 def clean_answer(text, detailed=False):
     if not text:
         return ""
 
     text = text.replace("ё", "е").replace("Ё", "Е")
+    text = replace_quotes_with_stars(text)
 
+    # Ролевые действия отдельными строками: *вздыхает*, *молчит*.
     text = re.sub(r"(?m)^\s*\*[^*\n]{1,200}\*\s*\n?", "", text)
 
+    # Театральные ремарки внутри текста.
     text = re.sub(
         r"\*(вздыхает|улыбается|смотрит[^*]*|молчит[^*]*|хмыкает[^*]*|сжимает[^*]*|отводит[^*]*|пожимает[^*]*)\*",
         "",
         text,
         flags=re.IGNORECASE,
     )
-
-    text = text.replace("**", "")
 
     bad_phrases = [
         "Теперь лучше?",
@@ -125,7 +217,7 @@ def clean_answer(text, detailed=False):
 
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
 
-    max_len = 1100 if detailed else 450
+    max_len = 1300 if detailed else 650
 
     if len(text) > max_len:
         cut_positions = [
@@ -141,5 +233,7 @@ def clean_answer(text, detailed=False):
             text = text[: cut + 1].strip()
         else:
             text = text[:max_len].strip() + "..."
+
+    text = apply_lowercase_mode(text)
 
     return text

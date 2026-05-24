@@ -3,6 +3,7 @@ import re
 import asyncio
 
 from telegram import Update
+from telegram.constants import ChatAction
 from telegram.ext import ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
 import admin
@@ -11,33 +12,89 @@ from memory import save_message, get_history, get_last_assistant_answer
 from moods import get_current_mood
 from media import maybe_send_media
 
+
+def split_sentences_safely(text):
+    # Не режем после 1. 2. 3., чтобы не получалось "2." отдельно от текста пункта.
+    parts = re.split(r"(?<!\b\d)(?<=[.!?])\s+(?=[А-ЯA-Zа-яa-z])", text.strip())
+    return [part.strip() for part in parts if part.strip()]
+
+
 def split_answer_randomly(text):
     if not text:
         return []
 
-    # Часто оставляем одним сообщением, чтобы бот не строчил как нервный человек в 3 ночи.
-    if len(text) < 140 or random.randint(1, 100) <= 55:
+    text = text.strip()
+
+    # Часто оставляем одним сообщением.
+    if len(text) < 180 or random.randint(1, 100) <= 45:
         return [text]
 
-    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
-    sentences = [s.strip() for s in sentences if s.strip()]
+    paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
 
-    if len(sentences) < 2:
+    units = []
+    for paragraph in paragraphs:
+        if len(paragraph) <= 260:
+            units.append(paragraph)
+        else:
+            units.extend(split_sentences_safely(paragraph))
+
+    if len(units) < 2:
         return [text]
 
-    parts_count = random.randint(2, min(5, len(sentences)))
-    chunks = [[] for _ in range(parts_count)]
+    target_len = random.randint(180, 360)
+    chunks = []
+    current = ""
 
-    for index, sentence in enumerate(sentences):
-        chunk_index = min(index * parts_count // len(sentences), parts_count - 1)
-        chunks[chunk_index].append(sentence)
+    for unit in units:
+        if not current:
+            current = unit
+            continue
 
-    result = [" ".join(chunk).strip() for chunk in chunks if chunk]
+        if len(current) + len(unit) + 1 <= target_len or len(chunks) >= 9:
+            current += " " + unit
+        else:
+            chunks.append(current.strip())
+            current = unit
 
-    return result[:10]
+    if current:
+        chunks.append(current.strip())
+
+    while len(chunks) > 10:
+        chunks[-2] = chunks[-2] + " " + chunks[-1]
+        chunks.pop()
+
+    return chunks
+
+
+async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, answer: str):
+    parts = split_answer_randomly(answer)
+
+    for index, part in enumerate(parts):
+        # Чем длиннее кусок, тем дольше "печатает".
+        delay = len(part) / random.uniform(45, 75)
+        delay += random.uniform(0.3, 1.0)
+
+        if index == 0:
+            delay = min(delay, 5.5)
+        else:
+            delay = min(delay, 7.0)
+
+        delay = max(0.6, delay)
+
+        await context.bot.send_chat_action(
+            chat_id=update.effective_chat.id,
+            action=ChatAction.TYPING,
+        )
+
+        await asyncio.sleep(delay)
+        await update.message.reply_text(part, parse_mode=None)
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Qq.\nПозвони, как напишешь.\nВпрочем, интереса отвечать тебе все еще нет.\n:)")
+    await update.message.reply_text(
+        "Qq.\nПозвони, как напишешь.\nВпрочем, интереса отвечать тебе все еще нет.\n:)",
+        parse_mode=None,
+    )
 
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -62,9 +119,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_message(user_id, chat_id, "user", user_text)
     save_message(user_id, chat_id, "assistant", answer)
 
-    for part in split_answer_randomly(answer):
-        await update.message.reply_text(part)
-        await asyncio.sleep(random.uniform(0.4, 1.3))
+    await send_humanized_reply(update, context, answer)
 
     await maybe_send_media(update, user_text + "\n" + answer, get_current_mood())
 
@@ -75,10 +130,19 @@ def register_handlers(app):
     app.add_handler(CommandHandler("admin", admin.admin_menu))
     app.add_handler(CommandHandler("admin_help", admin.admin_help))
     app.add_handler(CommandHandler("status", admin.status))
+    app.add_handler(CommandHandler("debug", admin.debug_cmd))
     app.add_handler(CommandHandler("mood", admin.mood))
     app.add_handler(CommandHandler("set_mood", admin.set_mood))
     app.add_handler(CommandHandler("auto_mood_on", admin.auto_mood_on))
     app.add_handler(CommandHandler("auto_mood_off", admin.auto_mood_off))
+    app.add_handler(CommandHandler("style_mode", admin.style_mode_cmd))
+    app.add_handler(CommandHandler("set_style_mode", admin.set_style_mode_cmd))
+    app.add_handler(CommandHandler("auto_style_on", admin.auto_style_on_cmd))
+    app.add_handler(CommandHandler("auto_style_off", admin.auto_style_off_cmd))
+    app.add_handler(CommandHandler("lowercase_on", admin.lowercase_on_cmd))
+    app.add_handler(CommandHandler("lowercase_off", admin.lowercase_off_cmd))
+    app.add_handler(CommandHandler("lowercase_random", admin.lowercase_random_cmd))
+    app.add_handler(CommandHandler("reload_files", admin.reload_files_cmd))
     app.add_handler(CommandHandler("set_media_chance", admin.set_media_chance_cmd))
     app.add_handler(CommandHandler("add_sticker", admin.add_sticker_cmd))
     app.add_handler(CommandHandler("add_photo", admin.add_photo_cmd))

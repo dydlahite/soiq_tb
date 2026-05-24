@@ -2,11 +2,14 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
 from config import ADMIN_IDS
-from database import cursor, get_setting
+from database import cursor, get_setting, set_setting
 from memory import clear_all_memory, clear_user_memory, count_messages, remember, forget, list_memories
 from moods import MOODS, get_current_mood, set_mood_value, enable_auto_mood, disable_auto_mood
 from media import add_media, list_media_categories, list_media_items, delete_media, set_media_chance, get_media_chance, get_random_media
 from personality import load_personality, ensure_personality_file
+
+
+STYLE_MODES = ["normal", "ornate", "messy", "dry", "angry", "soft"]
 
 
 def is_admin(update: Update) -> bool:
@@ -37,14 +40,36 @@ async def admin_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Нет доступа.")
         return
     await update.message.reply_text(
-        "/myid\n/admin\n/status\n/mood\n/set_mood tired\n/set_mood tired 6\n"
-        "/auto_mood_on\n/auto_mood_off\n/set_media_chance 15\n"
+        "/myid\n/admin\n/status\n/debug\n/mood\n/set_mood tired\n/set_mood tired 6\n"
+        "/auto_mood_on\n/auto_mood_off\n"
+        "/style_mode\n/set_style_mode ornate\n/auto_style_on\n/auto_style_off\n"
+        "/lowercase_on\n/lowercase_off\n/lowercase_random\n"
+        "/set_media_chance 15\n"
         "/add_sticker funny — ответом на стикер\n/add_photo sad — ответом на фото\n"
         "/add_animation funny — ответом на gif\n/add_link music https://... название\n"
         "/media\n/media_list\n/send_media funny\n/delete_media 3\n"
         "/remember_global ключ значение\n/show_global\n/forget_global ключ\n"
         "/remember_user ключ значение\n/show_user_memory\n/forget_user ключ\n"
-        "/show_style\n/reload_style\n/clear_my_memory\n/clear_all_memory"
+        "/show_style\n/reload_style\n/reload_files\n/clear_my_memory\n/clear_all_memory"
+    )
+
+
+async def debug_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    await update.message.reply_text(
+        f"Провайдер последнего ответа: {get_setting('last_provider', 'нет')}\n"
+        f"Последняя попытка провайдера: {get_setting('last_provider_try', 'нет')}\n"
+        f"Настроение: {get_current_mood()}\n"
+        f"Автонастроение: {get_setting('auto_mood', 'off')}\n"
+        f"Режим речи: {get_setting('style_mode', 'normal')}\n"
+        f"Последний режим речи: {get_setting('last_style_mode', 'normal')}\n"
+        f"Авторежим речи: {get_setting('auto_style', 'off')}\n"
+        f"lowercase: {get_setting('lowercase_mode', 'off')}\n"
+        f"Шанс медиа: {get_media_chance()}%\n"
+        f"Сообщений в истории: {count_messages()}"
     )
 
 
@@ -56,6 +81,7 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     media_count = cursor.fetchone()["count"]
     await update.message.reply_text(
         f"Бот работает.\nНастроение: {get_current_mood()}\nАвтонастроение: {get_setting('auto_mood', 'off')}\n"
+        f"Режим речи: {get_setting('style_mode', 'normal')}\nАвторежим речи: {get_setting('auto_style', 'off')}\n"
         f"Сообщений в истории: {count_messages()}\nМедиа: {media_count}\nШанс медиа: {get_media_chance()}%"
     )
 
@@ -94,6 +120,84 @@ async def auto_mood_off(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     disable_auto_mood()
     await update.message.reply_text("Автонастроение выключено.")
+
+
+async def style_mode_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        f"Режим речи: {get_setting('style_mode', 'normal')}\n"
+        f"Последний режим: {get_setting('last_style_mode', 'normal')}\n"
+        f"Авторежим: {get_setting('auto_style', 'off')}\n"
+        f"Доступные: {', '.join(STYLE_MODES)}"
+    )
+
+
+async def set_style_mode_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Пиши так: /set_style_mode ornate\nДоступные: " + ", ".join(STYLE_MODES))
+        return
+
+    mode = context.args[0].lower()
+
+    if mode not in STYLE_MODES:
+        await update.message.reply_text("Нет такого режима. Доступные: " + ", ".join(STYLE_MODES))
+        return
+
+    set_setting("style_mode", mode)
+    set_setting("auto_style", "off")
+    await update.message.reply_text(f"Режим речи установлен: {mode}")
+
+
+async def auto_style_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("auto_style", "on")
+    await update.message.reply_text("Авторежим речи включен.")
+
+
+async def auto_style_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("auto_style", "off")
+    await update.message.reply_text("Авторежим речи выключен.")
+
+
+async def lowercase_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+    set_setting("lowercase_mode", "on")
+    await update.message.reply_text("lowercase включен. Теперь все будет маленьким, как надежды на аккуратный Python.")
+
+
+async def lowercase_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+    set_setting("lowercase_mode", "off")
+    await update.message.reply_text("lowercase выключен.")
+
+
+async def lowercase_random_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+    set_setting("lowercase_mode", "random")
+    await update.message.reply_text("lowercase random включен. Иногда будет писать с маленькой.")
+
+
+async def reload_files_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+    await update.message.reply_text("Файлы стиля будут перечитаны при следующем ответе. Да, настолько драматично.")
 
 
 async def set_media_chance_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -306,7 +410,14 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         disable_auto_mood()
         await query.edit_message_text("Автонастроение выключено.", reply_markup=admin_keyboard())
     elif data == "admin_status":
-        await query.edit_message_text(f"Бот работает.\nНастроение: {get_current_mood()}\nСообщений: {count_messages()}\nШанс медиа: {get_media_chance()}%", reply_markup=admin_keyboard())
+        await query.edit_message_text(
+            f"Бот работает.\nНастроение: {get_current_mood()}\n"
+            f"Режим речи: {get_setting('style_mode', 'normal')}\n"
+            f"Последний режим: {get_setting('last_style_mode', 'normal')}\n"
+            f"Провайдер: {get_setting('last_provider', 'нет')}\n"
+            f"Сообщений: {count_messages()}\nШанс медиа: {get_media_chance()}%",
+            reply_markup=admin_keyboard(),
+        )
     elif data == "admin_mood":
         await query.edit_message_text("Настроения:\n" + ", ".join(MOODS.keys()), reply_markup=admin_keyboard())
     elif data == "admin_media":
