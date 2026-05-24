@@ -120,13 +120,12 @@ def ask_openai(messages):
 
 
 def provider_order(detailed):
-    if detailed:
-        return [
-            ("OpenAI", ask_openai),
-            ("Groq", ask_groq),
-            ("OpenRouter DeepSeek", ask_openrouter_deepseek),
-            ("OpenRouter Auto", ask_openrouter_auto),
-        ]
+    return [
+        ("OpenRouter DeepSeek", ask_openrouter_deepseek),
+        ("Groq", ask_groq),
+        ("OpenRouter Auto", ask_openrouter_auto),
+        ("OpenAI", ask_openai),
+    ]
 
     return [
         ("Groq", ask_groq),
