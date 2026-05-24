@@ -70,8 +70,8 @@ def ask_openrouter_deepseek(messages):
     response = openrouter_client.chat.completions.create(
         model=OPENROUTER_DEEPSEEK_MODEL,
         messages=messages,
-        temperature=0.55,
-        max_tokens=260,
+        temperature=0.70,
+        max_tokens=360,
     )
 
     return response.choices[0].message.content
