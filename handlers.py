@@ -63,8 +63,8 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_message(user_id, chat_id, "assistant", answer)
 
     for part in split_answer_randomly(answer):
-    await update.message.reply_text(part)
-    await asyncio.sleep(random.uniform(0.4, 1.3))
+        await update.message.reply_text(part)
+        await asyncio.sleep(random.uniform(0.4, 1.3))
 
     await maybe_send_media(update, user_text + "\n" + answer, get_current_mood())
 
