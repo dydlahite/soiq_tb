@@ -68,7 +68,7 @@ STYLE_MODES = {
 MAX_PERSONALITY_CHARS = 1600
 MAX_PATTERNS_CHARS = 700
 MAX_INTERESTS_CHARS = 500
-MAX_SPEECH_MARKERS_CHARS = 300
+MAX_SPEECH_MARKERS_CHARS = 650
 MAX_STYLE_MODES_CHARS = 300
 
 FEMALE_HINTS = [
@@ -226,8 +226,57 @@ def load_patterns():
     return ensure_text_file("patterns.txt", "Паттерны поведения бота.")
 
 
-def load_speech_markers():
-    return ensure_text_file("speech_markers.txt", "впрочем\nв сущности\nзнаешь\nна самом деле\nпо крайней мере")
+DEFAULT_SPEECH_MARKERS = """\
+бтв | к слову, кстати, между прочим, к слову сказать | by the way; использовать только в значении "к слову", не как случайную вставку
+имхо | по-моему, по моему, мое мнение, считаю, думаю, кажется | in my honest opinion; использовать только когда явно высказываешь личное мнение
+хд | ахах, хаха, смешно, забавно, лол, ржу, угар, смешная ситуация | использовать только если действительно смешно
+кк | ладно, хорошо, ок, окей, договорились, принято, поняла | использовать только в значении "ладно/хорошо"
+""".strip()
+
+
+def normalize_marker_context(text):
+    text = (text or "").lower().replace("ё", "е")
+    text = re.sub(r"[^a-zа-я0-9:;)()\s-]+", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def load_speech_markers(user_text=""):
+    raw = ensure_text_file("speech_markers.txt", DEFAULT_SPEECH_MARKERS)
+    context = normalize_marker_context(user_text)
+    selected = []
+
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+
+        parts = [part.strip() for part in line.split("|")]
+        marker = parts[0] if parts else ""
+        triggers = [x.strip().lower().replace("ё", "е") for x in parts[1].split(",")] if len(parts) >= 2 else []
+        note = parts[2] if len(parts) >= 3 else ""
+
+        if not marker:
+            continue
+
+        if not triggers:
+            selected.append(f"- {marker}: можно редко, только если естественно ложится в фразу")
+            continue
+
+        if any(trigger and trigger in context for trigger in triggers):
+            selected.append(f"- {marker}: {note or 'используй только по условию'}")
+
+    if not selected:
+        return (
+            "Не используй специальные речевые маркеры и сокращения без явного повода. "
+            "Особенно не вставляй бтв, имхо, хд, кк рандомно."
+        )
+
+    return (
+        "Используй только эти речевые маркеры, потому что условия подходят. "
+        "Не добавляй остальные сокращения и не вставляй маркеры ради украшения.\n"
+        + "\n".join(selected)
+    )
 
 
 def load_style_modes_file():
@@ -252,13 +301,13 @@ def get_effective_style_mode():
     return selected
 
 
-def build_system_prompt(user_id, chat_id):
+def build_system_prompt(user_id, chat_id, user_text=""):
     memory_prompt = compact_prompt_text(build_memory_prompt(user_id, chat_id), 700)
 
     personality = compact_prompt_text(load_personality(), MAX_PERSONALITY_CHARS)
     interests = compact_prompt_text(load_interests(), MAX_INTERESTS_CHARS)
     patterns = compact_prompt_text(load_patterns(), MAX_PATTERNS_CHARS)
-    speech_markers = compact_prompt_text(load_speech_markers(), MAX_SPEECH_MARKERS_CHARS)
+    speech_markers = compact_prompt_text(load_speech_markers(user_text), MAX_SPEECH_MARKERS_CHARS)
     style_modes_text = compact_prompt_text(load_style_modes_file(), MAX_STYLE_MODES_CHARS)
     forbidden_text = compact_prompt_text("\n".join(load_forbidden_phrases()), 500)
 
@@ -289,7 +338,7 @@ def build_system_prompt(user_id, chat_id):
 
 
 def prepare_messages(user_id, chat_id, history, user_text, previous_answer="", user_gender="unknown"):
-    system_prompt = build_system_prompt(user_id, chat_id)
+    system_prompt = build_system_prompt(user_id, chat_id, user_text=user_text)
 
     messages = [
         {"role": "system", "content": system_prompt},
@@ -468,10 +517,10 @@ def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
             if not raw_answer:
                 continue
 
-            answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender)
+            answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender, user_text=user_text)
             answer = clean_forbidden_phrases(answer)
             answer = reduce_repeated_references(answer, previous_answer, user_text)
-            answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
+            answer = clean_answer(answer, detailed=detailed, user_gender=user_gender, user_text=user_text)
             answer = clean_forbidden_phrases(answer)
 
             if answer_has_forbidden_list(answer) and not allow_list:
@@ -483,15 +532,15 @@ def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
                 }]
 
                 raw_answer = call_provider(provider, retry_messages)
-                answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender)
+                answer = clean_answer(raw_answer, detailed=detailed, user_gender=user_gender, user_text=user_text)
                 answer = clean_forbidden_phrases(answer)
                 answer = reduce_repeated_references(answer, previous_answer, user_text)
-                answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
+                answer = clean_answer(answer, detailed=detailed, user_gender=user_gender, user_text=user_text)
                 answer = clean_forbidden_phrases(answer)
 
                 if answer_has_forbidden_list(answer):
                     answer = flatten_forbidden_list(answer)
-                    answer = clean_answer(answer, detailed=detailed, user_gender=user_gender)
+                    answer = clean_answer(answer, detailed=detailed, user_gender=user_gender, user_text=user_text)
                     answer = clean_forbidden_phrases(answer)
 
             if previous_answer and is_too_similar(answer, previous_answer):

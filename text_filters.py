@@ -102,7 +102,14 @@ def normalize_punctuation(text):
     text = re.sub(r"\.\s+\.", "..", text)
     text = re.sub(r"\.\.\s+\.", "..", text)
     text = re.sub(r",\s*([.!?])", r"\1", text)
-    text = re.sub(r"\s+([.!?])", r"\1", text)
+    text = re.sub(r",\s*,+", ",", text)
+    text = re.sub(r"([;:])\s*\1+", r"\1", text)
+    text = re.sub(r"\s+([,.!?;:])", r"\1", text)
+    text = re.sub(r"([,.!?;:])\s+([,.!?;:])", r"\1\2", text)
+    text = re.sub(r",\s*([.!?])", r"\1", text)
+    text = re.sub(r"([.!?])[,;:]+", r"\1", text)
+    text = re.sub(r"\?\s*\.", "?", text)
+    text = re.sub(r"!\s*\.", "!", text)
     return text
 
 
@@ -372,7 +379,43 @@ def ensure_final_punctuation(text):
     return "\n".join(fixed).strip()
 
 
-def clean_answer(text, detailed=False, user_gender=None):
+def marker_context_allows(user_text, answer_text, triggers):
+    corpus = ((user_text or "") + " " + (answer_text or "")).lower().replace("ё", "е")
+    corpus = re.sub(r"\b(бтв|имхо|хд|кк)\b", " ", corpus, flags=re.IGNORECASE)
+    corpus = re.sub(r"\s+", " ", corpus)
+    return any(trigger in corpus for trigger in triggers)
+
+
+def remove_marker(text, marker):
+    pattern = rf"(?i)(^|[\s,.;:!?]){re.escape(marker)}(?=($|[\s,.;:!?]))"
+    text = re.sub(pattern, lambda m: m.group(1) if m.group(1).strip() else "", text)
+    text = re.sub(r"\s{2,}", " ", text)
+    text = re.sub(r"^\s*[,.;:!?]\s*", "", text)
+    text = re.sub(r"\s+([,.!?;:])", r"\1", text)
+    return text.strip()
+
+
+def fix_contextual_speech_markers(text, user_text=""):
+    if not text:
+        return text
+
+    checks = {
+        "бтв": ["к слову", "кстати", "между прочим", "к слову сказать"],
+        "имхо": ["по-моему", "по моему", "мое мнение", "считаю", "думаю", "кажется", "я бы"],
+        "хд": ["ахах", "хаха", "смешно", "забавно", "лол", "ржу", "угар", ":)"],
+        "кк": ["ладно", "хорошо", "ок", "окей", "договорились", "принято", "поняла", "согласна"],
+    }
+
+    for marker, triggers in checks.items():
+        if re.search(rf"(?i)(^|[\s,.;:!?]){re.escape(marker)}(?=($|[\s,.;:!?]))", text):
+            short_agreement = marker == "кк" and len(text.strip()) <= 45
+            if not short_agreement and not marker_context_allows(user_text, text, triggers):
+                text = remove_marker(text, marker)
+
+    return text.strip()
+
+
+def clean_answer(text, detailed=False, user_gender=None, user_text=""):
     if not text:
         return ""
 
@@ -380,6 +423,7 @@ def clean_answer(text, detailed=False, user_gender=None):
     text = replace_quotes_with_stars(text)
     text = normalize_punctuation(text)
     text = fix_mixed_english_artifacts(text, detailed=detailed)
+    text = fix_contextual_speech_markers(text, user_text=user_text)
     text = fix_bot_self_gender(text)
     text = fix_user_gender_forms(text, user_gender=user_gender)
 
@@ -430,6 +474,7 @@ def clean_answer(text, detailed=False, user_gender=None):
 
     text = maybe_add_sad_pause(text)
     text = normalize_punctuation(text)
+    text = fix_contextual_speech_markers(text, user_text=user_text)
     text = apply_lowercase_mode(text)
     text = ensure_final_punctuation(text)
 
