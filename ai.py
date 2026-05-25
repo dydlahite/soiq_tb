@@ -403,10 +403,12 @@ def provider_order(use_expensive_model=False, prompt_chars=0):
     if prompt_chars < 9000:
         order.append(("OpenRouter DeepSeek", ask_openrouter_deepseek))
 
-    order.extend([
-        ("Groq", ask_groq),
-        ("OpenRouter Auto", ask_openrouter_auto),
-    ])
+    # Groq выключен по умолчанию. Он часто упирается в 429 и только тормозит очередь.
+    # Включить обратно можно командой /groq_on.
+    if get_setting("groq_enabled", "off") == "on":
+        order.append(("Groq", ask_groq))
+
+    order.append(("OpenRouter Auto", ask_openrouter_auto))
 
     proxy_added = False
 

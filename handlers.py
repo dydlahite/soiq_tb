@@ -655,6 +655,36 @@ async def paid_status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def groq_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("groq_enabled", "on")
+    await update.message.reply_text("Groq включен. Если он снова начнет 429, это будет не баг, а очередная демонстрация хрупкости мира.")
+
+
+async def groq_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_setting("groq_enabled", "off")
+    await update.message.reply_text("Groq выключен. Бот будет скипать его полностью.")
+
+
+async def groq_status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    await update.message.reply_text(
+        f"groq_enabled: {get_setting('groq_enabled', 'off')}\n"
+        f"last provider: {get_setting('last_provider', 'нет')}\n"
+        f"last try: {get_setting('last_provider_try', 'нет')}"
+    )
+
+
 async def voice_input_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not admin.is_admin(update):
         await update.message.reply_text("Нет доступа.")
@@ -1302,6 +1332,9 @@ def register_handlers(app):
     app.add_handler(CommandHandler("paid_complex_on", paid_complex_on_cmd))
     app.add_handler(CommandHandler("paid_complex_off", paid_complex_off_cmd))
     app.add_handler(CommandHandler("paid_status", paid_status_cmd))
+    app.add_handler(CommandHandler("groq_on", groq_on_cmd))
+    app.add_handler(CommandHandler("groq_off", groq_off_cmd))
+    app.add_handler(CommandHandler("groq_status", groq_status_cmd))
     app.add_handler(CommandHandler("voice_input_on", voice_input_on_cmd))
     app.add_handler(CommandHandler("voice_input_off", voice_input_off_cmd))
     app.add_handler(CommandHandler("vision_on", vision_on_cmd))
