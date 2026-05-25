@@ -101,6 +101,8 @@ def normalize_punctuation(text):
     text = re.sub(r"\.{3,}", "..", text)
     text = re.sub(r"\.\s+\.", "..", text)
     text = re.sub(r"\.\.\s+\.", "..", text)
+    text = re.sub(r",\s*([.!?])", r"\1", text)
+    text = re.sub(r"\s+([.!?])", r"\1", text)
     return text
 
 
