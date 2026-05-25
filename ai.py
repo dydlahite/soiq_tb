@@ -326,7 +326,7 @@ def ask_openrouter_deepseek(messages):
         model=OPENROUTER_DEEPSEEK_MODEL,
         messages=messages,
         temperature=0.75,
-        max_tokens=280,
+        max_tokens=100,
     )
 
     return response.choices[0].message.content
@@ -340,7 +340,7 @@ def ask_openrouter_auto(messages):
         model=OPENROUTER_AUTO_MODEL,
         messages=messages,
         temperature=0.55,
-        max_tokens=280,
+        max_tokens=100,
     )
 
     return response.choices[0].message.content
