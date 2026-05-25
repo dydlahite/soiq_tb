@@ -30,6 +30,14 @@ from multimodal import (
     get_voice_input,
     get_image_input,
 )
+from quotes import (
+    quote_status_text,
+    set_quote_chance,
+    get_quote_chance,
+    set_quote_match_threshold,
+    get_quote_match_threshold,
+    ensure_quote_file,
+)
 from tts import (
     should_send_voice,
     make_tts_file,
@@ -547,6 +555,51 @@ async def reactions_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Правила в файле {REACTION_RULES_PATH}:\n\n"
         f"{rules_text[:3000]}"
     )
+
+
+
+async def quotes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    ensure_quote_file()
+    await update.message.reply_text(quote_status_text())
+
+
+async def set_quote_chance_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("Пиши так: /set_quote_chance 18")
+        return
+
+    set_quote_chance(context.args[0])
+    await update.message.reply_text(f"Шанс случайного упоминания цитат: {get_quote_chance()}%.")
+
+
+async def set_quote_match_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Пиши так: /set_quote_match 0.78")
+        return
+
+    set_quote_match_threshold(context.args[0])
+    await update.message.reply_text(f"Порог узнавания цитат: {get_quote_match_threshold()}.")
+
+
+async def reload_quotes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    ensure_quote_file()
+    await update.message.reply_text("Файл quote_triggers.txt на месте. Он читается при каждом ответе, так что рестарт ради него не обязателен. Какая редкая милость.")
 
 
 async def paid_fallback_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1240,6 +1293,10 @@ def register_handlers(app):
     app.add_handler(CommandHandler("reactions_on", reactions_on_cmd))
     app.add_handler(CommandHandler("reactions_off", reactions_off_cmd))
     app.add_handler(CommandHandler("set_reaction_chance", set_reaction_chance_cmd))
+    app.add_handler(CommandHandler("quotes", quotes_cmd))
+    app.add_handler(CommandHandler("reload_quotes", reload_quotes_cmd))
+    app.add_handler(CommandHandler("set_quote_chance", set_quote_chance_cmd))
+    app.add_handler(CommandHandler("set_quote_match", set_quote_match_cmd))
     app.add_handler(CommandHandler("paid_fallback_on", paid_fallback_on_cmd))
     app.add_handler(CommandHandler("paid_fallback_off", paid_fallback_off_cmd))
     app.add_handler(CommandHandler("paid_complex_on", paid_complex_on_cmd))

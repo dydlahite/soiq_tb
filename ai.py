@@ -31,6 +31,7 @@ from text_filters import (
     reduce_repeated_references,
 )
 from forbidden import clean_forbidden_phrases, load_forbidden_phrases
+from quotes import build_quote_prompt
 
 openrouter_client = None
 if OPENROUTER_API_KEY:
@@ -295,6 +296,10 @@ def prepare_messages(user_id, chat_id, history, user_text, previous_answer="", u
         {"role": "system", "content": user_gender_prompt(user_gender)},
     ]
 
+    quote_prompt = build_quote_prompt(user_text)
+    if quote_prompt:
+        messages.append({"role": "system", "content": quote_prompt})
+
     if not user_requested_list(user_text):
         messages.append({
             "role": "system",
@@ -326,7 +331,7 @@ def ask_openrouter_deepseek(messages):
         model=OPENROUTER_DEEPSEEK_MODEL,
         messages=messages,
         temperature=0.75,
-        max_tokens=100,
+        max_tokens=280,
     )
 
     return response.choices[0].message.content
@@ -340,7 +345,7 @@ def ask_openrouter_auto(messages):
         model=OPENROUTER_AUTO_MODEL,
         messages=messages,
         temperature=0.55,
-        max_tokens=100,
+        max_tokens=280,
     )
 
     return response.choices[0].message.content
@@ -399,6 +404,7 @@ def provider_order(use_expensive_model=False, prompt_chars=0):
         order.append(("OpenRouter DeepSeek", ask_openrouter_deepseek))
 
     order.extend([
+        ("Groq", ask_groq),
         ("OpenRouter Auto", ask_openrouter_auto),
     ])
 
