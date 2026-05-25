@@ -399,7 +399,6 @@ def provider_order(use_expensive_model=False, prompt_chars=0):
         order.append(("OpenRouter DeepSeek", ask_openrouter_deepseek))
 
     order.extend([
-        ("Groq", ask_groq),
         ("OpenRouter Auto", ask_openrouter_auto),
     ])
 
