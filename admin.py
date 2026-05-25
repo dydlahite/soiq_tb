@@ -11,6 +11,15 @@ from idle import get_idle_settings_text, set_idle_enabled, set_idle_hours, set_i
 from tts import get_voice_mode, set_voice_mode, get_voice_chance, set_voice_chance, ensure_voice_defaults
 from quotes import quote_status_text, get_quote_chance, set_quote_chance, get_quote_match_threshold, set_quote_match_threshold
 from multimodal import set_voice_input, set_image_input, get_voice_input, get_image_input
+from channel import (
+    channel_status_text,
+    set_channel_enabled,
+    set_channel_hours,
+    set_channel_chance,
+    set_channel_mode,
+    set_channel_format,
+    clear_channel_recent,
+)
 
 
 STYLE_MODES = ["normal", "ornate", "messy", "dry", "angry", "soft"]
@@ -36,7 +45,8 @@ def admin_keyboard():
         [InlineKeyboardButton("Платные/Groq", callback_data="admin_paid_page"), InlineKeyboardButton("Реакции", callback_data="admin_reactions_page")],
         [InlineKeyboardButton("Цитаты", callback_data="admin_quotes_page"), InlineKeyboardButton("Буфер/Reply", callback_data="admin_buffer_page")],
         [InlineKeyboardButton("Мультимодал", callback_data="admin_multimodal_page"), InlineKeyboardButton("Голос", callback_data="admin_voice_page")],
-        [InlineKeyboardButton("lowercase", callback_data="admin_lowercase_page"), InlineKeyboardButton("Медиа", callback_data="admin_media_page")],
+        [InlineKeyboardButton("Канал", callback_data="admin_channel_page"), InlineKeyboardButton("lowercase", callback_data="admin_lowercase_page")],
+        [InlineKeyboardButton("Медиа", callback_data="admin_media_page")],
         [InlineKeyboardButton("Автосообщения", callback_data="admin_idle_page"), InlineKeyboardButton("Память", callback_data="admin_memory_page")],
         [InlineKeyboardButton("Помощь", callback_data="admin_help_page")],
     ])
@@ -137,6 +147,38 @@ def multimodal_keyboard():
         back_button(),
     ])
 
+
+
+def channel_keyboard():
+    return keyboard([
+        [
+            InlineKeyboardButton("channel ON", callback_data="admin_channel:on"),
+            InlineKeyboardButton("channel OFF", callback_data="admin_channel:off"),
+        ],
+        [
+            InlineKeyboardButton("6 ч", callback_data="admin_channel_hours:6"),
+            InlineKeyboardButton("12 ч", callback_data="admin_channel_hours:12"),
+            InlineKeyboardButton("24 ч", callback_data="admin_channel_hours:24"),
+            InlineKeyboardButton("48 ч", callback_data="admin_channel_hours:48"),
+        ],
+        [
+            InlineKeyboardButton("шанс 20%", callback_data="admin_channel_chance:20"),
+            InlineKeyboardButton("шанс 35%", callback_data="admin_channel_chance:35"),
+            InlineKeyboardButton("шанс 60%", callback_data="admin_channel_chance:60"),
+        ],
+        [
+            InlineKeyboardButton("static", callback_data="admin_channel_mode:static"),
+            InlineKeyboardButton("generated", callback_data="admin_channel_mode:generated"),
+            InlineKeyboardButton("mixed", callback_data="admin_channel_mode:mixed"),
+        ],
+        [
+            InlineKeyboardButton("diary", callback_data="admin_channel_format:diary"),
+            InlineKeyboardButton("review", callback_data="admin_channel_format:review"),
+            InlineKeyboardButton("format mixed", callback_data="admin_channel_format:mixed"),
+        ],
+        [InlineKeyboardButton("очистить повторы", callback_data="admin_channel_clear_recent")],
+        back_button(),
+    ])
 
 def memory_keyboard():
     return keyboard([
@@ -661,6 +703,7 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "admin_quotes_page": (quote_status_text(limit=8), quotes_keyboard()),
         "admin_buffer_page": (buffer_text(), buffer_keyboard()),
         "admin_multimodal_page": (multimodal_text(), multimodal_keyboard()),
+        "admin_channel_page": (channel_status_text(), channel_keyboard()),
     }
     if data in pages:
         text, markup = pages[data]
@@ -809,6 +852,41 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         set_image_input(data.split(":", 1)[1] == "on")
         await query.edit_message_text(multimodal_text(), reply_markup=multimodal_keyboard())
         return
+
+    if data.startswith("admin_channel:"):
+        set_channel_enabled(data.split(":", 1)[1] == "on")
+        await query.edit_message_text(channel_status_text(), reply_markup=channel_keyboard())
+        return
+
+    if data.startswith("admin_channel_hours:"):
+        value = data.split(":", 1)[1]
+        if value.isdigit():
+            set_channel_hours(int(value))
+        await query.edit_message_text(channel_status_text(), reply_markup=channel_keyboard())
+        return
+
+    if data.startswith("admin_channel_chance:"):
+        value = data.split(":", 1)[1]
+        if value.isdigit():
+            set_channel_chance(int(value))
+        await query.edit_message_text(channel_status_text(), reply_markup=channel_keyboard())
+        return
+
+    if data.startswith("admin_channel_mode:"):
+        set_channel_mode(data.split(":", 1)[1])
+        await query.edit_message_text(channel_status_text(), reply_markup=channel_keyboard())
+        return
+
+    if data.startswith("admin_channel_format:"):
+        set_channel_format(data.split(":", 1)[1])
+        await query.edit_message_text(channel_status_text(), reply_markup=channel_keyboard())
+        return
+
+    if data == "admin_channel_clear_recent":
+        clear_channel_recent()
+        await query.edit_message_text("История повторов канала очищена. Ну вот, амнезия по расписанию.", reply_markup=channel_keyboard())
+        return
+
     if data == "admin_clear_my_memory_confirm":
         await query.edit_message_text("Точно очистить историю этого чата?", reply_markup=confirm_clear_my_keyboard())
         return
