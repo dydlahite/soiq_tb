@@ -4,6 +4,15 @@ from difflib import SequenceMatcher
 
 from database import get_setting
 
+SHORT_BARE_REPLIES = {
+    "да", "нет", "хм", "мда", "ну", "ок", "кк", "окак", "ага", "угу", "неа", "ладно",
+    "приняла", "поняла", "ясно", "бывает", "увы", "что ж", "пожалуй",
+}
+
+
+def is_short_bare_reply_text(text):
+    return (text or "").strip().lower().replace(".", "") in SHORT_BARE_REPLIES
+
 
 def need_detailed_answer(text):
     text_lower = text.lower()
@@ -373,6 +382,9 @@ def ensure_final_punctuation(text):
         if stripped.endswith(".. :)"):
             fixed.append(stripped)
             continue
+        if is_short_bare_reply_text(stripped):
+            fixed.append(stripped.rstrip("."))
+            continue
         if stripped[-1] not in ".!?":
             stripped += "."
         fixed.append(stripped)
@@ -415,6 +427,44 @@ def fix_contextual_speech_markers(text, user_text=""):
     return text.strip()
 
 
+def remove_unwanted_final_question(text, user_text=""):
+    if not text or not text.strip().endswith("?"):
+        return text
+
+    sentences = split_to_sentences(text)
+    if len(sentences) <= 1:
+        return text
+
+    last = sentences[-1].strip()
+    last_l = last.lower().replace("ё", "е")
+
+    vague_question_patterns = [
+        r"^а ты\??$",
+        r"^а у тебя\??$",
+        r"^что думаешь\??$",
+        r"^как думаешь\??$",
+        r"^как считаешь\??$",
+        r"^понятно\??$",
+        r"^ну как\??$",
+        r"^да\??$",
+        r"^нет\??$",
+        r"^согласна\??$",
+        r"^хочешь[^?]{0,80}\??$",
+        r"^расскажешь[^?]{0,80}\??$",
+        r"^продолжим\??$",
+        r"^что у тебя[^?]{0,80}\??$",
+    ]
+
+    if len(last) <= 110 and any(re.search(pattern, last_l) for pattern in vague_question_patterns):
+        return " ".join(sentences[:-1]).strip()
+
+    service_hooks = ["а ты", "а у тебя", "что думаешь", "как думаешь", "как считаешь", "хочешь", "расскажешь"]
+    if len(last) <= 95 and any(hook in last_l for hook in service_hooks):
+        return " ".join(sentences[:-1]).strip()
+
+    return text
+
+
 def clean_answer(text, detailed=False, user_gender=None, user_text=""):
     if not text:
         return ""
@@ -441,6 +491,7 @@ def clean_answer(text, detailed=False, user_gender=None, user_text=""):
         text = text.replace(phrase, "")
 
     text = remove_service_sentences(text)
+    text = remove_unwanted_final_question(text, user_text=user_text)
     text = reduce_parenthetical_remarks(text)
 
     for pattern in [r"\bчурк\w*\b"]:

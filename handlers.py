@@ -22,6 +22,18 @@ from memory import save_message, get_history, get_last_assistant_answer
 from moods import get_current_mood
 from media import maybe_send_media, clear_media, clear_media_seen, get_random_media, send_media_item
 from idle import touch_chat, schedule_idle_jobs, send_idle_now
+from channel import (
+    schedule_channel_jobs,
+    channel_status_text,
+    set_channel_enabled,
+    set_channel_id,
+    set_channel_hours,
+    set_channel_chance,
+    set_channel_mode,
+    set_channel_format,
+    send_channel_post,
+    clear_channel_recent,
+)
 from multimodal import (
     transcribe_audio_file,
     describe_image_file,
@@ -53,6 +65,15 @@ from tts import (
 
 PROVIDER_FAILURE_PREFIX = "Все нейросети сейчас недоступны"
 TEST_VOICE_TEXT = "проверка голоса. звучит терпимо или опять как лифт в поликлинике."
+MAX_REPLY_PARTS = 4
+SHORT_BARE_REPLIES = {
+    "да", "нет", "хм", "мда", "ну", "ок", "кк", "окак", "ага", "угу", "неа", "ладно",
+    "приняла", "поняла", "ясно", "бывает", "увы", "что ж", "пожалуй",
+}
+
+
+def is_short_bare_reply(line):
+    return line.strip().lower().replace(".", "") in SHORT_BARE_REPLIES
 REACTION_RULES_PATH = "reaction_rules.txt"
 PENDING_TEXT_BUFFERS = {}
 
@@ -216,6 +237,10 @@ def ensure_visible_punctuation(text):
             fixed.append(stripped)
             continue
 
+        if is_short_bare_reply(stripped):
+            fixed.append(stripped.rstrip("."))
+            continue
+
         if stripped[-1] not in ".!?":
             stripped += "."
 
@@ -228,29 +253,34 @@ def add_human_line_breaks(text):
     if not text or "\n" in text:
         return text
 
-    if len(text) < 75 or len(text) > 520:
+    if len(text) < 55 or len(text) > 620:
         return text
 
-    if random.randint(1, 100) > 46:
+    if random.randint(1, 100) > 58:
         return text
 
     sentences = split_sentences_safely(text)
 
-    if len(sentences) < 2 or len(sentences) > 5:
+    if len(sentences) < 2 or len(sentences) > 6:
         return text
 
     lines = []
 
     for sentence in sentences:
-        if lines and len(lines[-1]) + len(sentence) < 62 and random.randint(1, 100) <= 30:
+        if lines and len(lines[-1]) + len(sentence) < 58 and random.randint(1, 100) <= 22:
             lines[-1] += " " + sentence
         else:
+            if lines and random.randint(1, 100) <= 26:
+                lines.append("")
             lines.append(sentence)
 
-    if len(lines) < 2:
+    cleaned = "\n".join(lines).strip()
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+
+    if cleaned.count("\n") < 1:
         return text
 
-    return "\n".join(lines)
+    return cleaned
 
 
 def split_answer_randomly(text):
@@ -259,7 +289,7 @@ def split_answer_randomly(text):
 
     text = text.strip()
 
-    if len(text) < 180 or random.randint(1, 100) <= 45:
+    if len(text) < 240 or random.randint(1, 100) <= 55:
         return [text]
 
     paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
@@ -274,7 +304,7 @@ def split_answer_randomly(text):
     if len(units) < 2:
         return [text]
 
-    target_len = random.randint(180, 360)
+    target_len = random.randint(230, 430)
     chunks = []
     current = ""
 
@@ -283,7 +313,7 @@ def split_answer_randomly(text):
             current = unit
             continue
 
-        if len(current) + len(unit) + 1 <= target_len or len(chunks) >= 9:
+        if len(current) + len(unit) + 1 <= target_len or len(chunks) >= MAX_REPLY_PARTS - 1:
             current += " " + unit
         else:
             chunks.append(current.strip())
@@ -292,7 +322,7 @@ def split_answer_randomly(text):
     if current:
         chunks.append(current.strip())
 
-    while len(chunks) > 10:
+    while len(chunks) > MAX_REPLY_PARTS:
         chunks[-2] = chunks[-2] + " " + chunks[-1]
         chunks.pop()
 
@@ -464,11 +494,11 @@ async def send_humanized_reply(update: Update, context: ContextTypes.DEFAULT_TYP
         delay += random.uniform(0.3, 1.0)
 
         if index == 0:
-            delay = min(delay, 5.5)
+            delay = min(delay, 2.2)
         else:
-            delay = min(delay, 7.0)
+            delay = min(delay, 3.0)
 
-        delay = max(0.6, delay)
+        delay = max(0.35, delay)
 
         await context.bot.send_chat_action(
             chat_id=update.effective_chat.id,
@@ -1266,8 +1296,138 @@ async def photo_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
 
 
+
+async def channel_status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    await update.message.reply_text(channel_status_text())
+
+
+async def channel_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_channel_enabled(True)
+    await update.message.reply_text("Постинг в канал включен. Маленький дневник пустоты получил расписание.")
+
+
+async def channel_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_channel_enabled(False)
+    await update.message.reply_text("Постинг в канал выключен.")
+
+
+async def set_channel_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Пиши так: /set_channel @channel_username или /set_channel -1001234567890")
+        return
+
+    value = context.args[0].strip()
+    set_channel_id(value)
+    await update.message.reply_text(f"Канал установлен: {value}")
+
+
+async def set_channel_hours_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("Пиши так: /set_channel_hours 12")
+        return
+
+    set_channel_hours(int(context.args[0]))
+    await update.message.reply_text(channel_status_text())
+
+
+async def set_channel_chance_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("Пиши так: /set_channel_chance 35")
+        return
+
+    set_channel_chance(int(context.args[0]))
+    await update.message.reply_text(channel_status_text())
+
+
+async def set_channel_mode_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Пиши так: /set_channel_mode static|generated|mixed")
+        return
+
+    set_channel_mode(context.args[0])
+    await update.message.reply_text(channel_status_text())
+
+
+async def set_channel_format_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Пиши так: /set_channel_format diary|review|mixed")
+        return
+
+    set_channel_format(context.args[0])
+    await update.message.reply_text(channel_status_text())
+
+
+async def channel_post_now_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    try:
+        ok, result = await send_channel_post(context.bot, force=True)
+    except Exception as error:
+        await update.message.reply_text(f"Не смогла отправить в канал: {error}")
+        return
+
+    await update.message.reply_text("Отправила в канал." if ok else f"Не отправила: {result}")
+
+
+async def channel_generate_now_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    try:
+        ok, result = await send_channel_post(context.bot, force=True, force_generated=True)
+    except Exception as error:
+        await update.message.reply_text(f"Не смогла сгенерировать пост в канал: {error}")
+        return
+
+    await update.message.reply_text("Сгенерировала и отправила в канал." if ok else f"Не отправила: {result}")
+
+
+async def clear_channel_recent_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    clear_channel_recent()
+    await update.message.reply_text("История повторов канала очищена.")
+
 def register_handlers(app):
     schedule_idle_jobs(app)
+    schedule_channel_jobs(app)
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("myid", admin.myid))
@@ -1359,6 +1519,17 @@ def register_handlers(app):
     app.add_handler(CommandHandler("important_list", important_list_cmd))
     app.add_handler(CommandHandler("important_delete", important_delete_cmd))
     app.add_handler(CommandHandler("important_clear", important_clear_cmd))
+    app.add_handler(CommandHandler("channel_status", channel_status_cmd))
+    app.add_handler(CommandHandler("channel_on", channel_on_cmd))
+    app.add_handler(CommandHandler("channel_off", channel_off_cmd))
+    app.add_handler(CommandHandler("set_channel", set_channel_cmd))
+    app.add_handler(CommandHandler("set_channel_hours", set_channel_hours_cmd))
+    app.add_handler(CommandHandler("set_channel_chance", set_channel_chance_cmd))
+    app.add_handler(CommandHandler("set_channel_mode", set_channel_mode_cmd))
+    app.add_handler(CommandHandler("set_channel_format", set_channel_format_cmd))
+    app.add_handler(CommandHandler("channel_post_now", channel_post_now_cmd))
+    app.add_handler(CommandHandler("channel_generate_now", channel_generate_now_cmd))
+    app.add_handler(CommandHandler("clear_channel_recent", clear_channel_recent_cmd))
     app.add_handler(CallbackQueryHandler(admin.admin_callback, pattern="^admin_"))
     app.add_handler(MessageHandler(filters.VOICE, voice_message))
     app.add_handler(MessageHandler(filters.PHOTO, photo_message))
