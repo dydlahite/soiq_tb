@@ -42,7 +42,7 @@ def fix_short_reaction_punctuation(text):
         else:
             fixed.append(stripped)
 
-    return fix_short_reaction_punctuation("\n".join(fixed).strip())
+    return "\n".join(fixed).strip()
 
 
 def is_short_bare_reply_text(text):
