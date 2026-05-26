@@ -218,11 +218,26 @@ def split_sentences_safely(text):
     return [part.strip() for part in parts if part.strip()]
 
 
-def ensure_visible_punctuation(text):
+
+
+def normalize_visible_smileys(text):
     if not text:
         return text
 
     text = text.replace("* .. :) *", ".. :)")
+    text = re.sub(r"\*+\s*\.\.\s*:\)\s*\*+", ".. :)", text)
+    text = re.sub(r"\.{2,}\s*\)+", ".. :)", text)
+    text = re.sub(r"\.\.\s*:\)", ".. :)", text)
+    text = re.sub(r"(:\)|\.\.\s*:\))\s*[.)]+(?=\s*($|\n))", r"\1", text)
+    text = re.sub(r"\.\.\s*:\)\s*\.+", ".. :)", text)
+    text = re.sub(r":\)\s*\.+(?=\s*($|\n))", ":)", text)
+    return text
+
+def ensure_visible_punctuation(text):
+    if not text:
+        return text
+
+    text = normalize_visible_smileys(text)
     lines = text.splitlines()
     fixed = []
 
@@ -233,7 +248,7 @@ def ensure_visible_punctuation(text):
             fixed.append(stripped)
             continue
 
-        if stripped.endswith(".. :)"):
+        if stripped.endswith(".. :)") or stripped.endswith(":)"):
             fixed.append(stripped)
             continue
 
@@ -246,7 +261,7 @@ def ensure_visible_punctuation(text):
 
         fixed.append(stripped)
 
-    return "\n".join(fixed).strip()
+    return normalize_visible_smileys("\n".join(fixed).strip())
 
 
 def add_human_line_breaks(text):

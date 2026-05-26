@@ -122,6 +122,25 @@ def normalize_punctuation(text):
     return text
 
 
+
+
+def normalize_smileys(text):
+    if not text:
+        return text
+
+    # Нормальный усталый смайлик бота: только ":)" или ".. :)".
+    # Все эти "..)", "..).", "...)." - пунктуационные крысы, не стиль.
+    text = re.sub(r"\*+\s*\.\.\s*:\)\s*\*+", ".. :)", text)
+    text = re.sub(r"\.{2,}\s*\)+", ".. :)", text)
+    text = re.sub(r"\.\.\s*:\)", ".. :)", text)
+
+    # Убираем точку/скобку после смайлика в конце строки.
+    text = re.sub(r"(:\)|\.\.\s*:\))\s*[.)]+(?=\s*($|\n))", r"\1", text)
+    text = re.sub(r"\.\.\s*:\)\s*\.+", ".. :)", text)
+    text = re.sub(r":\)\s*\.+(?=\s*($|\n))", ":)", text)
+
+    return text
+
 def fix_mixed_english_artifacts(text, detailed=False):
     if not text:
         return text
@@ -379,7 +398,7 @@ def ensure_final_punctuation(text):
         if not stripped:
             fixed.append(stripped)
             continue
-        if stripped.endswith(".. :)"):
+        if stripped.endswith(".. :)") or stripped.endswith(":)"):
             fixed.append(stripped)
             continue
         if is_short_bare_reply_text(stripped):
@@ -472,6 +491,7 @@ def clean_answer(text, detailed=False, user_gender=None, user_text=""):
     text = text.replace("ё", "е").replace("Ё", "Е")
     text = replace_quotes_with_stars(text)
     text = normalize_punctuation(text)
+    text = normalize_smileys(text)
     text = fix_mixed_english_artifacts(text, detailed=detailed)
     text = fix_contextual_speech_markers(text, user_text=user_text)
     text = fix_bot_self_gender(text)
@@ -525,9 +545,12 @@ def clean_answer(text, detailed=False, user_gender=None, user_text=""):
 
     text = maybe_add_sad_pause(text)
     text = normalize_punctuation(text)
+    text = normalize_smileys(text)
     text = fix_contextual_speech_markers(text, user_text=user_text)
     text = apply_lowercase_mode(text)
+    text = normalize_smileys(text)
     text = ensure_final_punctuation(text)
+    text = normalize_smileys(text)
 
     if not text.strip():
         text = "приняла. без протокольной паники."
