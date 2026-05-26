@@ -5,6 +5,7 @@ import random
 from datetime import datetime, timedelta
 
 from database import get_setting, set_setting
+from creative import build_channel_creative_task
 
 
 CHANNEL_THOUGHTS_PATH = "channel_thoughts.txt"
@@ -68,7 +69,11 @@ def load_blocks(path, default_text):
     raw = ensure_text_file(path, default_text)
     blocks = []
 
-    for block in raw.split("\n\n"):
+    # Для готовых постов удобны блоки через пустую строку.
+    # Для тем удобнее одна тема на строку. Да, раньше это было слишком разумно, поэтому не работало.
+    chunks = raw.split("\n\n") if "\n\n" in raw else raw.splitlines()
+
+    for block in chunks:
         block = block.strip()
         if block and not block.startswith("#"):
             blocks.append(block)
@@ -142,6 +147,22 @@ def set_channel_format(value):
     if value not in ["diary", "review", "mixed"]:
         value = "diary"
     set_setting("channel_format", value)
+
+
+def get_channel_content():
+    value = get_setting("channel_content", "notes").lower().strip()
+    aliases = {"poem": "poetry", "poems": "poetry", "story": "stories"}
+    value = aliases.get(value, value)
+    return value if value in ["notes", "poetry", "stories", "mixed"] else "notes"
+
+
+def set_channel_content(value):
+    value = (value or "notes").lower().strip()
+    aliases = {"poem": "poetry", "poems": "poetry", "story": "stories"}
+    value = aliases.get(value, value)
+    if value not in ["notes", "poetry", "stories", "mixed"]:
+        value = "notes"
+    set_setting("channel_content", value)
 
 
 def get_channel_last_post_at():
@@ -226,15 +247,14 @@ def pick_topic():
     return pick_non_repeated(topics)
 
 
-def build_generated_channel_post():
-    topic = pick_topic()
+def build_note_task(topic):
     channel_format = get_channel_format()
 
     if channel_format == "mixed":
         channel_format = random.choice(["diary", "review"])
 
     if channel_format == "review":
-        task = (
+        return (
             "Напиши короткую запись для Telegram-канала от имени персонажного бота. "
             "Формат: дневниковая мини-рецензия на явление/день/настроение. "
             "Без списка, без заголовка *рецензия*, без обращения к читателю. "
@@ -242,15 +262,38 @@ def build_generated_channel_post():
             "Длина 3-7 предложений. Не цитируй песни и книги дословно. "
             f"Тема: {topic}"
         )
+
+    return (
+        "Напиши короткую запись для Telegram-канала от имени персонажного бота. "
+        "Формат: условный дневник, будто она оставила мысль на полях дня. "
+        "Без списка, без обращения к читателю, без объяснения, что это пост. "
+        "Тон: тоска, усталость, сухая ирония, немного человеческого тепла под пылью. "
+        "Длина 3-7 предложений. Не цитируй песни и книги дословно. "
+        f"Тема: {topic}"
+    )
+
+
+def pick_channel_content(force_content=None):
+    content = (force_content or get_channel_content() or "notes").lower().strip()
+    aliases = {"poem": "poetry", "poems": "poetry", "story": "stories"}
+    content = aliases.get(content, content)
+
+    if content == "mixed":
+        return random.choices(["notes", "poetry", "stories"], weights=[50, 25, 25], k=1)[0]
+
+    return content if content in ["notes", "poetry", "stories"] else "notes"
+
+
+def build_generated_channel_post(force_content=None):
+    topic = pick_topic()
+    content = pick_channel_content(force_content)
+
+    if content == "poetry":
+        task = build_channel_creative_task("poetry", topic)
+    elif content == "stories":
+        task = build_channel_creative_task("story", topic)
     else:
-        task = (
-            "Напиши короткую запись для Telegram-канала от имени персонажного бота. "
-            "Формат: условный дневник, будто она оставила мысль на полях дня. "
-            "Без списка, без обращения к читателю, без объяснения, что это пост. "
-            "Тон: тоска, усталость, сухая ирония, немного человеческого тепла под пылью. "
-            "Длина 3-7 предложений. Не цитируй песни и книги дословно. "
-            f"Тема: {topic}"
-        )
+        task = build_note_task(topic)
 
     try:
         from ai import generate_answer
@@ -263,6 +306,7 @@ def build_generated_channel_post():
         )
         answer = clean_channel_post(answer)
         set_setting("channel_last_generated_post", answer[:900])
+        set_setting("channel_last_content", content)
         return answer
     except Exception as error:
         print("channel generation failed:")
@@ -270,8 +314,11 @@ def build_generated_channel_post():
         return build_static_channel_post()
 
 
-def build_channel_post(force_generated=False):
+def build_channel_post(force_generated=False, force_content=None):
     mode = get_channel_mode()
+
+    if force_content:
+        return build_generated_channel_post(force_content=force_content)
 
     if force_generated:
         return build_generated_channel_post()
@@ -307,7 +354,7 @@ def should_post_channel_now(force=False):
     return True
 
 
-async def send_channel_post(bot, force=False, force_generated=False):
+async def send_channel_post(bot, force=False, force_generated=False, force_content=None):
     channel_id = get_channel_id()
 
     if not channel_id:
@@ -316,7 +363,7 @@ async def send_channel_post(bot, force=False, force_generated=False):
     if not should_post_channel_now(force=force):
         return False, "not due"
 
-    post = build_channel_post(force_generated=force_generated)
+    post = build_channel_post(force_generated=force_generated, force_content=force_content)
 
     if not post:
         return False, "empty post"
@@ -351,6 +398,8 @@ def channel_status_text():
         f"chance: {get_channel_chance()}%\n"
         f"mode: {get_channel_mode()}\n"
         f"format: {get_channel_format()}\n"
+        f"content: {get_channel_content()}\n"
+        f"last content: {get_setting('channel_last_content', 'нет')}\n"
         f"last post: {get_setting('channel_last_post_at', 'нет')}\n"
         f"last message id: {get_setting('channel_last_message_id', 'нет')}"
     )
