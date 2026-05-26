@@ -141,6 +141,46 @@ def normalize_smileys(text):
 
     return text
 
+
+def normalize_stray_punctuation(text):
+    if not text:
+        return text
+
+    fixed = []
+
+    for line in text.splitlines():
+        stripped = line.strip()
+
+        if not stripped:
+            fixed.append(stripped)
+            continue
+
+        if stripped.endswith(".. :)") or stripped.endswith(":)"):
+            fixed.append(stripped)
+            continue
+
+        # Groq и постфильтры иногда оставляют ведущую точку: ". что дальше?"
+        stripped = re.sub(r"^[\s,.;:!?]+(?=[А-Яа-яA-Za-z0-9])", "", stripped)
+
+        # Хвосты вроде "что дальше?)." -> "что дальше?".
+        stripped = re.sub(r"\?\)+\s*\.*$", "?", stripped)
+        stripped = re.sub(r"!\)+\s*\.*$", "!", stripped)
+        stripped = re.sub(r"\.\)+\s*$", ".", stripped)
+
+        # Если закрывающая скобка висит в конце без открывающей, выкидываем.
+        if "(" not in stripped and not stripped.endswith(":)") and not stripped.endswith(".. :)"):
+            stripped = re.sub(r"\)+(?=\s*$)", "", stripped).rstrip()
+
+        stripped = re.sub(r"\?\s*\.+$", "?", stripped)
+        stripped = re.sub(r"!\s*\.+$", "!", stripped)
+        stripped = re.sub(r",\s*\.+$", ".", stripped)
+        stripped = re.sub(r"\s+([,.!?;:])", r"\1", stripped)
+
+        fixed.append(stripped)
+
+    return "\n".join(fixed).strip()
+
+
 def fix_mixed_english_artifacts(text, detailed=False):
     if not text:
         return text
@@ -492,6 +532,7 @@ def clean_answer(text, detailed=False, user_gender=None, user_text=""):
     text = replace_quotes_with_stars(text)
     text = normalize_punctuation(text)
     text = normalize_smileys(text)
+    text = normalize_stray_punctuation(text)
     text = fix_mixed_english_artifacts(text, detailed=detailed)
     text = fix_contextual_speech_markers(text, user_text=user_text)
     text = fix_bot_self_gender(text)
@@ -546,11 +587,14 @@ def clean_answer(text, detailed=False, user_gender=None, user_text=""):
     text = maybe_add_sad_pause(text)
     text = normalize_punctuation(text)
     text = normalize_smileys(text)
+    text = normalize_stray_punctuation(text)
     text = fix_contextual_speech_markers(text, user_text=user_text)
     text = apply_lowercase_mode(text)
     text = normalize_smileys(text)
+    text = normalize_stray_punctuation(text)
     text = ensure_final_punctuation(text)
     text = normalize_smileys(text)
+    text = normalize_stray_punctuation(text)
 
     if not text.strip():
         text = "приняла. без протокольной паники."

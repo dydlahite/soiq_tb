@@ -233,11 +233,51 @@ def normalize_visible_smileys(text):
     text = re.sub(r":\)\s*\.+(?=\s*($|\n))", ":)", text)
     return text
 
+
+def normalize_visible_stray_punctuation(text):
+    if not text:
+        return text
+
+    fixed = []
+
+    for line in text.splitlines():
+        stripped = line.strip()
+
+        if not stripped:
+            fixed.append(stripped)
+            continue
+
+        if stripped.endswith(".. :)") or stripped.endswith(":)"):
+            fixed.append(stripped)
+            continue
+
+        # Убираем случайную ведущую пунктуацию: ". что дальше?" -> "что дальше?".
+        stripped = re.sub(r"^[\s,.;:!?]+(?=[А-Яа-яA-Za-z0-9])", "", stripped)
+
+        # Убираем кривые хвосты: "что дальше?)." -> "что дальше?".
+        stripped = re.sub(r"\?\)+\s*\.*$", "?", stripped)
+        stripped = re.sub(r"!\)+\s*\.*$", "!", stripped)
+        stripped = re.sub(r"\.\)+\s*$", ".", stripped)
+
+        if "(" not in stripped and not stripped.endswith(":)") and not stripped.endswith(".. :)"):
+            stripped = re.sub(r"\)+(?=\s*$)", "", stripped).rstrip()
+
+        stripped = re.sub(r"\?\s*\.+$", "?", stripped)
+        stripped = re.sub(r"!\s*\.+$", "!", stripped)
+        stripped = re.sub(r",\s*\.+$", ".", stripped)
+        stripped = re.sub(r"\s+([,.!?;:])", r"\1", stripped)
+
+        fixed.append(stripped)
+
+    return "\n".join(fixed).strip()
+
+
 def ensure_visible_punctuation(text):
     if not text:
         return text
 
     text = normalize_visible_smileys(text)
+    text = normalize_visible_stray_punctuation(text)
     lines = text.splitlines()
     fixed = []
 
@@ -261,7 +301,7 @@ def ensure_visible_punctuation(text):
 
         fixed.append(stripped)
 
-    return normalize_visible_smileys("\n".join(fixed).strip())
+    return normalize_visible_stray_punctuation(normalize_visible_smileys("\n".join(fixed).strip()))
 
 
 def add_human_line_breaks(text):
