@@ -72,6 +72,41 @@ SHORT_BARE_REPLIES = {
 }
 
 
+
+SHORT_REACTION_WORDS = {
+    "хм", "мда", "да", "нет", "ну", "кк", "ок", "окак", "ладно",
+    "поняла", "ясно", "угу", "ага", "эх", "увы"
+}
+
+
+def is_short_reaction_line(line):
+    value = (line or "").strip().lower().replace("ё", "е")
+    value = re.sub(r"[.!?…]+$", "", value).strip()
+    return value in SHORT_REACTION_WORDS
+
+
+def fix_short_reaction_punctuation(text):
+    if not text:
+        return text
+
+    lines = text.splitlines()
+    fixed = []
+
+    for line in lines:
+        stripped = line.rstrip()
+
+        if not stripped:
+            fixed.append(stripped)
+            continue
+
+        if is_short_reaction_line(stripped):
+            fixed.append(re.sub(r"[.!?…]+$", "", stripped).rstrip() + ".")
+        else:
+            fixed.append(stripped)
+
+    return fix_short_reaction_punctuation("\n".join(fixed).strip())
+
+
 def is_short_bare_reply(line):
     return line.strip().lower().replace(".", "") in SHORT_BARE_REPLIES
 REACTION_RULES_PATH = "reaction_rules.txt"
@@ -269,7 +304,7 @@ def normalize_visible_stray_punctuation(text):
 
         fixed.append(stripped)
 
-    return "\n".join(fixed).strip()
+    return fix_short_reaction_punctuation("\n".join(fixed).strip())
 
 
 def ensure_visible_punctuation(text):
@@ -279,6 +314,8 @@ def ensure_visible_punctuation(text):
     text = normalize_visible_smileys(text)
     text = normalize_visible_stray_punctuation(text)
     lines = text.splitlines()
+    nonempty_lines = [line.strip() for line in lines if line.strip()]
+    only_short_bare_reply = len(nonempty_lines) == 1 and is_short_bare_reply(nonempty_lines[0])
     fixed = []
 
     for line in lines:
@@ -292,8 +329,13 @@ def ensure_visible_punctuation(text):
             fixed.append(stripped)
             continue
 
+        # Если "хм"/"ну"/"кк" - весь ответ, оставляем голым.
+        # Если после него идет еще текст, ставим точку: это уже отдельное предложение.
         if is_short_bare_reply(stripped):
-            fixed.append(stripped.rstrip("."))
+            stripped = stripped.rstrip(".!?")
+            if not only_short_bare_reply:
+                stripped += "."
+            fixed.append(stripped)
             continue
 
         if stripped[-1] not in ".!?":

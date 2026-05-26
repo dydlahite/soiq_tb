@@ -10,6 +10,41 @@ SHORT_BARE_REPLIES = {
 }
 
 
+
+SHORT_REACTION_WORDS = {
+    "хм", "мда", "да", "нет", "ну", "кк", "ок", "окак", "ладно",
+    "поняла", "ясно", "угу", "ага", "эх", "увы"
+}
+
+
+def is_short_reaction_line(line):
+    value = (line or "").strip().lower().replace("ё", "е")
+    value = re.sub(r"[.!?…]+$", "", value).strip()
+    return value in SHORT_REACTION_WORDS
+
+
+def fix_short_reaction_punctuation(text):
+    if not text:
+        return text
+
+    lines = text.splitlines()
+    fixed = []
+
+    for line in lines:
+        stripped = line.rstrip()
+
+        if not stripped:
+            fixed.append(stripped)
+            continue
+
+        if is_short_reaction_line(stripped):
+            fixed.append(re.sub(r"[.!?…]+$", "", stripped).rstrip() + ".")
+        else:
+            fixed.append(stripped)
+
+    return fix_short_reaction_punctuation("\n".join(fixed).strip())
+
+
 def is_short_bare_reply_text(text):
     return (text or "").strip().lower().replace(".", "") in SHORT_BARE_REPLIES
 
@@ -178,7 +213,7 @@ def normalize_stray_punctuation(text):
 
         fixed.append(stripped)
 
-    return "\n".join(fixed).strip()
+    return fix_short_reaction_punctuation("\n".join(fixed).strip())
 
 
 def fix_mixed_english_artifacts(text, detailed=False):
@@ -431,7 +466,11 @@ def apply_lowercase_mode(text):
 def ensure_final_punctuation(text):
     if not text:
         return text
+
     lines = text.splitlines()
+    nonempty_lines = [line.strip() for line in lines if line.strip()]
+    only_short_bare_reply = len(nonempty_lines) == 1 and is_short_bare_reply_text(nonempty_lines[0])
+
     fixed = []
     for line in lines:
         stripped = line.rstrip()
@@ -441,13 +480,20 @@ def ensure_final_punctuation(text):
         if stripped.endswith(".. :)") or stripped.endswith(":)"):
             fixed.append(stripped)
             continue
+
+        # Короткая реплика вроде "хм" может быть ответом целиком - тогда оставляем без точки.
+        # Но если дальше идет текст, это уже отдельное предложение: "хм."
         if is_short_bare_reply_text(stripped):
-            fixed.append(stripped.rstrip("."))
+            stripped = stripped.rstrip(".!?")
+            if not only_short_bare_reply:
+                stripped += "."
+            fixed.append(stripped)
             continue
+
         if stripped[-1] not in ".!?":
             stripped += "."
         fixed.append(stripped)
-    return "\n".join(fixed).strip()
+    return fix_short_reaction_punctuation("\n".join(fixed).strip())
 
 
 def marker_context_allows(user_text, answer_text, triggers):
