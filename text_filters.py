@@ -63,6 +63,18 @@ def need_detailed_answer(text):
     return any(word in text_lower for word in keywords)
 
 
+def is_creative_output_context(user_text):
+    value = (user_text or "").lower().replace("ё", "е")
+    triggers = [
+        "стих", "стихотвор", "верлибр", "белое стихотворение", "поэтический режим",
+        "маленькую историю", "маленькая история", "короткую историю",
+        "напиши историю", "расскажи историю", "сочини историю",
+        "миниатюра", "дневниковую миниатюру", "пользователь согласился увидеть стихотворение",
+        "пользователь согласился услышать маленькую историю", "пост для telegram-канала",
+    ]
+    return any(trigger in value for trigger in triggers)
+
+
 def user_requested_list(text):
     text_lower = text.lower()
 
@@ -574,6 +586,8 @@ def clean_answer(text, detailed=False, user_gender=None, user_text=""):
     if not text:
         return ""
 
+    creative_output = is_creative_output_context(user_text)
+
     text = text.replace("ё", "е").replace("Ё", "Е")
     text = replace_quotes_with_stars(text)
     text = normalize_punctuation(text)
@@ -621,7 +635,7 @@ def clean_answer(text, detailed=False, user_gender=None, user_text=""):
 
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
 
-    max_len = 1300 if detailed else 650
+    max_len = 1300 if (detailed or creative_output) else 650
     if len(text) > max_len:
         cut_positions = [text.rfind(".", 0, max_len), text.rfind("!", 0, max_len), text.rfind("?", 0, max_len), text.rfind("\n", 0, max_len)]
         cut = max(cut_positions)
@@ -630,7 +644,9 @@ def clean_answer(text, detailed=False, user_gender=None, user_text=""):
         else:
             text = text[:max_len].strip() + ".."
 
-    text = maybe_add_sad_pause(text)
+    if not creative_output:
+        text = maybe_add_sad_pause(text)
+
     text = normalize_punctuation(text)
     text = normalize_smileys(text)
     text = normalize_stray_punctuation(text)
@@ -638,7 +654,8 @@ def clean_answer(text, detailed=False, user_gender=None, user_text=""):
     text = apply_lowercase_mode(text)
     text = normalize_smileys(text)
     text = normalize_stray_punctuation(text)
-    text = ensure_final_punctuation(text)
+    if not creative_output:
+        text = ensure_final_punctuation(text)
     text = normalize_smileys(text)
     text = normalize_stray_punctuation(text)
 

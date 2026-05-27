@@ -18,6 +18,7 @@ from channel import (
     set_channel_chance,
     set_channel_mode,
     set_channel_format,
+    set_channel_content,
     clear_channel_recent,
 )
 
@@ -175,6 +176,12 @@ def channel_keyboard():
             InlineKeyboardButton("diary", callback_data="admin_channel_format:diary"),
             InlineKeyboardButton("review", callback_data="admin_channel_format:review"),
             InlineKeyboardButton("format mixed", callback_data="admin_channel_format:mixed"),
+        ],
+        [
+            InlineKeyboardButton("notes", callback_data="admin_channel_content:notes"),
+            InlineKeyboardButton("poetry", callback_data="admin_channel_content:poetry"),
+            InlineKeyboardButton("stories", callback_data="admin_channel_content:stories"),
+            InlineKeyboardButton("content mixed", callback_data="admin_channel_content:mixed"),
         ],
         [InlineKeyboardButton("очистить повторы", callback_data="admin_channel_clear_recent")],
         back_button(),
@@ -879,6 +886,11 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data.startswith("admin_channel_format:"):
         set_channel_format(data.split(":", 1)[1])
+        await query.edit_message_text(channel_status_text(), reply_markup=channel_keyboard())
+        return
+
+    if data.startswith("admin_channel_content:"):
+        set_channel_content(data.split(":", 1)[1])
         await query.edit_message_text(channel_status_text(), reply_markup=channel_keyboard())
         return
 

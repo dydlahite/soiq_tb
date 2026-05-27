@@ -32,6 +32,7 @@ from text_filters import (
 )
 from forbidden import clean_forbidden_phrases, load_forbidden_phrases
 from quotes import build_quote_prompt
+from creative import creative_prompt_for_user_text, wants_poetry, wants_story
 
 openrouter_client = None
 if OPENROUTER_API_KEY:
@@ -310,6 +311,7 @@ def build_system_prompt(user_id, chat_id, user_text=""):
     speech_markers = compact_prompt_text(load_speech_markers(user_text), MAX_SPEECH_MARKERS_CHARS)
     style_modes_text = compact_prompt_text(load_style_modes_file(), MAX_STYLE_MODES_CHARS)
     forbidden_text = compact_prompt_text("\n".join(load_forbidden_phrases()), 500)
+    creative_prompt = creative_prompt_for_user_text(user_text)
 
     style_mode = get_effective_style_mode()
     style_mode_prompt = STYLE_MODES.get(style_mode, STYLE_MODES["normal"])
@@ -341,6 +343,9 @@ def build_system_prompt(user_id, chat_id, user_text=""):
         "ПАТТЕРНЫ:\n" + patterns,
         "РЕЖИМЫ:\n" + style_modes_text,
     ]
+
+    if creative_prompt:
+        parts.append(creative_prompt)
 
     if memory_prompt:
         parts.append("ПАМЯТЬ:\n" + memory_prompt)
@@ -490,7 +495,7 @@ def call_provider(provider, messages):
 
 
 def generate_answer(user_id, chat_id, user_text, history, previous_answer=""):
-    detailed = need_detailed_answer(user_text)
+    detailed = need_detailed_answer(user_text) or wants_poetry(user_text) or wants_story(user_text)
     allow_list = user_requested_list(user_text)
 
     general_complex = is_complex_message(user_text)

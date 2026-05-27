@@ -31,6 +31,7 @@ from channel import (
     set_channel_chance,
     set_channel_mode,
     set_channel_format,
+    set_channel_content,
     send_channel_post,
     clear_channel_recent,
 )
@@ -49,6 +50,15 @@ from quotes import (
     set_quote_match_threshold,
     get_quote_match_threshold,
     ensure_quote_file,
+)
+from creative import (
+    maybe_build_creative_offer,
+    consume_creative_offer_if_accepted,
+    build_private_creative_task,
+    creative_status_text,
+    set_creative_offers_enabled,
+    set_creative_offer_chance,
+    set_creative_offer_mode,
 )
 from tts import (
     should_send_voice,
@@ -1210,10 +1220,13 @@ async def answer_user_text(update: Update, context: ContextTypes.DEFAULT_TYPE, u
     history = get_history(user_id, chat_id)
     previous_answer = get_last_assistant_answer(user_id, chat_id)
 
+    creative_kind = consume_creative_offer_if_accepted(user_id, chat_id, user_text)
+    generation_text = build_private_creative_task(creative_kind, user_text) if creative_kind else user_text
+
     answer = generate_answer(
         user_id=user_id,
         chat_id=chat_id,
-        user_text=user_text,
+        user_text=generation_text,
         history=history,
         previous_answer=previous_answer,
     )
@@ -1236,6 +1249,12 @@ async def answer_user_text(update: Update, context: ContextTypes.DEFAULT_TYPE, u
     )
 
     if not is_provider_failure_answer(answer):
+        offer = maybe_build_creative_offer(user_id, chat_id, user_text, answer)
+        if offer:
+            save_message(user_id, chat_id, "assistant", offer)
+            await asyncio.sleep(0.7)
+            await update.message.reply_text(offer, parse_mode=None)
+
         await maybe_send_media(update, user_text + "\n" + answer, get_current_mood())
 
 
@@ -1486,6 +1505,113 @@ async def set_channel_format_cmd(update: Update, context: ContextTypes.DEFAULT_T
     await update.message.reply_text(channel_status_text())
 
 
+async def set_channel_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Пиши так: /set_channel_content notes|poetry|stories|mixed")
+        return
+
+    set_channel_content(context.args[0])
+    await update.message.reply_text(channel_status_text())
+
+
+async def channel_poem_now_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    try:
+        ok, result = await send_channel_post(context.bot, force=True, force_generated=True, force_content="poetry")
+    except Exception as error:
+        await update.message.reply_text(f"Не смогла отправить стихотворение в канал: {error}")
+        return
+
+    await update.message.reply_text("Стихотворение отправила в канал." if ok else f"Не отправила: {result}")
+
+
+async def channel_story_now_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    try:
+        ok, result = await send_channel_post(context.bot, force=True, force_generated=True, force_content="stories")
+    except Exception as error:
+        await update.message.reply_text(f"Не смогла отправить историю в канал: {error}")
+        return
+
+    await update.message.reply_text("Историю отправила в канал." if ok else f"Не отправила: {result}")
+
+
+async def channel_note_now_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    try:
+        ok, result = await send_channel_post(context.bot, force=True, force_generated=True, force_content="notes")
+    except Exception as error:
+        await update.message.reply_text(f"Не смогла отправить заметку в канал: {error}")
+        return
+
+    await update.message.reply_text("Заметку отправила в канал." if ok else f"Не отправила: {result}")
+
+
+async def creative_status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    await update.message.reply_text(creative_status_text())
+
+
+async def creative_offers_on_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_creative_offers_enabled(True)
+    await update.message.reply_text("Творческие предложения включены. Она иногда будет просить показать стих или историю. Редко, не как литературный спам-бот.")
+
+
+async def creative_offers_off_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    set_creative_offers_enabled(False)
+    await update.message.reply_text("Творческие предложения выключены.")
+
+
+async def set_creative_offer_chance_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("Пиши так: /set_creative_offer_chance 6")
+        return
+
+    set_creative_offer_chance(int(context.args[0]))
+    await update.message.reply_text(creative_status_text())
+
+
+async def set_creative_offer_mode_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not admin.is_admin(update):
+        await update.message.reply_text("Нет доступа.")
+        return
+
+    if not context.args:
+        await update.message.reply_text("Пиши так: /set_creative_offer_mode poetry|story|mixed")
+        return
+
+    set_creative_offer_mode(context.args[0])
+    await update.message.reply_text(creative_status_text())
+
+
 async def channel_post_now_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not admin.is_admin(update):
         await update.message.reply_text("Нет доступа.")
@@ -1624,9 +1750,18 @@ def register_handlers(app):
     app.add_handler(CommandHandler("set_channel_chance", set_channel_chance_cmd))
     app.add_handler(CommandHandler("set_channel_mode", set_channel_mode_cmd))
     app.add_handler(CommandHandler("set_channel_format", set_channel_format_cmd))
+    app.add_handler(CommandHandler("set_channel_content", set_channel_content_cmd))
     app.add_handler(CommandHandler("channel_post_now", channel_post_now_cmd))
     app.add_handler(CommandHandler("channel_generate_now", channel_generate_now_cmd))
+    app.add_handler(CommandHandler("channel_poem_now", channel_poem_now_cmd))
+    app.add_handler(CommandHandler("channel_story_now", channel_story_now_cmd))
+    app.add_handler(CommandHandler("channel_note_now", channel_note_now_cmd))
     app.add_handler(CommandHandler("clear_channel_recent", clear_channel_recent_cmd))
+    app.add_handler(CommandHandler("creative_status", creative_status_cmd))
+    app.add_handler(CommandHandler("creative_offers_on", creative_offers_on_cmd))
+    app.add_handler(CommandHandler("creative_offers_off", creative_offers_off_cmd))
+    app.add_handler(CommandHandler("set_creative_offer_chance", set_creative_offer_chance_cmd))
+    app.add_handler(CommandHandler("set_creative_offer_mode", set_creative_offer_mode_cmd))
     app.add_handler(CallbackQueryHandler(admin.admin_callback, pattern="^admin_"))
     app.add_handler(MessageHandler(filters.VOICE, voice_message))
     app.add_handler(MessageHandler(filters.PHOTO, photo_message))
