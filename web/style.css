@@ -2129,3 +2129,351 @@ a {
     height: 22% !important;
   }
 }
+
+
+/* v14: better garland physics, delayed online, stronger screen-noise, rain */
+.hero {
+  isolation: auto !important;
+}
+
+.site-header {
+  z-index: 130 !important;
+}
+
+.hero-garlands {
+  position: absolute !important;
+  inset: 0 auto auto 0 !important;
+  width: 100% !important;
+  height: min(88vh, 760px) !important;
+  z-index: 260 !important;
+  pointer-events: none !important;
+  overflow: visible !important;
+  mix-blend-mode: screen !important;
+  opacity: 1 !important;
+}
+
+.garland-svg {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible !important;
+  opacity: .98 !important;
+  filter:
+    drop-shadow(0 0 7px rgba(240,235,255,.42))
+    drop-shadow(0 0 22px rgba(190,150,255,.34))
+    drop-shadow(0 0 42px rgba(255,140,210,.10)) !important;
+}
+
+.garland-chain path,
+.garland-chain .chain-soft,
+.garland-chain .chain,
+.chain {
+  fill: none !important;
+  stroke-linecap: round !important;
+  animation: none !important;
+}
+
+.chain-main {
+  stroke: rgba(238,232,255,.90) !important;
+  stroke-width: 2.2 !important;
+  stroke-dasharray: 2 11 !important;
+}
+
+.chain-low {
+  stroke: rgba(206,188,255,.66) !important;
+  stroke-width: 1.7 !important;
+  stroke-dasharray: 2 15 !important;
+}
+
+.chain-side {
+  stroke: rgba(238,232,255,.78) !important;
+  stroke-width: 1.7 !important;
+  stroke-dasharray: 2 12 !important;
+}
+
+.chain-side.right {
+  opacity: .84 !important;
+}
+
+.pendant {
+  pointer-events: visiblePainted !important;
+  transform-box: fill-box !important;
+  transform-origin: top center !important;
+  animation: none !important;
+  cursor: default;
+}
+
+/* больше никаких “все пляшут, потому что курсор чихнул рядом” */
+.hero-garlands:hover .pendant {
+  animation: none !important;
+}
+
+.pendant.touched.swing-a { animation: pendantWobbleA 1.75s cubic-bezier(.2,.9,.25,1) 1 !important; }
+.pendant.touched.swing-b { animation: pendantWobbleB 1.95s cubic-bezier(.2,.9,.25,1) 1 !important; }
+.pendant.touched.swing-c { animation: pendantWobbleC 1.55s cubic-bezier(.2,.9,.25,1) 1 !important; }
+.pendant.touched.swing-d { animation: pendantWobbleD 2.15s cubic-bezier(.2,.9,.25,1) 1 !important; }
+
+.pendant line {
+  stroke: rgba(234,230,255,.80) !important;
+  stroke-width: 1.15 !important;
+  stroke-linecap: round !important;
+  stroke-dasharray: 2 6 !important;
+}
+
+.pendant text,
+.charm {
+  fill: rgba(251,248,255,.98) !important;
+  text-anchor: middle !important;
+  dominant-baseline: middle !important;
+  font-size: 30px !important;
+  text-shadow:
+    0 0 7px rgba(255,255,255,.50),
+    0 0 18px rgba(210,180,255,.70),
+    0 0 34px rgba(172,140,255,.28) !important;
+  animation: charmSlowPulse 5.2s ease-in-out infinite !important;
+}
+
+.charm.moon { fill: rgba(228,224,255,.98) !important; }
+.charm.star { fill: rgba(255,242,250,.98) !important; font-size: 26px !important; }
+.charm.small-star { fill: rgba(215,200,255,.98) !important; font-size: 24px !important; }
+.charm.gem { fill: rgba(185,210,255,.95) !important; font-size: 22px !important; }
+
+.bead {
+  filter: drop-shadow(0 0 10px rgba(220,200,255,.72)) !important;
+}
+
+.bead.blue { fill: rgba(172,205,255,.95) !important; }
+.bead.violet { fill: rgba(208,178,255,.96) !important; }
+.bead.pink { fill: rgba(255,178,226,.92) !important; }
+
+/* smoke closer to the cigarette tip */
+.smoke-stack {
+  left: 58.3% !important;
+  top: -9.2% !important;
+  width: 13% !important;
+  height: 32% !important;
+  z-index: 42 !important;
+  animation: smokeSwaySoft 7.2s ease-in-out infinite !important;
+}
+
+.smoke {
+  left: 4% !important;
+  bottom: 2% !important;
+  width: clamp(40px, 3.1vw, 66px) !important;
+  height: clamp(40px, 3.1vw, 66px) !important;
+  filter: blur(12px) !important;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(248,246,255,.66) 0%, rgba(218,204,255,.36) 34%, rgba(255,255,255,.09) 52%, rgba(255,255,255,0) 78%) !important;
+}
+
+.smoke-1 { animation: smokeRiseV14 5.4s linear infinite !important; }
+.smoke-2 { animation: smokeRiseV14b 6.0s linear infinite .55s !important; }
+.smoke-3 { animation: smokeRiseV14c 6.7s linear infinite 1.25s !important; }
+.smoke-4 { animation: smokeRiseV14b 6.3s linear infinite 2.0s !important; }
+.smoke-5 { animation: smokeRiseV14 5.9s linear infinite 2.75s !important; }
+.smoke-6 { animation: smokeRiseV14c 6.9s linear infinite 3.4s !important; }
+.smoke-7 { animation: smokeRiseV14b 6.4s linear infinite 4.2s !important; }
+.smoke-8 { animation: smokeRiseV14 5.7s linear infinite 4.95s !important; }
+
+/* rain and lightning in the back window/room area */
+.rain-layer {
+  left: 66% !important;
+  top: 4% !important;
+  width: 34% !important;
+  height: 58% !important;
+  z-index: 7 !important;
+  opacity: .22;
+  border-radius: 18px;
+  overflow: hidden;
+  mix-blend-mode: screen;
+  background:
+    repeating-linear-gradient(108deg, transparent 0 18px, rgba(205,205,225,.16) 18px 20px, transparent 20px 37px),
+    repeating-linear-gradient(108deg, transparent 0 30px, rgba(176,150,255,.11) 30px 31px, transparent 31px 58px);
+  animation: rainSlide 1.2s linear infinite;
+  filter: blur(.25px);
+}
+
+.lightning-flash {
+  left: 64% !important;
+  top: 0 !important;
+  width: 36% !important;
+  height: 62% !important;
+  z-index: 8 !important;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(circle at 84% 10%, rgba(255,255,255,.85), transparent 18%),
+    linear-gradient(120deg, transparent 0 58%, rgba(235,235,255,.38) 60%, transparent 63%);
+  animation: lightningPulse 13s steps(1) infinite;
+}
+
+/* stronger but not earthquake-like glitch */
+.signal-interference {
+  opacity: .075 !important;
+  mix-blend-mode: screen !important;
+  filter: grayscale(1) contrast(1.2) blur(.1px) !important;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 10px, rgba(255,255,255,.08) 10px 11px, transparent 11px 19px),
+    linear-gradient(180deg, transparent 0 30%, rgba(210,210,220,.16) 44%, rgba(255,255,255,.09) 48%, transparent 59%),
+    linear-gradient(90deg, rgba(255,255,255,.04), transparent 24%, rgba(220,220,230,.035) 54%, transparent 74%) !important;
+  animation: signalDriftV14 12s linear infinite !important;
+}
+
+.hero.signal-hit .signal-interference {
+  opacity: .48 !important;
+  filter: grayscale(1) contrast(1.75) blur(.12px) !important;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 5px, rgba(255,255,255,.28) 5px 7px, transparent 7px 13px),
+    linear-gradient(180deg, transparent 0 32%, rgba(235,235,245,.48) 45%, rgba(255,255,255,.26) 50%, transparent 62%),
+    linear-gradient(90deg, rgba(255,255,255,.14), transparent 28%, rgba(255,255,255,.08) 62%, transparent 100%) !important;
+}
+
+.hero.signal-hit .hero-bg,
+.hero.signal-hit .hero-card {
+  transform: none !important;
+  filter: none !important;
+}
+
+@keyframes pendantWobbleA {
+  0% { transform: rotate(0deg) translateY(0); }
+  18% { transform: rotate(10deg) translateY(4px); }
+  36% { transform: rotate(-7deg) translateY(1px); }
+  56% { transform: rotate(4deg) translateY(2px); }
+  76% { transform: rotate(-2deg) translateY(0); }
+  100% { transform: rotate(0deg) translateY(0); }
+}
+
+@keyframes pendantWobbleB {
+  0% { transform: rotate(0deg) translateX(0); }
+  16% { transform: rotate(-12deg) translateX(-3px); }
+  34% { transform: rotate(8deg) translateX(2px); }
+  52% { transform: rotate(-5deg) translateX(-1px); }
+  74% { transform: rotate(2deg) translateX(1px); }
+  100% { transform: rotate(0deg) translateX(0); }
+}
+
+@keyframes pendantWobbleC {
+  0% { transform: rotate(0deg) translateY(0); }
+  22% { transform: rotate(7deg) translateY(6px); }
+  42% { transform: rotate(-10deg) translateY(1px); }
+  64% { transform: rotate(5deg) translateY(3px); }
+  100% { transform: rotate(0deg) translateY(0); }
+}
+
+@keyframes pendantWobbleD {
+  0% { transform: rotate(0deg) translateX(0); }
+  14% { transform: rotate(-7deg) translateX(4px); }
+  31% { transform: rotate(13deg) translateX(-2px); }
+  58% { transform: rotate(-4deg) translateX(1px); }
+  81% { transform: rotate(2deg) translateX(0); }
+  100% { transform: rotate(0deg) translateX(0); }
+}
+
+@keyframes charmSlowPulse {
+  0%,100% { opacity: .82; }
+  50% { opacity: 1; }
+}
+
+@keyframes smokeSwaySoft {
+  0%,100% { transform: translateX(0) rotate(-1.8deg); }
+  50% { transform: translateX(5px) rotate(2.2deg); }
+}
+
+@keyframes smokeRiseV14 {
+  0% { transform: translate(0, 0) scale(.38); opacity: 0; }
+  10% { opacity: .62; }
+  36% { transform: translate(12px, -72px) scale(.95); opacity: .34; }
+  70% { transform: translate(-18px, -168px) scale(1.7); opacity: .14; }
+  100% { transform: translate(30px, -275px) scale(2.45); opacity: 0; }
+}
+
+@keyframes smokeRiseV14b {
+  0% { transform: translate(0, 0) scale(.40); opacity: 0; }
+  12% { opacity: .52; }
+  38% { transform: translate(-20px, -82px) scale(1.02); opacity: .28; }
+  70% { transform: translate(20px, -174px) scale(1.64); opacity: .12; }
+  100% { transform: translate(-34px, -260px) scale(2.25); opacity: 0; }
+}
+
+@keyframes smokeRiseV14c {
+  0% { transform: translate(0, 0) scale(.36); opacity: 0; }
+  12% { opacity: .56; }
+  38% { transform: translate(24px, -86px) scale(1.08); opacity: .30; }
+  72% { transform: translate(-14px, -186px) scale(1.78); opacity: .13; }
+  100% { transform: translate(36px, -292px) scale(2.52); opacity: 0; }
+}
+
+@keyframes rainSlide {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 96px, 0 132px; }
+}
+
+@keyframes lightningPulse {
+  0%, 72%, 76%, 100% { opacity: 0; }
+  73% { opacity: .28; }
+  74% { opacity: .06; }
+  75% { opacity: .38; }
+}
+
+@keyframes signalDriftV14 {
+  0%,100% { transform: translateY(0); opacity: .075; }
+  42% { transform: translateY(2px); opacity: .09; }
+  47% { transform: translateY(-1px); opacity: .11; }
+  52% { transform: translateY(1px); opacity: .08; }
+}
+
+@media (max-width: 1080px) {
+  .hero-garlands {
+    height: 520px !important;
+    opacity: .88 !important;
+  }
+
+  .garland-svg {
+    width: 140% !important;
+    transform: translateX(-15%) !important;
+  }
+
+  .smoke-stack {
+    left: 73% !important;
+    top: 12% !important;
+    width: 17% !important;
+    height: 26% !important;
+  }
+
+  .rain-layer,
+  .lightning-flash {
+    left: 61% !important;
+    width: 39% !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .hero-garlands {
+    height: 245px !important;
+    opacity: .42 !important;
+  }
+
+  .garland-svg {
+    width: 200% !important;
+    transform: translateX(-38%) !important;
+  }
+
+  .p1, .p5, .p11, .p15 {
+    opacity: .38 !important;
+  }
+
+  .smoke-stack {
+    left: 78% !important;
+    top: 17% !important;
+    width: 20% !important;
+    height: 22% !important;
+  }
+
+  .rain-layer,
+  .lightning-flash {
+    left: 48% !important;
+    top: 6% !important;
+    width: 52% !important;
+    height: 44% !important;
+    opacity: .13;
+  }
+}

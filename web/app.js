@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -11,6 +11,7 @@ const emojiPanel = document.getElementById("emojiPanel");
 const statusText = document.querySelector(".status-text");
 const statusDot = document.querySelector(".status-dot");
 let idleStatusTimer = null;
+let onlineStatusTimer = null;
 let currentBotStatus = "offline";
 
 const sessionId = (() => {
@@ -27,6 +28,23 @@ document.querySelectorAll("[data-telegram-link]").forEach((el) => {
   el.href = TELEGRAM_BOT_URL;
 });
 
+
+
+function clearOnlineStatusTimer() {
+  clearTimeout(onlineStatusTimer);
+  onlineStatusTimer = null;
+}
+
+function scheduleOnlineStatus() {
+  clearOnlineStatusTimer();
+  const delay = 6000 + Math.random() * 4000;
+  onlineStatusTimer = setTimeout(() => {
+    if (currentBotStatus !== "dnd") {
+      setBotStatus("online");
+      resetAfkTimer();
+    }
+  }, delay);
+}
 
 function setBotStatus(status) {
   currentBotStatus = status;
@@ -70,16 +88,20 @@ function handleLocalStatusCommand(text) {
   addMessage("user", text);
 
   if (cmd === "/dnd") {
+    clearOnlineStatusTimer();
     setBotStatus("dnd");
     addMessage("bot", "режим dnd. не беспокоить. звучит почти как мечта, если не учитывать людей за стеной.");
   } else if (cmd === "/afk") {
+    clearOnlineStatusTimer();
     setBotStatus("afk");
     addMessage("bot", "afk. отошла в цифровой угол делать вид, что меня здесь нет.");
   } else if (cmd === "/online") {
+    clearOnlineStatusTimer();
     setBotStatus("online");
     addMessage("bot", "я здесь. сомнительное достижение, но ладно.");
     resetAfkTimer();
   } else if (cmd === "/offline") {
+    clearOnlineStatusTimer();
     setBotStatus("offline");
     addMessage("bot", "не в сети. официальная версия. удобно, правда?");
   }
@@ -194,8 +216,7 @@ async function sendMessage(text) {
   if (handleLocalStatusCommand(text)) return;
 
   addMessage("user", text);
-  setBotStatus("online");
-  resetAfkTimer();
+  scheduleOnlineStatus();
 
   const fetchPromise = fetch("/api/chat", {
     method: "POST",
@@ -242,11 +263,12 @@ async function sendMessage(text) {
     await typeText(typing.bubble, answerText, data.typing_speed || 16);
 
     if (isFarewell(text)) {
+      clearOnlineStatusTimer();
       setTimeout(() => setBotStatus("offline"), 900);
     } else if (looksLikeDnd(answerText)) {
+      clearOnlineStatusTimer();
       setBotStatus("dnd");
-    } else {
-      setBotStatus("online");
+    } else if (currentBotStatus === "online") {
       resetAfkTimer();
     }
   } catch (error) {
@@ -254,6 +276,7 @@ async function sendMessage(text) {
     if (!typing) typing = addMessage("bot", "", false);
     typing.item.classList.remove("typing");
     typing.bubble.textContent = "сайт не достучался до сервера. где-то опять умер провод.";
+    clearOnlineStatusTimer();
     setBotStatus("offline");
   } finally {
     chatBody && (chatBody.scrollTop = chatBody.scrollHeight);
@@ -401,21 +424,46 @@ function triggerSignalHit() {
   if (!hero) return;
 
   hero.classList.add("signal-hit");
-  setTimeout(() => hero.classList.remove("signal-hit"), 150);
+  setTimeout(() => hero.classList.remove("signal-hit"), 360);
 }
 
 function startSignalFX() {
   if (!document.querySelector(".hero")) return;
 
   const schedule = () => {
-    const next = 9000 + Math.random() * 9000;
+    const next = 6500 + Math.random() * 8500;
     setTimeout(() => {
       triggerSignalHit();
+      if (Math.random() < 0.35) setTimeout(triggerSignalHit, 620 + Math.random() * 900);
       schedule();
     }, next);
   };
 
   schedule();
+}
+
+
+function initGarlandTouch() {
+  const pendants = document.querySelectorAll(".pendant");
+  if (!pendants.length) return;
+
+  const swingClasses = ["swing-a", "swing-b", "swing-c", "swing-d"];
+
+  pendants.forEach((pendant) => {
+    let lock = false;
+    pendant.addEventListener("pointerenter", () => {
+      if (lock) return;
+      lock = true;
+      pendant.classList.remove("touched", ...swingClasses);
+      void pendant.getBoundingClientRect();
+      const swing = swingClasses[Math.floor(Math.random() * swingClasses.length)];
+      pendant.classList.add("touched", swing);
+      setTimeout(() => {
+        pendant.classList.remove("touched", swing);
+        lock = false;
+      }, 2200);
+    });
+  });
 }
 
 function startAmbientFX() {
@@ -425,6 +473,7 @@ function startAmbientFX() {
   }, 1600);
 }
 
+initGarlandTouch();
 startAmbientFX();
 startSignalFX();
 
