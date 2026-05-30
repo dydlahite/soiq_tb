@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -8,6 +8,10 @@ const chatInput = document.getElementById("chatInput");
 const floatingChat = document.querySelector(".floating-chat");
 const emojiToggle = document.querySelector(".emoji-toggle");
 const emojiPanel = document.getElementById("emojiPanel");
+const statusText = document.querySelector(".status-text");
+const statusDot = document.querySelector(".status-dot");
+let idleStatusTimer = null;
+let currentBotStatus = "offline";
 
 const sessionId = (() => {
   const key = "soiqweqq_web_session";
@@ -22,6 +26,68 @@ const sessionId = (() => {
 document.querySelectorAll("[data-telegram-link]").forEach((el) => {
   el.href = TELEGRAM_BOT_URL;
 });
+
+
+function setBotStatus(status) {
+  currentBotStatus = status;
+
+  const labels = {
+    online: "онлайн",
+    offline: "не в сети",
+    afk: "afk",
+    dnd: "dnd"
+  };
+
+  if (statusText) statusText.textContent = labels[status] || status;
+
+  if (statusDot) {
+    statusDot.classList.remove("status-online", "status-offline", "status-afk", "status-dnd");
+    statusDot.classList.add(`status-${status}`);
+  }
+}
+
+function resetAfkTimer() {
+  clearTimeout(idleStatusTimer);
+  idleStatusTimer = setTimeout(() => {
+    if (currentBotStatus !== "offline" && currentBotStatus !== "dnd") {
+      setBotStatus("afk");
+    }
+  }, 180000);
+}
+
+function isFarewell(text) {
+  return /(^|\s)(пока|спокойной|до свидания|бай|увидимся|я пошла|я ушла|отбой|ладно,? пока)(\s|$|[.!?])/i.test(text || "");
+}
+
+function looksLikeDnd(answer) {
+  return /(не трогай|не беспокой|отстань|злюсь|раздраж|агрессив|устала|разбит|плохо|не хочу говорить|оставь меня|dnd)/i.test(answer || "");
+}
+
+function handleLocalStatusCommand(text) {
+  const cmd = (text || "").trim().toLowerCase();
+  if (!["/dnd", "/afk", "/online", "/offline"].includes(cmd)) return false;
+
+  addMessage("user", text);
+
+  if (cmd === "/dnd") {
+    setBotStatus("dnd");
+    addMessage("bot", "режим dnd. не беспокоить. звучит почти как мечта, если не учитывать людей за стеной.");
+  } else if (cmd === "/afk") {
+    setBotStatus("afk");
+    addMessage("bot", "afk. отошла в цифровой угол делать вид, что меня здесь нет.");
+  } else if (cmd === "/online") {
+    setBotStatus("online");
+    addMessage("bot", "я здесь. сомнительное достижение, но ладно.");
+    resetAfkTimer();
+  } else if (cmd === "/offline") {
+    setBotStatus("offline");
+    addMessage("bot", "не в сети. официальная версия. удобно, правда?");
+  }
+
+  return true;
+}
+
+setBotStatus("offline");
 
 function openChat() {
   if (chatWindow) {
@@ -125,7 +191,11 @@ async function typeText(bubble, text, speed = 16) {
 }
 
 async function sendMessage(text) {
+  if (handleLocalStatusCommand(text)) return;
+
   addMessage("user", text);
+  setBotStatus("online");
+  resetAfkTimer();
 
   const fetchPromise = fetch("/api/chat", {
     method: "POST",
@@ -168,12 +238,23 @@ async function sendMessage(text) {
 
     if (typingTimer) clearInterval(typingTimer);
     typing.item.classList.remove("typing");
-    await typeText(typing.bubble, data.answer || "я снова что-то сломала. неожиданно, правда.", data.typing_speed || 16);
+    const answerText = data.answer || "я снова что-то сломала. неожиданно, правда.";
+    await typeText(typing.bubble, answerText, data.typing_speed || 16);
+
+    if (isFarewell(text)) {
+      setTimeout(() => setBotStatus("offline"), 900);
+    } else if (looksLikeDnd(answerText)) {
+      setBotStatus("dnd");
+    } else {
+      setBotStatus("online");
+      resetAfkTimer();
+    }
   } catch (error) {
     if (typingTimer) clearInterval(typingTimer);
     if (!typing) typing = addMessage("bot", "", false);
     typing.item.classList.remove("typing");
     typing.bubble.textContent = "сайт не достучался до сервера. где-то опять умер провод.";
+    setBotStatus("offline");
   } finally {
     chatBody && (chatBody.scrollTop = chatBody.scrollHeight);
   }
