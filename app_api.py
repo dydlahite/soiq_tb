@@ -1,7 +1,6 @@
 import hashlib
 import os
 import random
-import time
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -9,6 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+from human_engine import install_human_engine
+
+install_human_engine(enable_telegram=False)
 
 from database import init_db
 from memory import get_history, get_last_assistant_answer, save_message
@@ -67,7 +70,8 @@ def chat(payload: ChatRequest):
     return {
         "ok": True,
         "answer": answer,
-        "delay_ms": random.randint(900, 2400),
+        "pre_typing_delay_ms": random.randint(900, 2600),
+        "typing_pause_ms": random.randint(500, 1600),
         "typing_speed": random.randint(12, 24),
     }
 

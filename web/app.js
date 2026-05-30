@@ -127,32 +127,51 @@ async function typeText(bubble, text, speed = 16) {
 async function sendMessage(text) {
   addMessage("user", text);
 
-  const typing = addMessage("bot", "печатает.", true);
-  const typingFrames = ["печатает.", "печатает..", "печатает...", "печатает.."];
-  let typingIndex = 0;
-  const typingTimer = setInterval(() => {
-    if (typing?.bubble) {
-      typing.bubble.textContent = typingFrames[typingIndex % typingFrames.length];
-      typingIndex++;
-    }
-  }, 420);
+  const fetchPromise = fetch("/api/chat", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({message: text, session_id: sessionId}),
+  });
+
+  let typing = null;
+  let typingTimer = null;
+  const typingFrames = ["печатает.", "печатает..", "печатает...", "печатает.."]; 
+
+  const startTyping = () => {
+    typing = addMessage("bot", "печатает.", true);
+    let typingIndex = 0;
+    typingTimer = setInterval(() => {
+      if (typing?.bubble) {
+        typing.bubble.textContent = typingFrames[typingIndex % typingFrames.length];
+        typingIndex++;
+      }
+    }, 420);
+  };
 
   try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({message: text, session_id: sessionId}),
-    });
+    await sleep(900 + Math.random() * 2100);
+    startTyping();
 
+    if (Math.random() < 0.38) {
+      await sleep(700 + Math.random() * 900);
+      if (typingTimer) clearInterval(typingTimer);
+      typing?.item?.remove();
+      typing = null;
+      await sleep(500 + Math.random() * 1200);
+      startTyping();
+    }
+
+    const response = await fetchPromise;
     const data = await response.json();
 
-    await sleep(data.delay_ms || 1200);
+    await sleep(data.typing_pause_ms || (700 + Math.random() * 1300));
 
-    clearInterval(typingTimer);
+    if (typingTimer) clearInterval(typingTimer);
     typing.item.classList.remove("typing");
     await typeText(typing.bubble, data.answer || "я снова что-то сломала. неожиданно, правда.", data.typing_speed || 16);
   } catch (error) {
-    clearInterval(typingTimer);
+    if (typingTimer) clearInterval(typingTimer);
+    if (!typing) typing = addMessage("bot", "", false);
     typing.item.classList.remove("typing");
     typing.bubble.textContent = "сайт не достучался до сервера. где-то опять умер провод.";
   } finally {
