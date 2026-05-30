@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -279,3 +279,41 @@ if (document.body.classList.contains("chat-page")) {
 if (floatingChat && chatWindow && chatWindow.classList.contains("hidden")) {
   floatingChat.style.display = "block";
 }
+
+
+function createAshParticle() {
+  const ashLayer = document.getElementById("ashLayer");
+  const hero = document.querySelector(".hero");
+  if (!ashLayer || !hero) return;
+
+  const heroRect = hero.getBoundingClientRect();
+  const particle = document.createElement("span");
+  particle.className = "ash-particle";
+
+  const startX = heroRect.width * 0.643 + (Math.random() * 10 - 5);
+  const startY = heroRect.height * 0.225 + (Math.random() * 8 - 4);
+  const driftX = -24 + Math.random() * 48;
+  const driftY = 120 + Math.random() * 170;
+  const size = 2 + Math.random() * 2.8;
+  const duration = 3.8 + Math.random() * 3.1;
+
+  particle.style.left = `${startX}px`;
+  particle.style.top = `${startY}px`;
+  particle.style.width = `${size}px`;
+  particle.style.height = `${size}px`;
+  particle.style.setProperty("--ash-x", `${driftX}px`);
+  particle.style.setProperty("--ash-y", `${driftY}px`);
+  particle.style.animationDuration = `${duration}s`;
+
+  ashLayer.appendChild(particle);
+  setTimeout(() => particle.remove(), duration * 1000 + 150);
+}
+
+function startAmbientFX() {
+  if (!document.querySelector('.hero')) return;
+  setInterval(() => {
+    if (Math.random() > 0.28) createAshParticle();
+  }, 1600);
+}
+
+startAmbientFX();

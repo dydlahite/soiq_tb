@@ -25,18 +25,35 @@
 
   <main>
     <section class="hero" id="home" aria-label="Главная">
-      <img class="hero-image" src="/assets/soiqweqq_hero_2x.webp" alt="Soiqweqq dark cyberpunk interface" />
+      <img class="hero-image" src="/assets/soiqweqq_hero_clean.webp" alt="Soiqweqq dark cyberpunk interface" />
       <div class="hero-glow"></div>
 
+      <div class="hero-overlay hero-vignette" aria-hidden="true"></div>
+      <div class="hero-overlay hero-crt" aria-hidden="true"></div>
+      <div class="hero-overlay monitor-flicker" aria-hidden="true"></div>
+      <div class="hero-overlay smoke-stack" aria-hidden="true">
+        <span class="smoke smoke-1"></span>
+        <span class="smoke smoke-2"></span>
+        <span class="smoke smoke-3"></span>
+        <span class="smoke smoke-4"></span>
+        <span class="smoke smoke-5"></span>
+      </div>
+      <div class="hero-overlay wire-layer" aria-hidden="true">
+        <span class="wire wire-1"></span>
+        <span class="wire wire-2"></span>
+        <span class="wire wire-3"></span>
+      </div>
+      <div class="hero-overlay ash-layer" id="ashLayer" aria-hidden="true"></div>
+
       <div class="hero-copy">
-        <h1>Soiqweqq</h1>
+        <h1 class="glitch-title" data-text="Soiqweqq">Soiqweqq</h1>
         <p class="hero-tagline">твоя цифровая тень<br>в этом сломанном мире.</p>
         <p class="hero-description">Многофункциональный Telegram-бот<br>с атмосферой тишины, Хаоса и котов.<br>Работает. Слушает. Не осуждает.</p>
       </div>
 
 
       <div class="hero-actions-real">
-        <a class="btn btn-telegram" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
+        <a class="btn btn-telegram" data-telegram-link href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer">
           <span>➤</span> Запустить бота
         </a>
         <button class="btn btn-site open-chat" type="button">
@@ -129,14 +146,16 @@
       <button class="emoji-toggle" type="button" title="Смайлики">♡</button>
       <button type="submit" title="Отправить">➤</button>
       <div class="emoji-panel hidden" id="emojiPanel" aria-label="Смайлики">
-        <button type="button">:)</button>
-        <button type="button">.. :)</button>
+        <button type="button">😁</button>
+        <button type="button">🥰</button>
+        <button type="button">🥲</button>
+        <button type="button">😭</button>
+        <button type="button">😡</button>
+        <button type="button">🤡</button>
+        <button type="button">✨</button>
+        <button type="button">👍</button>
+        <button type="button">❤</button>
         <button type="button">💔</button>
-        <button type="button">🖤</button>
-        <button type="button">🫠</button>
-        <button type="button">😶</button>
-        <button type="button">🥀</button>
-        <button type="button">🐈</button>
       </div>
     </form>
   </div>
