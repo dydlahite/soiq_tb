@@ -25,44 +25,18 @@
 
   <main>
     <section class="hero" id="home" aria-label="Главная">
+      <div class="hero-garlands template-garlands" aria-hidden="true">
+        <img class="garland-img garland-top-img" data-garland-piece="top" src="/assets/garland_top.png" alt="" />
+        <img class="garland-img garland-left-img" data-garland-piece="left" src="/assets/garland_left.png" alt="" />
+        <img class="garland-img garland-right-img" data-garland-piece="right" src="/assets/garland_right.png" alt="" />
 
-      <div class="hero-garlands" aria-hidden="true">
-        <svg class="garland-svg" viewBox="0 0 1600 720" preserveAspectRatio="none">
-          <defs>
-            <filter id="garlandGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3.6" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-
-          <g class="garland-chain" filter="url(#garlandGlow)">
-            <path class="chain chain-main" d="M -40 38 C 100 132 235 113 340 42 C 438 -19 525 126 640 88 C 742 53 814 26 920 72 C 1058 132 1125 30 1260 52 C 1395 74 1465 128 1640 30" />
-            <path class="chain chain-low" d="M -30 120 C 126 240 284 210 422 126 C 544 53 646 246 810 160 C 952 88 1048 252 1214 136 C 1350 43 1470 238 1630 118" />
-            <path class="chain chain-side" d="M 34 0 C 2 128 72 212 28 334 C -15 455 80 520 34 690" />
-            <path class="chain chain-side right" d="M 1562 0 C 1608 126 1532 222 1575 334 C 1625 468 1518 560 1570 690" />
-          </g>
-
-          <g class="pendants" filter="url(#garlandGlow)">
-            <g class="pendant p1"><line x1="42" y1="46" x2="42" y2="650"/><text class="charm moon" x="42" y="145">☾</text><circle class="bead blue" cx="42" cy="242" r="4"/><text class="charm star" x="42" y="350">✦</text><circle class="bead violet" cx="42" cy="472" r="5"/><text class="charm gem" x="42" y="610">♦</text></g>
-            <g class="pendant p2"><line x1="132" y1="92" x2="132" y2="292"/><circle class="bead pink" cx="132" cy="156" r="5"/><text class="charm small-star" x="132" y="246">✧</text></g>
-            <g class="pendant p3"><line x1="245" y1="104" x2="245" y2="372"/><text class="charm star" x="245" y="184">✦</text><circle class="bead blue" cx="245" cy="270" r="4"/><text class="charm small-star" x="245" y="356">✧</text></g>
-            <g class="pendant p4"><line x1="356" y1="50" x2="356" y2="214"/><text class="charm moon" x="356" y="196">☽</text></g>
-            <g class="pendant p5"><line x1="470" y1="112" x2="470" y2="595"/><text class="charm star" x="470" y="202">✦</text><circle class="bead violet" cx="470" cy="303" r="5"/><text class="charm moon" x="470" y="425">☾</text><circle class="bead pink" cx="470" cy="514" r="4"/><text class="charm gem" x="470" y="585">♦</text></g>
-            <g class="pendant p6"><line x1="574" y1="88" x2="574" y2="300"/><text class="charm small-star" x="574" y="222">✧</text><circle class="bead blue" cx="574" cy="282" r="4"/></g>
-            <g class="pendant p7"><line x1="690" y1="92" x2="690" y2="448"/><text class="charm moon" x="690" y="184">☾</text><circle class="bead pink" cx="690" cy="286" r="4"/><text class="charm star" x="690" y="408">✦</text></g>
-            <g class="pendant p8"><line x1="802" y1="156" x2="802" y2="292"/><text class="charm small-star" x="802" y="270">✧</text></g>
-            <g class="pendant p9"><line x1="914" y1="75" x2="914" y2="345"/><circle class="bead violet" cx="914" cy="155" r="5"/><text class="charm moon" x="914" y="254">☽</text><text class="charm small-star" x="914" y="334">✧</text></g>
-            <g class="pendant p10"><line x1="1028" y1="112" x2="1028" y2="268"/><text class="charm star" x="1028" y="244">✦</text></g>
-            <g class="pendant p11"><line x1="1142" y1="82" x2="1142" y2="530"/><text class="charm moon" x="1142" y="182">☾</text><circle class="bead blue" cx="1142" cy="294" r="4"/><text class="charm star" x="1142" y="406">✦</text><text class="charm gem" x="1142" y="520">♦</text></g>
-            <g class="pendant p12"><line x1="1244" y1="56" x2="1244" y2="286"/><circle class="bead pink" cx="1244" cy="148" r="5"/><text class="charm small-star" x="1244" y="272">✧</text></g>
-            <g class="pendant p13"><line x1="1348" y1="92" x2="1348" y2="428"/><text class="charm star" x="1348" y="192">✦</text><circle class="bead violet" cx="1348" cy="292" r="4"/><text class="charm moon" x="1348" y="412">☽</text></g>
-            <g class="pendant p14"><line x1="1454" y1="112" x2="1454" y2="286"/><text class="charm small-star" x="1454" y="256">✧</text></g>
-            <g class="pendant p15"><line x1="1556" y1="38" x2="1556" y2="650"/><text class="charm moon" x="1556" y="146">☾</text><circle class="bead blue" cx="1556" cy="254" r="5"/><text class="charm star" x="1556" y="380">✦</text><circle class="bead violet" cx="1556" cy="508" r="4"/><text class="charm gem" x="1556" y="626">♦</text></g>
-          </g>
-        </svg>
+        <button class="garland-hit gh-top gh1" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
+        <button class="garland-hit gh-top gh2" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
+        <button class="garland-hit gh-top gh3" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
+        <button class="garland-hit gh-top gh4" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
+        <button class="garland-hit gh-top gh5" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
+        <button class="garland-hit gh-side gh-left" type="button" aria-label="качнуть левую гирлянду" data-garland-target="left"></button>
+        <button class="garland-hit gh-side gh-right" type="button" aria-label="качнуть правую гирлянду" data-garland-target="right"></button>
       </div>
       <img class="hero-bg" src="/assets/soiqweqq_clean_layer_hero.webp" alt="Soiqweqq background art" />
 
@@ -97,7 +71,7 @@
 
           <!-- Тексты кнопок главного экрана меняются прямо здесь, в web/index.html -->
           <div class="hero-actions">
-            <a class="btn btn-primary" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
+            <a class="btn btn-primary" data-telegram-link href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer">
               <span>➤</span> Запустить бота
             </a>
             <button class="btn btn-secondary open-chat" type="button">

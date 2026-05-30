@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -268,7 +268,9 @@ async function sendMessage(text) {
     } else if (looksLikeDnd(answerText)) {
       clearOnlineStatusTimer();
       setBotStatus("dnd");
-    } else if (currentBotStatus === "online") {
+    } else {
+      clearOnlineStatusTimer();
+      setBotStatus("online");
       resetAfkTimer();
     }
   } catch (error) {
@@ -391,6 +393,39 @@ function makeResizable(box, handle) {
 makeDraggable(chatWindow, chatHeader);
 makeResizable(chatWindow, document.querySelector(".chat-resize-handle"));
 
+
+function wobbleGarland(targetName) {
+  const piece = document.querySelector(`[data-garland-piece="${targetName}"]`);
+  if (!piece) return;
+
+  const variants = ["wobble-a", "wobble-b", "wobble-c"];
+  const chosen = variants[Math.floor(Math.random() * variants.length)];
+  piece.classList.remove(...variants);
+  void piece.offsetWidth;
+  piece.classList.add(chosen);
+  setTimeout(() => piece.classList.remove(chosen), 1350);
+}
+
+document.querySelectorAll(".garland-hit").forEach((hit) => {
+  let hoverLock = false;
+  const run = () => {
+    const target = hit.dataset.garlandTarget || "top";
+    wobbleGarland(target);
+  };
+
+  hit.addEventListener("pointerenter", () => {
+    if (hoverLock) return;
+    hoverLock = true;
+    run();
+    setTimeout(() => { hoverLock = false; }, 900);
+  });
+
+  hit.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    run();
+  });
+});
+
 function createAshParticle() {
   const ashLayer = document.getElementById("ashLayer");
   const hero = document.querySelector(".hero");
@@ -424,7 +459,7 @@ function triggerSignalHit() {
   if (!hero) return;
 
   hero.classList.add("signal-hit");
-  setTimeout(() => hero.classList.remove("signal-hit"), 360);
+  setTimeout(() => hero.classList.remove("signal-hit"), 260);
 }
 
 function startSignalFX() {
