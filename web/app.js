@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -215,8 +215,6 @@ function makeDraggable(box, handle) {
   });
 }
 
-makeDraggable(chatWindow, chatHeader);
-
 function makeResizable(box, handle) {
   if (!box || !handle) return;
 
@@ -267,19 +265,8 @@ function makeResizable(box, handle) {
   });
 }
 
+makeDraggable(chatWindow, chatHeader);
 makeResizable(chatWindow, document.querySelector(".chat-resize-handle"));
-
-
-// На отдельной странице чата нет плавающего окна, но есть та же форма.
-if (document.body.classList.contains("chat-page")) {
-  floatingChat && (floatingChat.style.display = "none");
-}
-
-// Кнопка видна, если окно закрыли.
-if (floatingChat && chatWindow && chatWindow.classList.contains("hidden")) {
-  floatingChat.style.display = "block";
-}
-
 
 function createAshParticle() {
   const ashLayer = document.getElementById("ashLayer");
@@ -290,8 +277,8 @@ function createAshParticle() {
   const particle = document.createElement("span");
   particle.className = "ash-particle";
 
-  const startX = heroRect.width * 0.643 + (Math.random() * 10 - 5);
-  const startY = heroRect.height * 0.225 + (Math.random() * 8 - 4);
+  const startX = heroRect.width * 0.635 + (Math.random() * 10 - 5);
+  const startY = heroRect.height * 0.235 + (Math.random() * 8 - 4);
   const driftX = -24 + Math.random() * 48;
   const driftY = 120 + Math.random() * 170;
   const size = 2 + Math.random() * 2.8;
@@ -310,10 +297,18 @@ function createAshParticle() {
 }
 
 function startAmbientFX() {
-  if (!document.querySelector('.hero')) return;
+  if (!document.querySelector(".hero")) return;
   setInterval(() => {
     if (Math.random() > 0.28) createAshParticle();
   }, 1600);
 }
 
 startAmbientFX();
+
+if (document.body.classList.contains("chat-page")) {
+  floatingChat && (floatingChat.style.display = "none");
+}
+
+if (floatingChat && chatWindow && chatWindow.classList.contains("hidden")) {
+  floatingChat.style.display = "block";
+}

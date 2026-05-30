@@ -9,9 +9,10 @@
 </head>
 <body>
   <div class="noise"></div>
+
   <header class="site-header" id="top">
     <a class="brand" href="#home" aria-label="Soiqweqq">
-      <span class="brand-cat">☾</span>
+      <span class="brand-mark">☾</span>
       <span class="brand-text">Soiqweqq</span>
       <span class="brand-tag">[bot]</span>
     </a>
@@ -20,15 +21,12 @@
       <a href="#home">Главная</a>
       <a href="#about">Обо мне</a>
     </nav>
-
   </header>
 
   <main>
     <section class="hero" id="home" aria-label="Главная">
-      <img class="hero-image" src="/assets/soiqweqq_hero_clean.webp" alt="Soiqweqq dark cyberpunk interface" />
-      <div class="hero-glow"></div>
+      <img class="hero-bg" src="/assets/soiqweqq_clean_layer_hero.webp" alt="Soiqweqq background art" />
 
-      <div class="hero-overlay hero-vignette" aria-hidden="true"></div>
       <div class="hero-overlay hero-crt" aria-hidden="true"></div>
       <div class="hero-overlay monitor-flicker" aria-hidden="true"></div>
       <div class="hero-overlay smoke-stack" aria-hidden="true">
@@ -38,84 +36,111 @@
         <span class="smoke smoke-4"></span>
         <span class="smoke smoke-5"></span>
       </div>
-      <div class="hero-overlay wire-layer" aria-hidden="true">
-        <span class="wire wire-1"></span>
-        <span class="wire wire-2"></span>
-        <span class="wire wire-3"></span>
-      </div>
       <div class="hero-overlay ash-layer" id="ashLayer" aria-hidden="true"></div>
 
-      <div class="hero-copy">
-        <h1 class="glitch-title" data-text="Soiqweqq">Soiqweqq</h1>
-        <p class="hero-tagline">твоя цифровая тень<br>в этом сломанном мире.</p>
-        <p class="hero-description">Многофункциональный Telegram-бот<br>с атмосферой тишины, Хаоса и котов.<br>Работает. Слушает. Не осуждает.</p>
-      </div>
+      <div class="left-ui">
+        <section class="hero-card">
+          <div class="kicker">/ digital shadow</div>
+          <h1 class="glitch-title" data-text="Soiqweqq">Soiqweqq</h1>
+          <p class="hero-tagline">твоя цифровая тень<br>в этом сломанном мире.</p>
+          <p class="hero-description">
+            Многофункциональный Telegram-бот с атмосферой тишины, Хаоса и котов.
+            Работает. Слушает. Не осуждает. Ну почти.
+          </p>
 
+          <div class="hero-actions">
+            <a class="btn btn-primary" data-telegram-link href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer">
+              <span>➤</span> Запустить бота
+            </a>
+            <button class="btn btn-secondary open-chat" type="button">
+              <span>▣</span> Запустить на сайте
+            </button>
+          </div>
 
-      <div class="hero-actions-real">
-        <a class="btn btn-telegram" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
-          <span>➤</span> Запустить бота
-        </a>
-        <button class="btn btn-site open-chat" type="button">
-          <span>▣</span> Запустить на сайте
-        </button>
-      </div>
+          <div class="small-note">
+            <span class="note-icon">♡</span>
+            <span>Иногда она пишет первой. Иногда лучше бы молчала. Но это уже детали.</span>
+          </div>
+        </section>
 
-      <div class="hero-card-links" aria-label="Карточки возможностей">
-        <a class="hero-card-hot hero-card-1" href="#smart" aria-label="Подробнее: умный и гибкий"><span>Подробнее →</span></a>
-        <a class="hero-card-hot hero-card-2" href="#media" aria-label="Подробнее: музыка и медиа"><span>Подробнее →</span></a>
-        <a class="hero-card-hot hero-card-3" href="#privacy" aria-label="Подробнее: безопасность"><span>Подробнее →</span></a>
-        <a class="hero-card-hot hero-card-4" href="#atmosphere" aria-label="Подробнее: атмосфера"><span>Подробнее →</span></a>
+        <section class="feature-strip" aria-label="Возможности">
+          <a class="mini-card" href="#smart">
+            <span class="mini-icon">☻</span>
+            <strong>Умный и гибкий</strong>
+            <small>Подробнее →</small>
+          </a>
+          <a class="mini-card" href="#memory">
+            <span class="mini-icon">▹</span>
+            <strong>Память</strong>
+            <small>Подробнее →</small>
+          </a>
+          <a class="mini-card" href="#moods">
+            <span class="mini-icon">✦</span>
+            <strong>Настроения</strong>
+            <small>Подробнее →</small>
+          </a>
+          <a class="mini-card" href="#webchat">
+            <span class="mini-icon">▣</span>
+            <strong>Веб-чат</strong>
+            <small>Подробнее →</small>
+          </a>
+        </section>
       </div>
     </section>
 
     <section class="section about-section" id="about">
-      <div class="section-kicker">/about</div>
-      <h2>Обо мне</h2>
-      <p>
-        Soiqweqq - цифровая собеседница с памятью, настроением, странной нежностью
-        и привычкой говорить так, будто мир опять не прошёл проверку на человечность.
-      </p>
-      <p>
-        Она может быть мягкой, холодной, язвительной, игривой, мрачной и слишком честной.
-        Не справочник. Не помощница на корпоративной стерильности. Скорее тень в комнате,
-        где горит монитор и кто-то всё ещё пишет.
-      </p>
+      <div class="section-inner">
+        <div class="section-kicker">/about</div>
+        <h2>Обо мне</h2>
+        <p>
+          Soiqweqq - цифровая собеседница с памятью, настроением, странной нежностью
+          и привычкой говорить так, будто мир опять не прошёл проверку на человечность.
+        </p>
+        <p>
+          Она может быть мягкой, холодной, язвительной, игривой, мрачной и слишком честной.
+          Не справочник. Не корпоративный помощник. Скорее тень в комнате, где горит монитор
+          и кто-то всё ещё пишет.
+        </p>
+      </div>
     </section>
 
-    <section class="section detail-grid" id="details">
-      <article class="detail-card" id="smart">
-        <div class="section-kicker">/smart</div>
-        <h2>Умный и гибкий</h2>
-        <p>Контекст, реакции, медиа, команды и настройки характера под твой формат общения. Названия и описание потом можно будет заменить.</p>
-      </article>
+    <section class="section details" id="details">
+      <div class="section-inner grid">
+        <article class="detail-card" id="smart">
+          <div class="section-kicker">/smart</div>
+          <h3>Умный и гибкий</h3>
+          <p>Контекст, реакции, медиа и настройки характера под твой формат общения. Названия и описания можно спокойно заменить позже.</p>
+        </article>
 
-      <article class="detail-card" id="media">
-        <div class="section-kicker">/media</div>
-        <h2>Музыка и медиа</h2>
-        <p>Раздел под музыку, картинки, стикеры, голос, реакции и всё, что делает бота не просто говорящей коробкой с API.</p>
-      </article>
+        <article class="detail-card" id="memory">
+          <div class="section-kicker">/memory</div>
+          <h3>Память</h3>
+          <p>Держит нить разговора, помнит важные детали и старается не превращать диалог в кашу. Старается, подчеркнем трагизм ситуации.</p>
+        </article>
 
-      <article class="detail-card" id="privacy">
-        <div class="section-kicker">/privacy</div>
-        <h2>Безопасность</h2>
-        <p>Приватные файлы, токены и базы должны оставаться на сервере, а не устраивать публичный стриптиз в GitHub.</p>
-      </article>
+        <article class="detail-card" id="moods">
+          <div class="section-kicker">/mood</div>
+          <h3>Настроения</h3>
+          <p>Может быть broken, melancholic, playful, joyful, warm, cold, toxic и не только. Не вечный режим похорон, наконец-то.</p>
+        </article>
 
-      <article class="detail-card" id="atmosphere">
-        <div class="section-kicker">/mood</div>
-        <h2>Атмосфера</h2>
-        <p>Провода, мрак, ирония, коты и ощущение, что программа слишком долго смотрела в пустой чат и начала смотреть в ответ.</p>
-      </article>
+        <article class="detail-card" id="webchat">
+          <div class="section-kicker">/web-chat</div>
+          <h3>Веб-чат</h3>
+          <p>Можно говорить с ней прямо на сайте: окно двигается, меняет размер, поддерживает Shift + Enter и смайлики.</p>
+        </article>
+      </div>
     </section>
 
     <section class="section chat-landing" id="chat">
-      <div class="section-kicker">/web-chat</div>
-      <h2>Диалог на сайте</h2>
-      <p>Открой плавающее окно или отдельную страницу чата. Shift + Enter делает перенос строки, Enter отправляет сообщение.</p>
-      <div class="section-actions">
-        <button class="btn btn-site open-chat" type="button">Открыть окно чата</button>
-        <a class="btn btn-outline" href="/chat" target="_blank">Открыть отдельную вкладку</a>
+      <div class="section-inner">
+        <div class="section-kicker">/dialog</div>
+        <h2>Диалог на сайте</h2>
+        <p>Открой плавающее окно или отдельную страницу чата. Enter отправляет сообщение, Shift + Enter делает перенос строки.</p>
+        <div class="section-actions">
+          <button class="btn btn-secondary open-chat" type="button">Открыть окно чата</button>
+          <a class="btn btn-outline" href="/chat" target="_blank">Открыть отдельную вкладку</a>
+        </div>
       </div>
     </section>
   </main>
@@ -124,7 +149,7 @@
     <div class="chat-resize-handle" title="Тяни за угол"></div>
     <div class="chat-header" id="chatHeader">
       <div class="chat-title">
-        <span class="chat-avatar">☻</span>
+        <span class="chat-avatar">♡</span>
         <div>
           <strong>Чат с Soiqweqq</strong>
           <small><span class="online-dot"></span> онлайн</small>
@@ -136,11 +161,13 @@
         <button id="closeChat" title="Закрыть">×</button>
       </div>
     </div>
+
     <div class="chat-body" id="chatBody">
       <div class="message bot">
         <span>ты запустила меня прямо на сайте. смело. немного тревожно. в общем, типичный человеческий выбор.</span>
       </div>
     </div>
+
     <form class="chat-form" id="chatForm">
       <textarea id="chatInput" rows="1" placeholder="Напиши сообщение..."></textarea>
       <button class="emoji-toggle" type="button" title="Смайлики">♡</button>
@@ -160,7 +187,9 @@
     </form>
   </div>
 
-  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат"><span class="broken-heart">♡</span></button>
+  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат">
+    <span class="broken-heart">♡</span>
+  </button>
 
   <script src="/app.js"></script>
 </body>
