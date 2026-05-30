@@ -1,8 +1,8 @@
 from database import cursor, db, now_iso
 
-MAX_HISTORY_MESSAGES = 4
-MAX_HISTORY_ITEM_CHARS = 350
-MAX_MEMORY_VALUE_CHARS = 250
+MAX_HISTORY_MESSAGES = 16
+MAX_HISTORY_ITEM_CHARS = 650
+MAX_MEMORY_VALUE_CHARS = 500
 
 
 def compact_text(text, max_chars=MAX_HISTORY_ITEM_CHARS):
@@ -12,13 +12,13 @@ def compact_text(text, max_chars=MAX_HISTORY_ITEM_CHARS):
     if len(text) <= max_chars:
         return text
     cut = max(text.rfind(".", 0, max_chars), text.rfind("!", 0, max_chars), text.rfind("?", 0, max_chars), text.rfind("\n", 0, max_chars))
-    if cut > 90:
+    if cut > 120:
         return text[:cut + 1].strip()
     return text[:max_chars].strip() + ".."
 
 
 def save_message(user_id, chat_id, role, content):
-    content = compact_text(content, max_chars=900)
+    content = compact_text(content, max_chars=1400)
     cursor.execute(
         """
         INSERT INTO messages (user_id, chat_id, role, content, created_at)
@@ -63,7 +63,7 @@ def get_last_assistant_answer(user_id, chat_id):
         (user_id, chat_id),
     )
     row = cursor.fetchone()
-    return compact_text(row["content"], max_chars=300) if row else ""
+    return compact_text(row["content"], max_chars=600) if row else ""
 
 
 def clear_user_memory(user_id, chat_id):
@@ -115,9 +115,9 @@ def build_memory_prompt(user_id, chat_id):
     user_memories = list_memories("user", user_id=user_id, chat_id=chat_id)
     parts = []
     if global_memories:
-        lines = "\n".join([f"- {key}: {compact_text(value, max_chars=MAX_MEMORY_VALUE_CHARS)}" for key, value in global_memories[:6]])
+        lines = "\n".join([f"- {key}: {compact_text(value, max_chars=MAX_MEMORY_VALUE_CHARS)}" for key, value in global_memories[:8]])
         parts.append("Глобальная память бота:\n" + lines)
     if user_memories:
-        lines = "\n".join([f"- {key}: {compact_text(value, max_chars=MAX_MEMORY_VALUE_CHARS)}" for key, value in user_memories[:6]])
+        lines = "\n".join([f"- {key}: {compact_text(value, max_chars=MAX_MEMORY_VALUE_CHARS)}" for key, value in user_memories[:8]])
         parts.append("Память об этом пользователе:\n" + lines)
     return "\n\n".join(parts)

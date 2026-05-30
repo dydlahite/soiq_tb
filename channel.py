@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import random
+import re
 from datetime import datetime, timedelta
 
 from database import get_setting, set_setting
@@ -39,7 +40,6 @@ DEFAULT_CHANNEL_THOUGHTS = """
 слишком затянуто, мало событий, финал предсказуемый. но есть настроение, мерзко это признавать.
 """.strip()
 
-
 DEFAULT_CHANNEL_TOPICS = """
 тишина как собеседник
 человеческая усталость
@@ -60,7 +60,6 @@ def ensure_text_file(path, default_text):
     if not os.path.exists(path):
         with open(path, "w", encoding="utf-8") as file:
             file.write(default_text.strip() + "\n")
-
     with open(path, "r", encoding="utf-8") as file:
         return file.read().strip()
 
@@ -68,19 +67,13 @@ def ensure_text_file(path, default_text):
 def load_blocks(path, default_text):
     raw = ensure_text_file(path, default_text)
     blocks = []
-
-    # Для готовых постов удобны блоки через пустую строку.
-    # Для тем удобнее одна тема на строку. Да, раньше это было слишком разумно, поэтому не работало.
     chunks = raw.split("\n\n") if "\n\n" in raw else raw.splitlines()
-
     for block in chunks:
         block = block.strip()
         if block and not block.startswith("#"):
             blocks.append(block)
-
     if not blocks:
         return [default_text.strip()]
-
     return blocks
 
 
@@ -89,7 +82,6 @@ def setting_int(key, default, min_value=0, max_value=100):
         value = int(get_setting(key, str(default)))
     except (TypeError, ValueError):
         value = default
-
     return min(max_value, max(min_value, value))
 
 
@@ -149,18 +141,28 @@ def set_channel_format(value):
     set_setting("channel_format", value)
 
 
+def normalize_channel_content(value):
+    value = (value or "notes").lower().strip()
+    aliases = {
+        "poem": "poetry",
+        "poems": "poetry",
+        "story": "stories",
+        "long": "long_stories",
+        "long_story": "long_stories",
+        "longstory": "long_stories",
+        "big_story": "long_stories",
+    }
+    return aliases.get(value, value)
+
+
 def get_channel_content():
-    value = get_setting("channel_content", "notes").lower().strip()
-    aliases = {"poem": "poetry", "poems": "poetry", "story": "stories"}
-    value = aliases.get(value, value)
-    return value if value in ["notes", "poetry", "stories", "mixed"] else "notes"
+    value = normalize_channel_content(get_setting("channel_content", "notes"))
+    return value if value in ["notes", "poetry", "stories", "long_stories", "mixed"] else "notes"
 
 
 def set_channel_content(value):
-    value = (value or "notes").lower().strip()
-    aliases = {"poem": "poetry", "poems": "poetry", "story": "stories"}
-    value = aliases.get(value, value)
-    if value not in ["notes", "poetry", "stories", "mixed"]:
+    value = normalize_channel_content(value)
+    if value not in ["notes", "poetry", "stories", "long_stories", "mixed"]:
         value = "notes"
     set_setting("channel_content", value)
 
@@ -169,7 +171,6 @@ def get_channel_last_post_at():
     raw = get_setting("channel_last_post_at", "")
     if not raw:
         return None
-
     try:
         return datetime.fromisoformat(raw)
     except ValueError:
@@ -186,7 +187,6 @@ def get_recent_hashes():
         data = json.loads(raw)
     except Exception:
         return []
-
     return data if isinstance(data, list) else []
 
 
@@ -211,30 +211,46 @@ def clear_channel_recent():
 def pick_non_repeated(blocks):
     candidates = list(blocks)
     random.shuffle(candidates)
-
     for item in candidates:
         if not was_recent(item):
             return item
-
-    # Все уже были. Жизнь опять сделала круг, но хотя бы не упадем.
     clear_channel_recent()
     return random.choice(blocks)
 
 
-def clean_channel_post(text):
+def clean_channel_post(text, max_chars=950):
     text = (text or "").strip()
     text = text.replace("ё", "е").replace("Ё", "Е")
-
-    # Канал не должен выглядеть как админская инструкция.
     for prefix in ["Вот запись:", "Запись:", "Пост:"]:
         if text.lower().startswith(prefix.lower()):
             text = text[len(prefix):].strip()
-
-    if len(text) > 950:
-        cut = max(text.rfind(".", 0, 950), text.rfind("!", 0, 950), text.rfind("?", 0, 950), text.rfind("\n", 0, 950))
-        text = text[: cut + 1].strip() if cut > 200 else text[:950].strip() + ".."
-
+    if len(text) > max_chars:
+        cut = max(text.rfind(".", 0, max_chars), text.rfind("!", 0, max_chars), text.rfind("?", 0, max_chars), text.rfind("\n", 0, max_chars))
+        text = text[: cut + 1].strip() if cut > 200 else text[:max_chars].strip() + ".."
     return text
+
+
+def split_channel_post(text, max_chars=3900):
+    text = (text or "").strip()
+    if not text:
+        return []
+    if len(text) <= max_chars:
+        return [text]
+    paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
+    parts = []
+    current = ""
+    for paragraph in paragraphs:
+        if not current:
+            current = paragraph
+            continue
+        if len(current) + len(paragraph) + 2 <= max_chars:
+            current += "\n\n" + paragraph
+        else:
+            parts.append(current.strip())
+            current = paragraph
+    if current:
+        parts.append(current.strip())
+    return parts
 
 
 def build_static_channel_post():
@@ -249,10 +265,8 @@ def pick_topic():
 
 def build_note_task(topic):
     channel_format = get_channel_format()
-
     if channel_format == "mixed":
         channel_format = random.choice(["diary", "review"])
-
     if channel_format == "review":
         return (
             "Напиши короткую запись для Telegram-канала от имени персонажного бота. "
@@ -262,7 +276,6 @@ def build_note_task(topic):
             "Длина 3-7 предложений. Не цитируй песни и книги дословно. "
             f"Тема: {topic}"
         )
-
     return (
         "Напиши короткую запись для Telegram-канала от имени персонажного бота. "
         "Формат: условный дневник, будто она оставила мысль на полях дня. "
@@ -274,38 +287,30 @@ def build_note_task(topic):
 
 
 def pick_channel_content(force_content=None):
-    content = (force_content or get_channel_content() or "notes").lower().strip()
-    aliases = {"poem": "poetry", "poems": "poetry", "story": "stories"}
-    content = aliases.get(content, content)
-
+    content = normalize_channel_content(force_content or get_channel_content() or "notes")
     if content == "mixed":
-        return random.choices(["notes", "poetry", "stories"], weights=[50, 25, 25], k=1)[0]
-
-    return content if content in ["notes", "poetry", "stories"] else "notes"
+        return random.choices(["notes", "poetry", "stories", "long_stories"], weights=[50, 23, 23, 4], k=1)[0]
+    return content if content in ["notes", "poetry", "stories", "long_stories"] else "notes"
 
 
 def build_generated_channel_post(force_content=None):
     topic = pick_topic()
     content = pick_channel_content(force_content)
-
+    max_chars = 950
     if content == "poetry":
         task = build_channel_creative_task("poetry", topic)
     elif content == "stories":
         task = build_channel_creative_task("story", topic)
+    elif content == "long_stories":
+        task = build_channel_creative_task("story", topic, length="long")
+        max_chars = 12000
     else:
         task = build_note_task(topic)
-
     try:
         from ai import generate_answer
-        answer = generate_answer(
-            user_id=0,
-            chat_id=0,
-            user_text=task,
-            history=[],
-            previous_answer=get_setting("channel_last_generated_post", ""),
-        )
-        answer = clean_channel_post(answer)
-        set_setting("channel_last_generated_post", answer[:900])
+        answer = generate_answer(user_id=0, chat_id=0, user_text=task, history=[], previous_answer=get_setting("channel_last_generated_post", ""))
+        answer = clean_channel_post(answer, max_chars=max_chars)
+        set_setting("channel_last_generated_post", answer[:2200])
         set_setting("channel_last_content", content)
         return answer
     except Exception as error:
@@ -316,61 +321,52 @@ def build_generated_channel_post(force_content=None):
 
 def build_channel_post(force_generated=False, force_content=None):
     mode = get_channel_mode()
-
     if force_content:
         return build_generated_channel_post(force_content=force_content)
-
     if force_generated:
         return build_generated_channel_post()
-
     if mode == "generated":
         return build_generated_channel_post()
-
     if mode == "mixed":
         if random.randint(1, 100) <= 45:
             return build_generated_channel_post()
         return build_static_channel_post()
-
     return build_static_channel_post()
 
 
 def should_post_channel_now(force=False):
     if force:
         return True
-
     if get_channel_enabled() != "on":
         return False
-
     if not get_channel_id():
         return False
-
     last = get_channel_last_post_at()
     if last and now_utc() - last < timedelta(hours=get_channel_hours()):
         return False
-
     if random.randint(1, 100) > get_channel_chance():
         return False
-
     return True
 
 
 async def send_channel_post(bot, force=False, force_generated=False, force_content=None):
     channel_id = get_channel_id()
-
     if not channel_id:
         raise RuntimeError("channel_id is empty")
-
     if not should_post_channel_now(force=force):
         return False, "not due"
-
     post = build_channel_post(force_generated=force_generated, force_content=force_content)
-
     if not post:
         return False, "empty post"
-
-    message = await bot.send_message(chat_id=channel_id, text=post, parse_mode=None)
+    parts = split_channel_post(post)
+    first_message = None
+    for part in parts:
+        message = await bot.send_message(chat_id=channel_id, text=part, parse_mode=None)
+        if first_message is None:
+            first_message = message
     remember_post(post)
-    set_setting("channel_last_message_id", str(message.message_id))
+    if first_message:
+        set_setting("channel_last_message_id", str(first_message.message_id))
     return True, post
 
 
@@ -386,7 +382,6 @@ def schedule_channel_jobs(app):
     if not app.job_queue:
         print("channel jobs disabled: no job_queue")
         return
-
     app.job_queue.run_repeating(channel_job, interval=1800, first=90, name="channel_diary_posts")
 
 
