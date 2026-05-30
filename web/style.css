@@ -741,3 +741,187 @@ main {
     max-width: 92%;
   }
 }
+
+
+/* v3 UI fixes: less duplicate-looking hero buttons, cleaner glow, dark scrollbars */
+
+.site-header {
+  grid-template-columns: auto 1fr;
+}
+
+.top-nav {
+  justify-content: flex-end;
+  padding-right: 18px;
+}
+
+.header-actions {
+  display: none !important;
+}
+
+.hero-actions-real {
+  top: clamp(420px, 37.2vw, 588px);
+  padding: 12px;
+  border: 1px solid rgba(241, 139, 210, .16);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 24% 50%, rgba(241, 139, 210, .08), transparent 44%),
+    rgba(5, 4, 8, .78);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 16px 50px rgba(0,0,0,.45);
+}
+
+/* The baked buttons in the background image are covered by this dark layer,
+   then real clickable buttons sit above. Да, боремся с плоским PNG как можем. */
+.hero-actions-real::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 18px;
+  background: rgba(5, 4, 8, .72);
+  box-shadow: 0 0 30px rgba(0,0,0,.36);
+  z-index: -1;
+}
+
+.hero-actions-real .btn,
+.btn,
+.info-card,
+.terminal-box,
+.chat-window,
+.full-chat-card {
+  outline: none;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  border-color: rgba(255, 138, 221, .85);
+  box-shadow:
+    0 0 0 1px rgba(255, 138, 221, .28),
+    0 0 24px rgba(255, 138, 221, .34),
+    0 0 70px rgba(255, 138, 221, .12);
+}
+
+.info-card {
+  display: block;
+  position: relative;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease,
+    background .18s ease;
+}
+
+.info-card:hover,
+.info-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(255, 138, 221, .78);
+  box-shadow:
+    0 0 0 1px rgba(255, 138, 221, .25),
+    0 0 34px rgba(255, 138, 221, .22),
+    0 24px 80px rgba(0,0,0,.62);
+  background: linear-gradient(180deg, rgba(24, 16, 32, .86), rgba(9, 7, 13, .9));
+}
+
+.info-card:hover .card-icon,
+.info-card:focus-visible .card-icon {
+  box-shadow: 0 0 22px rgba(255, 138, 221, .34);
+}
+
+.card-more {
+  position: absolute;
+  left: 28px;
+  bottom: 24px;
+  color: var(--pink);
+  font-size: 14px;
+}
+
+.info-card p {
+  padding-bottom: 34px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(241, 139, 210, .42) rgba(7, 5, 10, .16);
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(7, 5, 10, .22);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background:
+    linear-gradient(180deg, rgba(241, 139, 210, .58), rgba(110, 70, 124, .58));
+  border-radius: 999px;
+  border: 2px solid rgba(7, 5, 10, .54);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 138, 221, .82), rgba(134, 82, 152, .82));
+}
+
+.chat-window {
+  resize: none;
+}
+
+.chat-resize-handle {
+  pointer-events: auto;
+  cursor: nwse-resize;
+  width: 24px;
+  height: 24px;
+  right: 4px;
+  bottom: 4px;
+  opacity: 0;
+  background: transparent;
+}
+
+.chat-resize-handle:hover {
+  opacity: .35;
+  background:
+    linear-gradient(135deg, transparent 0 48%, var(--pink) 49% 52%, transparent 53%),
+    linear-gradient(135deg, transparent 0 66%, var(--pink) 67% 70%, transparent 71%);
+}
+
+/* no ugly native arrows inside textarea */
+.chat-form textarea::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.message.typing span::after {
+  content: none !important;
+}
+
+.message.typing span {
+  color: rgba(242, 237, 245, .72);
+}
+
+@media (max-width: 1080px) {
+  .site-header {
+    grid-template-columns: 1fr;
+  }
+
+  .top-nav {
+    justify-content: flex-start;
+    padding-right: 0;
+  }
+
+  .hero-actions-real {
+    top: 500px;
+  }
+}
+
+@media (max-width: 680px) {
+  .hero-actions-real {
+    top: 450px;
+    padding: 10px;
+  }
+}

@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -100,7 +100,15 @@ async function typeText(bubble, text, speed = 16) {
 async function sendMessage(text) {
   addMessage("user", text);
 
-  const typing = addMessage("bot", "печатает", true);
+  const typing = addMessage("bot", "печатает.", true);
+  const typingFrames = ["печатает.", "печатает..", "печатает...", "печатает.."];
+  let typingIndex = 0;
+  const typingTimer = setInterval(() => {
+    if (typing?.bubble) {
+      typing.bubble.textContent = typingFrames[typingIndex % typingFrames.length];
+      typingIndex++;
+    }
+  }, 420);
 
   try {
     const response = await fetch("/api/chat", {
@@ -113,9 +121,11 @@ async function sendMessage(text) {
 
     await sleep(data.delay_ms || 1200);
 
+    clearInterval(typingTimer);
     typing.item.classList.remove("typing");
     await typeText(typing.bubble, data.answer || "я снова что-то сломала. неожиданно, правда.", data.typing_speed || 16);
   } catch (error) {
+    clearInterval(typingTimer);
     typing.item.classList.remove("typing");
     typing.bubble.textContent = "сайт не достучался до сервера. где-то опять умер провод.";
   } finally {
@@ -179,6 +189,59 @@ function makeDraggable(box, handle) {
 }
 
 makeDraggable(chatWindow, chatHeader);
+
+function makeResizable(box, handle) {
+  if (!box || !handle) return;
+
+  let resizing = false;
+  let startX = 0;
+  let startY = 0;
+  let startWidth = 0;
+  let startHeight = 0;
+
+  handle.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const rect = box.getBoundingClientRect();
+
+    resizing = true;
+    startX = event.clientX;
+    startY = event.clientY;
+    startWidth = rect.width;
+    startHeight = rect.height;
+
+    box.style.left = rect.left + "px";
+    box.style.top = rect.top + "px";
+    box.style.right = "auto";
+    box.style.bottom = "auto";
+
+    handle.setPointerCapture(event.pointerId);
+  });
+
+  handle.addEventListener("pointermove", (event) => {
+    if (!resizing) return;
+
+    const minWidth = 340;
+    const minHeight = 420;
+    const maxWidth = window.innerWidth - 24;
+    const maxHeight = window.innerHeight - 24;
+
+    const nextWidth = Math.min(Math.max(minWidth, startWidth + event.clientX - startX), maxWidth);
+    const nextHeight = Math.min(Math.max(minHeight, startHeight + event.clientY - startY), maxHeight);
+
+    box.style.width = nextWidth + "px";
+    box.style.height = nextHeight + "px";
+  });
+
+  handle.addEventListener("pointerup", (event) => {
+    resizing = false;
+    try { handle.releasePointerCapture(event.pointerId); } catch (_) {}
+  });
+}
+
+makeResizable(chatWindow, document.querySelector(".chat-resize-handle"));
+
 
 // На отдельной странице чата нет плавающего окна, но есть та же форма.
 if (document.body.classList.contains("chat-page")) {
