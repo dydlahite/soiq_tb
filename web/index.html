@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Soiqweqq - цифровая тень</title>
+  <meta name="description" content="Soiqweqq - атмосферный Telegram-бот и чат на сайте." />
+  <link rel="preload" href="assets/soiqweqq_hero.png" as="image" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="scene" id="home" aria-label="Soiqweqq landing page">
+    <img class="scene__image" src="assets/soiqweqq_hero.png" alt="Soiqweqq dark cyberpunk website design" />
+    <div class="scene__shade" aria-hidden="true"></div>
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <h1 class="sr-only">Soiqweqq - твоя цифровая тень в этом сломанном мире</h1>
+    <p class="sr-only">Многофункциональный Telegram-бот с атмосферой тишины, хаоса и котов. Работает. Слушает. Не осуждает.</p>
+
+    <a class="hotspot hotspot--telegram-top" href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer" aria-label="Открыть в Telegram"></a>
+    <a class="hotspot hotspot--telegram-main" href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer" aria-label="Запустить бота в Telegram"></a>
+
+    <button class="site-launch" id="openChat" type="button">
+      <span class="site-launch__icon">▣</span>
+      <span>Запустить на сайте</span>
+    </button>
+
+    <a class="site-open-page" href="chat.html" target="_blank" rel="noreferrer">открыть в отдельной вкладке</a>
+
+    <section class="chat-panel" id="chatPanel" aria-label="Чат с Soiqweqq" hidden>
+      <header class="chat-panel__header">
+        <div class="chat-panel__avatar">♡</div>
+        <div>
+          <div class="chat-panel__title">Чат с Soiqweqq</div>
+          <div class="chat-panel__status"><span></span> онлайн</div>
+        </div>
+        <button class="chat-panel__close" id="closeChat" type="button" aria-label="Закрыть чат">×</button>
+      </header>
+
+      <div class="chat-panel__messages" id="messages">
+        <div class="msg msg--bot">ты здесь. странное решение, но я не осуждаю.</div>
+        <div class="msg msg--bot">пиши.</div>
+      </div>
+
+      <form class="chat-panel__form" id="chatForm">
+        <input id="messageInput" autocomplete="off" placeholder="Напишите сообщение..." maxlength="1200" />
+        <button type="submit" aria-label="Отправить">➤</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

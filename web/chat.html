@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Чат с Soiqweqq</title>
+  <link rel="preload" href="assets/soiqweqq_hero.png" as="image" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="chat-page">
+  <main class="chat-shell">
+    <div class="chat-shell__bg" aria-hidden="true"></div>
+    <div class="chat-shell__box">
+      <header class="chat-shell__header">
+        <a href="index.html" class="chat-shell__back">← назад</a>
+        <div>
+          <div class="chat-shell__title">Soiqweqq</div>
+          <div class="chat-shell__sub"><span></span> связь установлена</div>
+        </div>
+        <a href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer" class="chat-shell__tg">Telegram</a>
+      </header>
+
+      <div class="chat-shell__messages" id="messages">
+        <div class="msg msg--bot">я не обещаю спасать.</div>
+        <div class="msg msg--bot">но могу остаться в окне, пока ты пишешь.</div>
+      </div>
+
+      <form class="chat-shell__form" id="chatForm">
+        <input id="messageInput" autocomplete="off" placeholder="Напишите сообщение..." maxlength="1200" />
+        <button type="submit">отправить</button>
+      </form>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
