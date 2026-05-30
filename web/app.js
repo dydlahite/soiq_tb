@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -6,6 +6,8 @@ const chatBody = document.getElementById("chatBody");
 const chatForm = document.getElementById("chatForm");
 const chatInput = document.getElementById("chatInput");
 const floatingChat = document.querySelector(".floating-chat");
+const emojiToggle = document.querySelector(".emoji-toggle");
+const emojiPanel = document.getElementById("emojiPanel");
 
 const sessionId = (() => {
   const key = "soiqweqq_web_session";
@@ -71,6 +73,31 @@ function autoGrowTextarea(el) {
 }
 
 chatInput?.addEventListener("input", () => autoGrowTextarea(chatInput));
+
+emojiToggle?.addEventListener("click", () => {
+  emojiPanel?.classList.toggle("hidden");
+});
+
+emojiPanel?.querySelectorAll("button").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!chatInput) return;
+    const value = button.textContent || "";
+    const start = chatInput.selectionStart || chatInput.value.length;
+    const end = chatInput.selectionEnd || chatInput.value.length;
+    chatInput.value = chatInput.value.slice(0, start) + value + chatInput.value.slice(end);
+    chatInput.focus();
+    const pos = start + value.length;
+    chatInput.selectionStart = pos;
+    chatInput.selectionEnd = pos;
+    autoGrowTextarea(chatInput);
+  });
+});
+
+document.addEventListener("click", (event) => {
+  if (!emojiPanel || !emojiToggle) return;
+  if (emojiPanel.contains(event.target) || emojiToggle.contains(event.target)) return;
+  emojiPanel.classList.add("hidden");
+});
 
 chatInput?.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey) {

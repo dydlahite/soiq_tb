@@ -18,112 +18,83 @@
 
     <nav class="top-nav" aria-label="Навигация">
       <a href="#home">Главная</a>
-      <a href="#features">Возможности</a>
-      <a href="#chat">Диалог</a>
+      <a href="#about">Обо мне</a>
     </nav>
 
   </header>
 
   <main>
     <section class="hero" id="home" aria-label="Главная">
-      <img class="hero-image" src="/assets/soiqweqq_hero.png" alt="Soiqweqq dark cyberpunk interface" />
+      <img class="hero-image" src="/assets/soiqweqq_hero_2x.webp" alt="Soiqweqq dark cyberpunk interface" />
       <div class="hero-glow"></div>
+
+      <div class="hero-copy">
+        <h1>Soiqweqq</h1>
+        <p class="hero-tagline">твоя цифровая тень<br>в этом сломанном мире.</p>
+        <p class="hero-description">Многофункциональный Telegram-бот<br>с атмосферой тишины, Хаоса и котов.<br>Работает. Слушает. Не осуждает.</p>
+      </div>
 
 
       <div class="hero-actions-real">
-        <a class="btn btn-telegram" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
+        <a class="btn btn-telegram" data-telegram-link href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer">
           <span>➤</span> Запустить бота
         </a>
         <button class="btn btn-site open-chat" type="button">
           <span>▣</span> Запустить на сайте
         </button>
-        <a class="btn btn-outline" href="#commands">
-          <span>☷</span> Все команды
-        </a>
+      </div>
+
+      <div class="hero-card-links" aria-label="Карточки возможностей">
+        <a class="hero-card-hot hero-card-1" href="#smart" aria-label="Подробнее: умный и гибкий"><span>Подробнее →</span></a>
+        <a class="hero-card-hot hero-card-2" href="#media" aria-label="Подробнее: музыка и медиа"><span>Подробнее →</span></a>
+        <a class="hero-card-hot hero-card-3" href="#privacy" aria-label="Подробнее: безопасность"><span>Подробнее →</span></a>
+        <a class="hero-card-hot hero-card-4" href="#atmosphere" aria-label="Подробнее: атмосфера"><span>Подробнее →</span></a>
       </div>
     </section>
 
-    <section class="section intro" id="about">
+    <section class="section about-section" id="about">
       <div class="section-kicker">/about</div>
-      <h2>Не помощник. Присутствие.</h2>
+      <h2>Обо мне</h2>
       <p>
-        Soiqweqq говорит не как справочник, а как цифровая собеседница с памятью,
-        настроением, усталой иронией и странной привычкой оставаться рядом.
+        Soiqweqq - цифровая собеседница с памятью, настроением, странной нежностью
+        и привычкой говорить так, будто мир опять не прошёл проверку на человечность.
       </p>
       <p>
-        Она умеет быть мягкой, холодной, язвительной, меланхоличной, игривой и иногда
-        неприятно честной. Наконец-то технология, которая не делает вид, что человечество
-        прекрасно справляется.
+        Она может быть мягкой, холодной, язвительной, игривой, мрачной и слишком честной.
+        Не справочник. Не помощница на корпоративной стерильности. Скорее тень в комнате,
+        где горит монитор и кто-то всё ещё пишет.
       </p>
     </section>
 
-    <section class="section cards-section" id="features">
-      <div class="section-kicker">/features</div>
-      <h2>Возможности</h2>
-      <div class="grid-cards">
-        <a class="info-card" href="#about">
-          <div class="card-icon">☻</div>
-          <h3>Умный и гибкий</h3>
-          <p>Контекст, реакции, медиа, команды и настройки характера под твой формат общения.</p>
-          <span class="card-more">Подробнее →</span>
-        </a>
-        <a class="info-card" href="#features">
-          <div class="card-icon">▹</div>
-          <h3>Память</h3>
-          <p>Запоминает важное в диалоге и держит нить разговора, пока её опять не начнут чинить ломом.</p>
-          <span class="card-more">Подробнее →</span>
-        </a>
-        <a class="info-card" href="#safety">
-          <div class="card-icon">✦</div>
-          <h3>Настроения</h3>
-          <p>Broken, melancholic, playful, joyful, toxic, warm и другие состояния без вечного режима похорон.</p>
-          <span class="card-more">Подробнее →</span>
-        </a>
-        <a class="info-card" href="#chat">
-          <div class="card-icon">▣</div>
-          <h3>Веб-чат</h3>
-          <p>Можно говорить с ней прямо на сайте: окно двигается, меняет размер и не выглядит как табуретка.</p>
-          <span class="card-more">Подробнее →</span>
-        </a>
-      </div>
-    </section>
+    <section class="section detail-grid" id="details">
+      <article class="detail-card" id="smart">
+        <div class="section-kicker">/smart</div>
+        <h2>Умный и гибкий</h2>
+        <p>Контекст, реакции, медиа, команды и настройки характера под твой формат общения. Названия и описание потом можно будет заменить.</p>
+      </article>
 
-    <section class="section split-section" id="commands">
-      <div>
-        <div class="section-kicker">/commands</div>
-        <h2>Команды</h2>
-        <p>Быстрый набор для управления ботом. Часть команд зависит от твоей текущей версии проекта.</p>
-      </div>
-      <div class="terminal-box">
-<pre><code>/set_mood broken
-/set_mood playful
-/channel_status
-/channel_generate_now
-/set_channel_content mixed
-/creative_status</code></pre>
-      </div>
-    </section>
+      <article class="detail-card" id="media">
+        <div class="section-kicker">/media</div>
+        <h2>Музыка и медиа</h2>
+        <p>Раздел под музыку, картинки, стикеры, голос, реакции и всё, что делает бота не просто говорящей коробкой с API.</p>
+      </article>
 
-    <section class="section split-section" id="safety">
-      <div>
-        <div class="section-kicker">/security</div>
+      <article class="detail-card" id="privacy">
+        <div class="section-kicker">/privacy</div>
         <h2>Безопасность</h2>
-        <p>
-          Токены, базы и приватные файлы не должны попадать в GitHub. `.env`, `bot.db`,
-          `memory.db`, `venv/` и `__pycache__/` - в могилу публичных загрузок не нести.
-        </p>
-      </div>
-      <div class="terminal-box">
-<pre><code>status: encrypted-ish
-secrets: keep local
-github: no .env
-humanity: questionable</code></pre>
-      </div>
+        <p>Приватные файлы, токены и базы должны оставаться на сервере, а не устраивать публичный стриптиз в GitHub.</p>
+      </article>
+
+      <article class="detail-card" id="atmosphere">
+        <div class="section-kicker">/mood</div>
+        <h2>Атмосфера</h2>
+        <p>Провода, мрак, ирония, коты и ощущение, что программа слишком долго смотрела в пустой чат и начала смотреть в ответ.</p>
+      </article>
     </section>
 
     <section class="section chat-landing" id="chat">
       <div class="section-kicker">/web-chat</div>
-      <h2>Запустить на сайте</h2>
+      <h2>Диалог на сайте</h2>
       <p>Открой плавающее окно или отдельную страницу чата. Shift + Enter делает перенос строки, Enter отправляет сообщение.</p>
       <div class="section-actions">
         <button class="btn btn-site open-chat" type="button">Открыть окно чата</button>
@@ -155,11 +126,22 @@ humanity: questionable</code></pre>
     </div>
     <form class="chat-form" id="chatForm">
       <textarea id="chatInput" rows="1" placeholder="Напиши сообщение..."></textarea>
+      <button class="emoji-toggle" type="button" title="Смайлики">♡</button>
       <button type="submit" title="Отправить">➤</button>
+      <div class="emoji-panel hidden" id="emojiPanel" aria-label="Смайлики">
+        <button type="button">:)</button>
+        <button type="button">.. :)</button>
+        <button type="button">💔</button>
+        <button type="button">🖤</button>
+        <button type="button">🫠</button>
+        <button type="button">😶</button>
+        <button type="button">🥀</button>
+        <button type="button">🐈</button>
+      </div>
     </form>
   </div>
 
-  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат">☻</button>
+  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат"><span class="broken-heart">♡</span></button>
 
   <script src="/app.js"></script>
 </body>
