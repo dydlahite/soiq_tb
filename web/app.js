@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -296,6 +296,28 @@ function createAshParticle() {
   setTimeout(() => particle.remove(), duration * 1000 + 150);
 }
 
+function triggerSignalHit() {
+  const hero = document.querySelector(".hero");
+  if (!hero) return;
+
+  hero.classList.add("signal-hit");
+  setTimeout(() => hero.classList.remove("signal-hit"), 180);
+}
+
+function startSignalFX() {
+  if (!document.querySelector(".hero")) return;
+
+  const schedule = () => {
+    const next = 6500 + Math.random() * 7000;
+    setTimeout(() => {
+      triggerSignalHit();
+      schedule();
+    }, next);
+  };
+
+  schedule();
+}
+
 function startAmbientFX() {
   if (!document.querySelector(".hero")) return;
   setInterval(() => {
@@ -304,6 +326,7 @@ function startAmbientFX() {
 }
 
 startAmbientFX();
+startSignalFX();
 
 if (document.body.classList.contains("chat-page")) {
   floatingChat && (floatingChat.style.display = "none");
