@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
+const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
