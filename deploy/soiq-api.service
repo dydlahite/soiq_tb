@@ -1,11 +1,11 @@
 [Unit]
-Description=Soiqweqq Web API
+Description=SOIQ Web API
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 WorkingDirectory=/root/bot
-ExecStart=/root/bot/venv/bin/uvicorn app_api:app --host 127.0.0.1 --port 8000
+ExecStart=/root/bot/venv/bin/uvicorn app_api:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=5
 Environment=PYTHONUNBUFFERED=1

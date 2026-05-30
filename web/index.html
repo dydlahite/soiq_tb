@@ -3,52 +3,175 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Soiqweqq - цифровая тень</title>
-  <meta name="description" content="Soiqweqq - атмосферный Telegram-бот и чат на сайте." />
-  <link rel="preload" href="assets/soiqweqq_hero.png" as="image" />
-  <link rel="stylesheet" href="style.css" />
+  <title>Soiqweqq [bot]</title>
+  <meta name="description" content="Soiqweqq - атмосферный Telegram-бот с памятью, характером и веб-чатом." />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <main class="scene" id="home" aria-label="Soiqweqq landing page">
-    <img class="scene__image" src="assets/soiqweqq_hero.png" alt="Soiqweqq dark cyberpunk website design" />
-    <div class="scene__shade" aria-hidden="true"></div>
-    <div class="scanlines" aria-hidden="true"></div>
+  <div class="noise"></div>
+  <header class="site-header" id="top">
+    <a class="brand" href="#home" aria-label="Soiqweqq">
+      <span class="brand-cat">☾</span>
+      <span class="brand-text">Soiqweqq</span>
+      <span class="brand-tag">[bot]</span>
+    </a>
 
-    <h1 class="sr-only">Soiqweqq - твоя цифровая тень в этом сломанном мире</h1>
-    <p class="sr-only">Многофункциональный Telegram-бот с атмосферой тишины, хаоса и котов. Работает. Слушает. Не осуждает.</p>
+    <nav class="top-nav" aria-label="Навигация">
+      <a href="#home">Главная</a>
+      <a href="#features">Возможности</a>
+      <a href="#commands">Команды</a>
+      <a href="#safety">Безопасность</a>
+      <a href="#about">Поддержка</a>
+    </nav>
 
-    <a class="hotspot hotspot--telegram-top" href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer" aria-label="Открыть в Telegram"></a>
-    <a class="hotspot hotspot--telegram-main" href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer" aria-label="Запустить бота в Telegram"></a>
+    <div class="header-actions">
+      <a class="btn btn-telegram" data-telegram-link href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer">
+        <span>➤</span> Открыть в Telegram
+      </a>
+      <button class="btn btn-ghost open-chat" type="button">
+        <span>▣</span> Запустить на сайте
+      </button>
+    </div>
+  </header>
 
-    <button class="site-launch" id="openChat" type="button">
-      <span class="site-launch__icon">▣</span>
-      <span>Запустить на сайте</span>
-    </button>
+  <main>
+    <section class="hero" id="home" aria-label="Главная">
+      <img class="hero-image" src="/assets/soiqweqq_hero.png" alt="Soiqweqq dark cyberpunk interface" />
+      <div class="hero-glow"></div>
 
-    <a class="site-open-page" href="chat.html" target="_blank" rel="noreferrer">открыть в отдельной вкладке</a>
-
-    <section class="chat-panel" id="chatPanel" aria-label="Чат с Soiqweqq" hidden>
-      <header class="chat-panel__header">
-        <div class="chat-panel__avatar">♡</div>
-        <div>
-          <div class="chat-panel__title">Чат с Soiqweqq</div>
-          <div class="chat-panel__status"><span></span> онлайн</div>
-        </div>
-        <button class="chat-panel__close" id="closeChat" type="button" aria-label="Закрыть чат">×</button>
-      </header>
-
-      <div class="chat-panel__messages" id="messages">
-        <div class="msg msg--bot">ты здесь. странное решение, но я не осуждаю.</div>
-        <div class="msg msg--bot">пиши.</div>
+      <div class="hero-hotspots" aria-hidden="false">
+        <a class="hotspot telegram-hotspot" data-telegram-link href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer" title="Открыть в Telegram"></a>
+        <button class="hotspot site-hotspot open-chat" type="button" title="Запустить на сайте"></button>
+        <a class="hotspot commands-hotspot" href="#commands" title="Все команды"></a>
       </div>
 
-      <form class="chat-panel__form" id="chatForm">
-        <input id="messageInput" autocomplete="off" placeholder="Напишите сообщение..." maxlength="1200" />
-        <button type="submit" aria-label="Отправить">➤</button>
-      </form>
+      <div class="hero-actions-real">
+        <a class="btn btn-telegram" data-telegram-link href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer">
+          <span>➤</span> Запустить бота
+        </a>
+        <button class="btn btn-site open-chat" type="button">
+          <span>▣</span> Запустить на сайте
+        </button>
+        <a class="btn btn-outline" href="#commands">
+          <span>☷</span> Все команды
+        </a>
+      </div>
+    </section>
+
+    <section class="section intro" id="about">
+      <div class="section-kicker">/about</div>
+      <h2>Не помощник. Присутствие.</h2>
+      <p>
+        Soiqweqq говорит не как справочник, а как цифровая собеседница с памятью,
+        настроением, усталой иронией и странной привычкой оставаться рядом.
+      </p>
+      <p>
+        Она умеет быть мягкой, холодной, язвительной, меланхоличной, игривой и иногда
+        неприятно честной. Наконец-то технология, которая не делает вид, что человечество
+        прекрасно справляется.
+      </p>
+    </section>
+
+    <section class="section cards-section" id="features">
+      <div class="section-kicker">/features</div>
+      <h2>Возможности</h2>
+      <div class="grid-cards">
+        <article class="info-card">
+          <div class="card-icon">☻</div>
+          <h3>Умный и гибкий</h3>
+          <p>Контекст, реакции, медиа, команды и настройки характера под твой формат общения.</p>
+        </article>
+        <article class="info-card">
+          <div class="card-icon">▹</div>
+          <h3>Память</h3>
+          <p>Запоминает важное в диалоге и держит нить разговора, пока её опять не начнут чинить ломом.</p>
+        </article>
+        <article class="info-card">
+          <div class="card-icon">✦</div>
+          <h3>Настроения</h3>
+          <p>Broken, melancholic, playful, joyful, toxic, warm и другие состояния без вечного режима похорон.</p>
+        </article>
+        <article class="info-card">
+          <div class="card-icon">▣</div>
+          <h3>Веб-чат</h3>
+          <p>Можно говорить с ней прямо на сайте: окно двигается, меняет размер и не выглядит как табуретка.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section split-section" id="commands">
+      <div>
+        <div class="section-kicker">/commands</div>
+        <h2>Команды</h2>
+        <p>Быстрый набор для управления ботом. Часть команд зависит от твоей текущей версии проекта.</p>
+      </div>
+      <div class="terminal-box">
+<pre><code>/set_mood broken
+/set_mood playful
+/channel_status
+/channel_generate_now
+/set_channel_content mixed
+/creative_status</code></pre>
+      </div>
+    </section>
+
+    <section class="section split-section" id="safety">
+      <div>
+        <div class="section-kicker">/security</div>
+        <h2>Безопасность</h2>
+        <p>
+          Токены, базы и приватные файлы не должны попадать в GitHub. `.env`, `bot.db`,
+          `memory.db`, `venv/` и `__pycache__/` - в могилу публичных загрузок не нести.
+        </p>
+      </div>
+      <div class="terminal-box">
+<pre><code>status: encrypted-ish
+secrets: keep local
+github: no .env
+humanity: questionable</code></pre>
+      </div>
+    </section>
+
+    <section class="section chat-landing" id="chat">
+      <div class="section-kicker">/web-chat</div>
+      <h2>Запустить на сайте</h2>
+      <p>Открой плавающее окно или отдельную страницу чата. Shift + Enter делает перенос строки, Enter отправляет сообщение.</p>
+      <div class="section-actions">
+        <button class="btn btn-site open-chat" type="button">Открыть окно чата</button>
+        <a class="btn btn-outline" href="/chat" target="_blank">Открыть отдельную вкладку</a>
+      </div>
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <div class="chat-window hidden" id="chatWindow" aria-label="Чат с Soiqweqq">
+    <div class="chat-resize-handle" title="Тяни за угол"></div>
+    <div class="chat-header" id="chatHeader">
+      <div class="chat-title">
+        <span class="chat-avatar">☻</span>
+        <div>
+          <strong>Чат с Soiqweqq</strong>
+          <small><span class="online-dot"></span> онлайн</small>
+        </div>
+      </div>
+      <div class="chat-controls">
+        <button id="openFullChat" title="Открыть вкладку">□</button>
+        <button id="minimizeChat" title="Свернуть">−</button>
+        <button id="closeChat" title="Закрыть">×</button>
+      </div>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div class="message bot">
+        <span>ты запустила меня прямо на сайте. смело. немного тревожно. в общем, типичный человеческий выбор.</span>
+      </div>
+    </div>
+    <form class="chat-form" id="chatForm">
+      <textarea id="chatInput" rows="1" placeholder="Напиши сообщение..."></textarea>
+      <button type="submit" title="Отправить">➤</button>
+    </form>
+  </div>
+
+  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат">☻</button>
+
+  <script src="/app.js"></script>
 </body>
 </html>

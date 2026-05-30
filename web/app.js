@@ -1,72 +1,191 @@
-(() => {
-  const panel = document.getElementById('chatPanel');
-  const openChat = document.getElementById('openChat');
-  const closeChat = document.getElementById('closeChat');
-  const form = document.getElementById('chatForm');
-  const input = document.getElementById('messageInput');
-  const messages = document.getElementById('messages');
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
-  const sessionKey = 'soiqweqq_web_session_id';
-  let sessionId = localStorage.getItem(sessionKey);
-  if (!sessionId) {
-    sessionId = 'web-' + Math.random().toString(16).slice(2) + Date.now().toString(16);
-    localStorage.setItem(sessionKey, sessionId);
+const chatWindow = document.getElementById("chatWindow");
+const chatHeader = document.getElementById("chatHeader");
+const chatBody = document.getElementById("chatBody");
+const chatForm = document.getElementById("chatForm");
+const chatInput = document.getElementById("chatInput");
+const floatingChat = document.querySelector(".floating-chat");
+
+const sessionId = (() => {
+  const key = "soiqweqq_web_session";
+  let value = localStorage.getItem(key);
+  if (!value) {
+    value = "web-" + Math.random().toString(16).slice(2) + "-" + Date.now();
+    localStorage.setItem(key, value);
   }
+  return value;
+})();
 
-  function openPanel() {
-    if (panel) {
-      panel.hidden = false;
-      setTimeout(() => input?.focus(), 50);
-    }
+document.querySelectorAll("[data-telegram-link]").forEach((el) => {
+  el.href = TELEGRAM_BOT_URL;
+});
+
+function openChat() {
+  if (chatWindow) {
+    chatWindow.classList.remove("hidden");
+    floatingChat && (floatingChat.style.display = "none");
+    setTimeout(() => chatInput && chatInput.focus(), 50);
   }
+}
 
-  function closePanel() {
-    if (panel) panel.hidden = true;
+function closeChat() {
+  if (chatWindow) {
+    chatWindow.classList.add("hidden");
+    floatingChat && (floatingChat.style.display = "block");
   }
+}
 
-  function addMessage(text, type = 'bot') {
-    if (!messages) return null;
-    const node = document.createElement('div');
-    node.className = 'msg msg--' + type;
-    node.textContent = text;
-    messages.appendChild(node);
-    messages.scrollTop = messages.scrollHeight;
-    return node;
-  }
+function minimizeChat() {
+  closeChat();
+}
 
-  async function sendMessage(text) {
-    addMessage(text, 'user');
-    const typing = addMessage('...', 'bot msg--typing');
+document.querySelectorAll(".open-chat").forEach((button) => {
+  button.addEventListener("click", openChat);
+});
 
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, session_id: sessionId }),
-      });
+document.getElementById("closeChat")?.addEventListener("click", closeChat);
+document.getElementById("minimizeChat")?.addEventListener("click", minimizeChat);
+document.getElementById("openFullChat")?.addEventListener("click", () => window.open("/chat", "_blank"));
 
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      const data = await response.json();
-      typing.remove();
-      addMessage(data.answer || 'я зависла. великолепно.', 'bot');
-    } catch (error) {
-      typing.remove();
-      addMessage('API пока не подключен. Дизайн жив, мозг еще на операционном столе. Проверь app_api.py и службу soiq-api.', 'bot msg--error');
-    }
-  }
+function addMessage(role, text, typing = false) {
+  if (!chatBody) return null;
 
-  openChat?.addEventListener('click', openPanel);
-  closeChat?.addEventListener('click', closePanel);
+  const item = document.createElement("div");
+  item.className = `message ${role}${typing ? " typing" : ""}`;
 
-  form?.addEventListener('submit', (event) => {
+  const bubble = document.createElement("span");
+  bubble.textContent = text || "";
+
+  item.appendChild(bubble);
+  chatBody.appendChild(item);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  return { item, bubble };
+}
+
+function autoGrowTextarea(el) {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 170) + "px";
+}
+
+chatInput?.addEventListener("input", () => autoGrowTextarea(chatInput));
+
+chatInput?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
-    const text = (input?.value || '').trim();
-    if (!text) return;
-    input.value = '';
-    sendMessage(text);
+    chatForm?.requestSubmit();
+  }
+});
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function typeText(bubble, text, speed = 16) {
+  bubble.textContent = "";
+  const chunks = [...text];
+
+  for (let i = 0; i < chunks.length; i++) {
+    bubble.textContent += chunks[i];
+
+    if (i % 3 === 0) {
+      chatBody && (chatBody.scrollTop = chatBody.scrollHeight);
+      await sleep(speed + Math.random() * 14);
+    }
+  }
+}
+
+async function sendMessage(text) {
+  addMessage("user", text);
+
+  const typing = addMessage("bot", "печатает", true);
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message: text, session_id: sessionId}),
+    });
+
+    const data = await response.json();
+
+    await sleep(data.delay_ms || 1200);
+
+    typing.item.classList.remove("typing");
+    await typeText(typing.bubble, data.answer || "я снова что-то сломала. неожиданно, правда.", data.typing_speed || 16);
+  } catch (error) {
+    typing.item.classList.remove("typing");
+    typing.bubble.textContent = "сайт не достучался до сервера. где-то опять умер провод.";
+  } finally {
+    chatBody && (chatBody.scrollTop = chatBody.scrollHeight);
+  }
+}
+
+chatForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const text = (chatInput?.value || "").trim();
+
+  if (!text) return;
+
+  chatInput.value = "";
+  autoGrowTextarea(chatInput);
+  await sendMessage(text);
+});
+
+function makeDraggable(box, handle) {
+  if (!box || !handle) return;
+
+  let dragging = false;
+  let startX = 0;
+  let startY = 0;
+  let startLeft = 0;
+  let startTop = 0;
+
+  handle.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("button")) return;
+
+    const rect = box.getBoundingClientRect();
+
+    dragging = true;
+    startX = event.clientX;
+    startY = event.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+
+    box.style.left = rect.left + "px";
+    box.style.top = rect.top + "px";
+    box.style.right = "auto";
+    box.style.bottom = "auto";
+
+    handle.setPointerCapture(event.pointerId);
   });
 
-  if (document.body.classList.contains('chat-page')) {
-    input?.focus();
-  }
-})();
+  handle.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+
+    const nextLeft = Math.min(Math.max(8, startLeft + event.clientX - startX), window.innerWidth - box.offsetWidth - 8);
+    const nextTop = Math.min(Math.max(8, startTop + event.clientY - startY), window.innerHeight - box.offsetHeight - 8);
+
+    box.style.left = nextLeft + "px";
+    box.style.top = nextTop + "px";
+  });
+
+  handle.addEventListener("pointerup", (event) => {
+    dragging = false;
+    try { handle.releasePointerCapture(event.pointerId); } catch (_) {}
+  });
+}
+
+makeDraggable(chatWindow, chatHeader);
+
+// На отдельной странице чата нет плавающего окна, но есть та же форма.
+if (document.body.classList.contains("chat-page")) {
+  floatingChat && (floatingChat.style.display = "none");
+}
+
+// Кнопка видна, если окно закрыли.
+if (floatingChat && chatWindow && chatWindow.classList.contains("hidden")) {
+  floatingChat.style.display = "block";
+}

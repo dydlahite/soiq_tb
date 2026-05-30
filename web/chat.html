@@ -4,33 +4,32 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Чат с Soiqweqq</title>
-  <link rel="preload" href="assets/soiqweqq_hero.png" as="image" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="chat-page">
-  <main class="chat-shell">
-    <div class="chat-shell__bg" aria-hidden="true"></div>
-    <div class="chat-shell__box">
-      <header class="chat-shell__header">
-        <a href="index.html" class="chat-shell__back">← назад</a>
+  <div class="noise"></div>
+  <main class="full-chat-shell">
+    <section class="full-chat-card">
+      <header class="full-chat-head">
+        <a href="/" class="back-link">← на главную</a>
         <div>
-          <div class="chat-shell__title">Soiqweqq</div>
-          <div class="chat-shell__sub"><span></span> связь установлена</div>
+          <h1>Чат с Soiqweqq</h1>
+          <p><span class="online-dot"></span> онлайн, насколько это вообще прилично для кода</p>
         </div>
-        <a href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer" class="chat-shell__tg">Telegram</a>
       </header>
 
-      <div class="chat-shell__messages" id="messages">
-        <div class="msg msg--bot">я не обещаю спасать.</div>
-        <div class="msg msg--bot">но могу остаться в окне, пока ты пишешь.</div>
+      <div class="chat-body full" id="chatBody">
+        <div class="message bot">
+          <span>я здесь. отдельная вкладка, отдельная маленькая комната с проводами. пиши.</span>
+        </div>
       </div>
 
-      <form class="chat-shell__form" id="chatForm">
-        <input id="messageInput" autocomplete="off" placeholder="Напишите сообщение..." maxlength="1200" />
-        <button type="submit">отправить</button>
+      <form class="chat-form full" id="chatForm">
+        <textarea id="chatInput" rows="2" placeholder="Напиши сообщение... Shift + Enter - перенос строки"></textarea>
+        <button type="submit">➤</button>
       </form>
-    </div>
+    </section>
   </main>
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>
