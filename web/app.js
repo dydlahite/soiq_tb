@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -301,14 +301,14 @@ function triggerSignalHit() {
   if (!hero) return;
 
   hero.classList.add("signal-hit");
-  setTimeout(() => hero.classList.remove("signal-hit"), 180);
+  setTimeout(() => hero.classList.remove("signal-hit"), 150);
 }
 
 function startSignalFX() {
   if (!document.querySelector(".hero")) return;
 
   const schedule = () => {
-    const next = 6500 + Math.random() * 7000;
+    const next = 9000 + Math.random() * 9000;
     setTimeout(() => {
       triggerSignalHit();
       schedule();

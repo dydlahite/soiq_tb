@@ -10,22 +10,18 @@
 <body>
   <div class="noise"></div>
 
+  <div class="page-garlands" aria-hidden="true">
+    <img class="garland-overlay garland-top" src="/assets/garland_top.png" alt="" />
+    <img class="garland-overlay garland-left" src="/assets/garland_left.png" alt="" />
+    <img class="garland-overlay garland-right" src="/assets/garland_right.png" alt="" />
+  </div>
+
   <header class="site-header" id="top">
     <a class="brand" href="#home" aria-label="Soiqweqq">
       <span class="brand-mark">☾</span>
       <span class="brand-text">Soiqweqq</span>
       <span class="brand-tag">[bot]</span>
     </a>
-
-    <div class="header-garland" aria-hidden="true">
-      <span class="garland-string g1"><i class="garland-charm">✦</i></span>
-      <span class="garland-string g2"><i class="garland-charm">☾</i></span>
-      <span class="garland-string g3"><i class="garland-charm">✧</i></span>
-      <span class="garland-string g4"><i class="garland-charm">❈</i></span>
-      <span class="garland-string g5"><i class="garland-charm">✦</i></span>
-      <span class="garland-string g6"><i class="garland-charm">☾</i></span>
-      <span class="garland-string g7"><i class="garland-charm">✧</i></span>
-    </div>
 
     <!-- Пункты верхнего меню меняются здесь, в web/index.html -->
     <nav class="top-nav" aria-label="Навигация">
@@ -47,13 +43,18 @@
         <span class="smoke smoke-3"></span>
         <span class="smoke smoke-4"></span>
         <span class="smoke smoke-5"></span>
+        <span class="smoke smoke-6"></span>
+        <span class="smoke smoke-7"></span>
+        <span class="smoke smoke-8"></span>
       </div>
       <div class="hero-overlay ash-layer" id="ashLayer" aria-hidden="true"></div>
 
       <div class="left-ui">
         <section class="hero-card">
           <div class="kicker">/ digital shadow</div>
-          <h1 class="glitch-title" data-text="Soiqweqq">Soiqweqq</h1>
+          <h1 class="glitch-title neon-sign" aria-label="Soiqweqq">
+            <span class="letter lit flicker-slow">S</span><span class="letter lit">o</span><span class="letter lit">i</span><span class="letter dim crack">q</span><span class="letter lit flicker-fast">w</span><span class="letter lit">e</span><span class="letter dim">q</span><span class="letter lit">q</span>
+          </h1>
           <p class="hero-tagline">твоя цифровая тень<br>в этом сломанном мире.</p>
           <p class="hero-description">
             Многофункциональный Telegram-бот с атмосферой тишины, Хаоса и котов.
@@ -62,7 +63,7 @@
 
           <!-- Тексты кнопок главного экрана меняются прямо здесь, в web/index.html -->
           <div class="hero-actions">
-            <a class="btn btn-primary" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
+            <a class="btn btn-primary" data-telegram-link href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer">
               <span>➤</span> Запустить бота
             </a>
             <button class="btn btn-secondary open-chat" type="button">
