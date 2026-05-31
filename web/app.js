@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -23,6 +23,46 @@ const sessionId = (() => {
   }
   return value;
 })();
+
+
+function getClientTimezone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; }
+  catch (_) { return ""; }
+}
+
+function formatKrasnoyarskTime(value) {
+  const date = value ? new Date(value) : new Date();
+  try {
+    return new Intl.DateTimeFormat("ru-RU", {
+      timeZone: "Asia/Krasnoyarsk",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  } catch (_) {
+    return date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  }
+}
+
+function transcriptKey() {
+  return `soiqweqq_web_transcript:${sessionId}`;
+}
+
+function loadLocalTranscript() {
+  try { return JSON.parse(localStorage.getItem(transcriptKey()) || "[]"); }
+  catch (_) { return []; }
+}
+
+function saveLocalTranscript(items) {
+  try { localStorage.setItem(transcriptKey(), JSON.stringify(items.slice(-80))); }
+  catch (_) {}
+}
+
+function persistChatMessage(role, text, at = new Date().toISOString()) {
+  if (!text || role === "typing") return;
+  const items = loadLocalTranscript();
+  items.push({ role, text, at });
+  saveLocalTranscript(items);
+}
 
 document.querySelectorAll("[data-telegram-link]").forEach((el) => { el.href = TELEGRAM_BOT_URL; });
 
@@ -67,6 +107,35 @@ function handleLocalStatusCommand(text) {
 }
 setBotStatus("offline");
 
+
+async function restoreTranscript() {
+  if (!chatBody) return;
+
+  let items = loadLocalTranscript();
+
+  try {
+    const response = await fetch(`/api/history?session_id=${encodeURIComponent(sessionId)}&limit=40`);
+    const data = await response.json();
+    if (data?.ok && Array.isArray(data.messages) && data.messages.length) {
+      items = data.messages.map((item) => ({
+        role: item.role,
+        text: item.content,
+        at: item.created_at || new Date().toISOString(),
+      }));
+      saveLocalTranscript(items);
+    }
+  } catch (_) {}
+
+  if (!items.length) return;
+
+  chatBody.innerHTML = "";
+  items.slice(-40).forEach((item) => {
+    addMessage(item.role === "assistant" ? "bot" : "user", item.text, false, false, item.at);
+  });
+}
+
+restoreTranscript();
+
 function openChat() { if (chatWindow) { chatWindow.classList.remove("hidden"); floatingChat && (floatingChat.style.display = "none"); setTimeout(() => chatInput && chatInput.focus(), 50); } }
 function closeChat() { if (chatWindow) { chatWindow.classList.add("hidden"); floatingChat && (floatingChat.style.display = "block"); } }
 function minimizeChat() { closeChat(); }
@@ -75,16 +144,36 @@ document.getElementById("closeChat")?.addEventListener("click", closeChat);
 document.getElementById("minimizeChat")?.addEventListener("click", minimizeChat);
 document.getElementById("openFullChat")?.addEventListener("click", () => window.open("/chat", "_blank"));
 
-function addMessage(role, text, typing = false) {
+function addMessage(role, text, typing = false, persist = true, at = null) {
   if (!chatBody) return null;
+
   const item = document.createElement("div");
   item.className = `message ${role}${typing ? " typing" : ""}`;
+
+  const content = document.createElement("div");
+  content.className = "message-content";
+
   const bubble = document.createElement("span");
+  bubble.className = "message-bubble";
   bubble.textContent = text || "";
-  item.appendChild(bubble);
+
+  const time = document.createElement("small");
+  time.className = "message-time";
+  const stamp = at || new Date().toISOString();
+  time.textContent = formatKrasnoyarskTime(stamp);
+  time.title = "Время Soiqweqq: Asia/Krasnoyarsk";
+
+  content.appendChild(bubble);
+  if (!typing) content.appendChild(time);
+  item.appendChild(content);
   chatBody.appendChild(item);
   chatBody.scrollTop = chatBody.scrollHeight;
-  return { item, bubble };
+
+  if (persist && !typing) {
+    persistChatMessage(role === "bot" ? "assistant" : role, text, stamp);
+  }
+
+  return { item, bubble, time };
 }
 function autoGrowTextarea(el) { if (!el) return; el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 170) + "px"; }
 chatInput?.addEventListener("input", () => autoGrowTextarea(chatInput));
@@ -126,7 +215,7 @@ async function sendMessage(text) {
   const fetchPromise = fetch("/api/chat", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({message: text, session_id: sessionId}),
+    body: JSON.stringify({message: text, session_id: sessionId, client_timezone: getClientTimezone(), client_time: new Date().toISOString(), client_offset_minutes: new Date().getTimezoneOffset()}),
   });
   let typing = null;
   let typingTimer = null;
@@ -156,6 +245,8 @@ async function sendMessage(text) {
     typing.item.classList.remove("typing");
     const answerText = data.answer || "я снова что-то сломала. неожиданно, правда.";
     await typeText(typing.bubble, answerText, data.typing_speed || 16);
+    if (typing.time) typing.time.textContent = formatKrasnoyarskTime(new Date());
+    persistChatMessage("assistant", answerText);
     clearOnlineStatusTimer();
     if (isFarewell(text)) {
       setTimeout(() => setBotStatus("offline"), 900);
@@ -260,12 +351,12 @@ function createAshParticle() {
   ashLayer.appendChild(particle);
   setTimeout(() => particle.remove(), duration * 1000 + 150);
 }
-function triggerSignalHit() { const hero = document.querySelector(".hero"); if (!hero) return; hero.classList.add("signal-hit"); setTimeout(() => hero.classList.remove("signal-hit"), 170); }
+function triggerSignalHit() { const hero = document.querySelector(".hero"); if (!hero) return; hero.classList.add("signal-hit"); setTimeout(() => hero.classList.remove("signal-hit"), 120); }
 function startSignalFX() {
   if (!document.querySelector(".hero")) return;
   const schedule = () => {
-    const next = 9000 + Math.random() * 9000;
-    setTimeout(() => { triggerSignalHit(); if (Math.random() < .28) setTimeout(triggerSignalHit, 420 + Math.random() * 520); schedule(); }, next);
+    const next = 14000 + Math.random() * 12000;
+    setTimeout(() => { triggerSignalHit(); if (Math.random() < .12) setTimeout(triggerSignalHit, 460 + Math.random() * 420); schedule(); }, next);
   };
   schedule();
 }
