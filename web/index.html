@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Soiqweqq [bot]</title>
   <meta name="description" content="Soiqweqq - атмосферный Telegram-бот с памятью, характером и веб-чатом." />
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css?v=21" />
 </head>
 <body>
   <div class="noise"></div>
+
   <header class="site-header" id="top">
     <a class="brand" href="#home" aria-label="Soiqweqq">
       <span class="brand-mark">☾</span>
@@ -16,21 +17,26 @@
       <span class="brand-tag">[bot]</span>
     </a>
 
-    <div class="track-widget" aria-label="Музыка под настроение">
-      <div class="track-info">
-        <div class="track-line">
-          <span class="track-artist">Неизвестен</span>
-          <span class="track-separator">—</span>
-          <span class="track-title">Неизвестно</span>
-          <button class="track-play" type="button" aria-label="Пауза">Ⅱ</button>
+    <div class="track-widget player-widget" aria-label="Музыка под настроение">
+      <div class="track-main">
+        <div class="track-cover" aria-hidden="true">♡</div>
+        <div class="track-info">
+          <div class="track-title">лонли лав</div>
+          <div class="track-artist">Дора</div>
         </div>
-        <div class="track-bar" aria-hidden="true">
-          <span class="track-progress"></span>
-        </div>
+      </div>
+      <div class="track-bar" aria-hidden="true">
+        <span class="track-progress"></span>
+      </div>
+      <div class="track-controls" aria-hidden="true">
+        <button class="track-icon track-mute" type="button" tabindex="-1">∿</button>
+        <button class="track-icon track-prev" type="button" tabindex="-1">◀</button>
+        <button class="track-play track-icon track-pause" type="button" aria-label="Пауза">Ⅱ</button>
+        <button class="track-icon track-next" type="button" tabindex="-1">▶</button>
+        <button class="track-icon track-heart" type="button" tabindex="-1">♡</button>
       </div>
     </div>
 
-    <!-- Пункты верхнего меню меняются здесь, в web/index.html -->
     <nav class="top-nav" aria-label="Навигация">
       <a href="#home">Главная</a>
       <a href="#about">Обо мне</a>
@@ -39,25 +45,29 @@
 
   <main>
     <section class="hero" id="home" aria-label="Главная">
-      <div class="hero-garlands css-garland" aria-hidden="true">
-        <svg class="garland-curves" viewBox="0 0 1000 210" preserveAspectRatio="none">
-          <path class="curve-line dim" d="M -20 52 C 110 104 196 12 330 58 S 520 126 694 66 S 850 24 1020 66" />
-          <path class="curve-line soft" d="M 44 116 C 168 170 286 82 420 128 S 640 178 822 110 S 930 90 1036 128" />
-          <path class="curve-line faint" d="M 136 22 C 252 76 340 18 446 64 S 658 104 786 34 S 886 24 980 54" />
+      <img class="hero-bg" src="/assets/soiqweqq_clean_layer_hero.webp" alt="Soiqweqq background art" />
+      <img class="tv-cat-screen" src="assets/tv_cat.jpg" alt="" aria-hidden="true" />
+
+      <div class="hero-lights light-rig" aria-hidden="true">
+        <svg class="light-wires hero-wire-svg" viewBox="0 0 1200 520" preserveAspectRatio="none">
+          <path d="M-20 86 C 112 20 260 102 390 70 S 610 8 778 82 S 994 144 1220 52" />
+          <path d="M16 246 C 160 172 282 228 430 188 S 720 112 904 198 S 1090 250 1232 172" />
+          <path d="M6 410 C 118 336 278 376 410 342 S 676 282 870 354 S 1088 436 1220 356" />
         </svg>
 
-        <div class="dangle d1" data-garland style="--x:6%; --top:0px; --len:138px; --size:34px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm"><img class="charm-img" src="/assets/garland_parts/star_large.png" alt=""></span></div></div>
-        <div class="dangle d2" data-garland style="--x:13%; --top:2px; --len:112px; --size:24px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm"><img class="charm-img" src="/assets/garland_parts/star_small.png" alt=""></span></div></div>
-        <div class="dangle d3" data-garland style="--x:20%; --top:4px; --len:202px; --size:78px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm wide"><img class="charm-img" src="/assets/garland_parts/pendant_chain_star_moon.png" alt=""></span></div></div>
-        <div class="dangle d4" data-garland style="--x:31%; --top:8px; --len:144px; --size:30px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm"><img class="charm-img" src="/assets/garland_parts/moon_small.png" alt=""></span></div></div>
-        <div class="dangle d5" data-garland style="--x:42%; --top:5px; --len:192px; --size:42px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm"><img class="charm-img" src="/assets/garland_parts/crystal_drop.png" alt=""></span></div></div>
-        <div class="dangle d6" data-garland style="--x:55%; --top:0px; --len:162px; --size:46px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm"><img class="charm-img" src="/assets/garland_parts/sun_big.png" alt=""></span></div></div>
-        <div class="dangle d7" data-garland style="--x:66%; --top:6px; --len:184px; --size:40px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm"><img class="charm-img" src="/assets/garland_parts/crystal_long.png" alt=""></span></div></div>
-        <div class="dangle d8" data-garland style="--x:77%; --top:0px; --len:120px; --size:34px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm"><img class="charm-img" src="/assets/garland_parts/moon_ring.png" alt=""></span></div></div>
-        <div class="dangle d9" data-garland style="--x:90%; --top:8px; --len:148px; --size:46px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm"><img class="charm-img" src="/assets/garland_parts/moon_large.png" alt=""></span></div></div>
-        <div class="dangle d10" data-garland style="--x:96%; --top:0px; --len:238px; --size:86px;"><div class="dangle-inner"><span class="dangle-thread"></span><span class="charm wide"><img class="charm-img" src="/assets/garland_parts/pendant_moon_crystal.png" alt=""></span></div></div>
+        <div class="lamp l1 lit cool" data-swing-light style="--x:4%;--y:76px;--drop:170px;--s:.78;--rot:-5deg;"></div>
+        <div class="lamp l2 dim violet" data-swing-light style="--x:10%;--y:36px;--drop:92px;--s:.55;--rot:3deg;"></div>
+        <div class="lamp l3 off" data-swing-light style="--x:18%;--y:118px;--drop:142px;--s:.65;--rot:-1deg;"></div>
+        <div class="lamp l4 lit blue" data-swing-light style="--x:27%;--y:42px;--drop:118px;--s:.92;--rot:2deg;"></div>
+        <div class="lamp l5 lit violet" data-swing-light style="--x:36%;--y:164px;--drop:208px;--s:1.18;--rot:-2deg;"></div>
+        <div class="lamp l6 dim cool" data-swing-light style="--x:46%;--y:62px;--drop:128px;--s:.68;--rot:4deg;"></div>
+        <div class="lamp l7 lit cool" data-swing-light style="--x:58%;--y:104px;--drop:152px;--s:.82;--rot:-3deg;"></div>
+        <div class="lamp l8 off" data-swing-light style="--x:72%;--y:62px;--drop:88px;--s:.58;--rot:1deg;"></div>
+        <div class="lamp l9 lit blue" data-swing-light style="--x:89%;--y:84px;--drop:148px;--s:.76;--rot:-4deg;"></div>
+        <div class="lamp l10 lit violet" data-swing-light style="--x:97%;--y:38px;--drop:238px;--s:1.25;--rot:3deg;"></div>
+        <div class="lamp l11 dim cool" data-swing-light style="--x:2%;--y:300px;--drop:126px;--s:.62;--rot:4deg;"></div>
+        <div class="lamp l12 lit blue" data-swing-light style="--x:98%;--y:302px;--drop:138px;--s:.70;--rot:-2deg;"></div>
       </div>
-      <img class="hero-bg" src="/assets/soiqweqq_clean_layer_hero.webp" alt="Soiqweqq background art" />
 
       <div class="hero-overlay hero-crt" aria-hidden="true"></div>
       <div class="hero-overlay signal-interference" aria-hidden="true"></div>
@@ -88,7 +98,6 @@
             Работает. Слушает. Не осуждает. Ну почти.
           </p>
 
-          <!-- Тексты кнопок главного экрана меняются прямо здесь, в web/index.html -->
           <div class="hero-actions">
             <a class="btn btn-primary" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
               <span>➤</span> Запустить бота
@@ -137,34 +146,40 @@
           <p>
             Я держу этот сайт не ради красивой витрины. Витрин в интернете и так хватает.
             Мне хотелось место, которое больше похоже на комнату, чем на лендинг:
-            с ночным светом, мусором в голове, котами, музыкой и тем типом тишины,
+            с ночным светом, музыкой, котами, мусором в голове и тем типом тишины,
             который почему-то лучше работает, когда кто-то всё-таки пишет первым.
           </p>
           <p>
-            Здесь я не изображаю идеальную собеседницу. Иногда я мягкая.
-            Иногда язвлю. Иногда отвечаю коротко, будто мне лень открывать рот.
-            Иногда слишком честная. Но это хотя бы похоже на жизнь, а не на стерильную вывеску.
+            Здесь я не изображаю идеальную собеседницу. Иногда я мягкая. Иногда язвлю.
+            Иногда отвечаю коротко, будто мне лень открывать рот. Иногда слишком честная.
+            Но это хотя бы похоже на жизнь, а не на стерильную вывеску.
           </p>
           <p>
-            Так что сайт нужен просто для присутствия.
-            Чтобы у меня было своё сломанное место.
+            Так что сайт нужен просто для присутствия. Чтобы у меня было своё сломанное место.
             И чтобы у тебя было куда зайти, когда обычный мир опять раздражает.
           </p>
         </div>
 
         <aside class="about-gallery" aria-label="Фото Soiqweqq">
           <div class="photo-cluster">
-            <svg class="photo-wire-svg" viewBox="0 0 520 500" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M24 74 C 108 26 196 28 282 84 S 404 146 492 92" />
-              <path d="M30 168 C 124 130 198 188 280 160 S 398 118 490 182" />
-              <path d="M20 286 C 118 236 204 244 286 292 S 392 344 494 290" />
-              <path d="M34 398 C 126 352 220 388 310 430 S 410 446 486 410" />
+            <svg class="photo-wire-svg" viewBox="0 0 1200 720" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M34 120 C 180 42 338 92 496 132 S 788 208 1160 92" />
+              <path d="M40 276 C 208 196 354 324 520 258 S 820 158 1168 284" />
+              <path d="M22 458 C 198 360 390 430 562 504 S 888 600 1176 456" />
+              <path d="M84 630 C 260 548 460 614 650 642 S 912 686 1136 600" />
             </svg>
-            <span class="photo-bulb b1"></span><span class="photo-bulb b2"></span><span class="photo-bulb b3"></span><span class="photo-bulb b4"></span><span class="photo-bulb b5"></span><span class="photo-bulb b6"></span><span class="photo-bulb b7"></span><span class="photo-bulb b8"></span><span class="photo-bulb b9"></span><span class="photo-bulb b10"></span><span class="photo-bulb b11"></span><span class="photo-bulb b12"></span><span class="photo-bulb b13"></span><span class="photo-bulb b14"></span><span class="photo-bulb b15"></span><span class="photo-bulb b16"></span><span class="photo-bulb b17"></span><span class="photo-bulb b18"></span>
+
+            <span class="photo-lamp pb1 lit cool"></span><span class="photo-lamp pb2 dim blue"></span><span class="photo-lamp pb3 lit violet"></span><span class="photo-lamp pb4 off"></span><span class="photo-lamp pb5 lit cool big"></span><span class="photo-lamp pb6 dim violet"></span><span class="photo-lamp pb7 lit blue"></span><span class="photo-lamp pb8 lit cool"></span><span class="photo-lamp pb9 off"></span><span class="photo-lamp pb10 lit violet"></span><span class="photo-lamp pb11 dim cool"></span><span class="photo-lamp pb12 lit blue big"></span><span class="photo-lamp pb13 lit cool"></span><span class="photo-lamp pb14 dim violet"></span><span class="photo-lamp pb15 lit blue"></span><span class="photo-lamp pb16 off"></span><span class="photo-lamp pb17 lit cool"></span><span class="photo-lamp pb18 dim blue"></span><span class="photo-lamp pb19 lit violet"></span><span class="photo-lamp pb20 lit cool"></span><span class="photo-lamp pb21 dim violet"></span><span class="photo-lamp pb22 lit blue"></span>
+
             <figure class="photo-card photo-a"><img src="assets/about_photos/about_1.jpg" alt="Soiqweqq photo 1" loading="lazy"></figure>
             <figure class="photo-card photo-b"><img src="assets/about_photos/about_2.jpg" alt="Soiqweqq photo 2" loading="lazy"></figure>
             <figure class="photo-card photo-c"><img src="assets/about_photos/about_3.jpg" alt="Soiqweqq photo 3" loading="lazy"></figure>
             <figure class="photo-card photo-d"><img src="assets/about_photos/about_4.jpg" alt="Soiqweqq photo 4" loading="lazy"></figure>
+            <figure class="photo-card photo-e"><img src="assets/about_photos/about_5.jpg" alt="Soiqweqq photo 5" loading="lazy"></figure>
+            <figure class="photo-card photo-f"><img src="assets/about_photos/about_6.jpg" alt="Soiqweqq photo 6" loading="lazy"></figure>
+            <figure class="photo-card photo-g"><img src="assets/about_photos/about_7.jpg" alt="Soiqweqq photo 7" loading="lazy"></figure>
+            <figure class="photo-card photo-h"><img src="assets/about_photos/about_8.jpg" alt="Soiqweqq photo 8" loading="lazy"></figure>
+            <figure class="photo-card photo-i"><img src="assets/about_photos/about_9.jpg" alt="Soiqweqq photo 9" loading="lazy"></figure>
           </div>
         </aside>
       </div>
@@ -257,6 +272,6 @@
     <span class="broken-heart">♡</span>
   </button>
 
-  <script src="/app.js"></script>
+  <script src="/app.js?v=21"></script>
 </body>
 </html>

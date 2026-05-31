@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -69,6 +69,30 @@ function persistChatMessage(role, text, at = new Date().toISOString()) {
 }
 
 document.querySelectorAll("[data-telegram-link]").forEach((el) => { el.href = TELEGRAM_BOT_URL; });
+
+
+async function loadTrackInfo() {
+  if (!trackArtist || !trackTitle) return;
+  try {
+    const response = await fetch("/api/track", { cache: "no-store" });
+    const data = await response.json();
+    if (data?.ok) {
+      trackArtist.textContent = data.artist || "Неизвестен";
+      trackTitle.textContent = data.title || "Неизвестно";
+      if (trackProgress) trackProgress.style.width = `${Math.max(0, Math.min(1, data.progress ?? .82)) * 100}%`;
+    }
+  } catch (_) {
+    // Молчим. Даже ошибки устали от этого сайта.
+  }
+}
+loadTrackInfo();
+setInterval(loadTrackInfo, 60000);
+
+trackPlay?.addEventListener("click", () => {
+  const paused = trackPlay.classList.toggle("is-paused");
+  trackPlay.textContent = paused ? "▶" : "Ⅱ";
+});
+
 
 function clearOnlineStatusTimer() { clearTimeout(onlineStatusTimer); onlineStatusTimer = null; }
 function setBotStatus(status) {
@@ -331,10 +355,10 @@ function swingDangle(el, force = false) {
   void el.offsetWidth;
   el.classList.add("swing");
 }
-document.querySelectorAll("[data-garland]").forEach((el) => {
+document.querySelectorAll("[data-garland], [data-swing-light]").forEach((el) => {
   el.addEventListener("pointerenter", () => swingDangle(el));
   el.addEventListener("pointerdown", (event) => { event.preventDefault(); swingDangle(el, true); });
-  el.addEventListener("animationend", (event) => { if (event.animationName === "garlandTouch") el.classList.remove("swing"); });
+  el.addEventListener("animationend", (event) => { if (event.animationName === "garlandTouch" || event.animationName === "lampSwing") el.classList.remove("swing"); });
 });
 
 function createAshParticle() {
