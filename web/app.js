@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -24,148 +24,71 @@ const sessionId = (() => {
   return value;
 })();
 
-document.querySelectorAll("[data-telegram-link]").forEach((el) => {
-  el.href = TELEGRAM_BOT_URL;
-});
+document.querySelectorAll("[data-telegram-link]").forEach((el) => { el.href = TELEGRAM_BOT_URL; });
 
-
-
-function clearOnlineStatusTimer() {
-  clearTimeout(onlineStatusTimer);
-  onlineStatusTimer = null;
-}
-
-function scheduleOnlineStatus() {
-  clearOnlineStatusTimer();
-  const delay = 6000 + Math.random() * 4000;
-  onlineStatusTimer = setTimeout(() => {
-    if (currentBotStatus !== "dnd") {
-      setBotStatus("online");
-      resetAfkTimer();
-    }
-  }, delay);
-}
-
+function clearOnlineStatusTimer() { clearTimeout(onlineStatusTimer); onlineStatusTimer = null; }
 function setBotStatus(status) {
   currentBotStatus = status;
-
-  const labels = {
-    online: "онлайн",
-    offline: "не в сети",
-    afk: "afk",
-    dnd: "dnd"
-  };
-
+  const labels = { online: "онлайн", offline: "не в сети", afk: "afk", dnd: "dnd" };
   if (statusText) statusText.textContent = labels[status] || status;
-
   if (statusDot) {
     statusDot.classList.remove("status-online", "status-offline", "status-afk", "status-dnd");
     statusDot.classList.add(`status-${status}`);
   }
 }
-
 function resetAfkTimer() {
   clearTimeout(idleStatusTimer);
   idleStatusTimer = setTimeout(() => {
-    if (currentBotStatus !== "offline" && currentBotStatus !== "dnd") {
-      setBotStatus("afk");
-    }
+    if (currentBotStatus !== "offline" && currentBotStatus !== "dnd") setBotStatus("afk");
   }, 180000);
 }
-
-function isFarewell(text) {
-  return /(^|\s)(пока|спокойной|до свидания|бай|увидимся|я пошла|я ушла|отбой|ладно,? пока)(\s|$|[.!?])/i.test(text || "");
+function scheduleOnlineStatus() {
+  clearOnlineStatusTimer();
+  const delay = 6000 + Math.random() * 4000;
+  onlineStatusTimer = setTimeout(() => {
+    if (currentBotStatus !== "dnd" && currentBotStatus !== "afk") {
+      setBotStatus("online");
+      resetAfkTimer();
+    }
+  }, delay);
 }
-
-function looksLikeDnd(answer) {
-  return /(не трогай|не беспокой|отстань|злюсь|раздраж|агрессив|устала|разбит|плохо|не хочу говорить|оставь меня|dnd)/i.test(answer || "");
-}
-
+function isFarewell(text) { return /(^|\s)(пока|спокойной|до свидания|бай|увидимся|я пошла|я ушла|отбой|ладно,? пока)(\s|$|[.!?])/i.test(text || ""); }
+function looksLikeDnd(answer) { return /(не трогай|не беспокой|отстань|злюсь|раздраж|агрессив|устала|разбит|плохо|не хочу говорить|оставь меня|dnd)/i.test(answer || ""); }
 function handleLocalStatusCommand(text) {
   const cmd = (text || "").trim().toLowerCase();
   if (!["/dnd", "/afk", "/online", "/offline"].includes(cmd)) return false;
-
   addMessage("user", text);
-
-  if (cmd === "/dnd") {
-    clearOnlineStatusTimer();
-    setBotStatus("dnd");
-    addMessage("bot", "режим dnd. не беспокоить. звучит почти как мечта, если не учитывать людей за стеной.");
-  } else if (cmd === "/afk") {
-    clearOnlineStatusTimer();
-    setBotStatus("afk");
-    addMessage("bot", "afk. отошла в цифровой угол делать вид, что меня здесь нет.");
-  } else if (cmd === "/online") {
-    clearOnlineStatusTimer();
-    setBotStatus("online");
-    addMessage("bot", "я здесь. сомнительное достижение, но ладно.");
-    resetAfkTimer();
-  } else if (cmd === "/offline") {
-    clearOnlineStatusTimer();
-    setBotStatus("offline");
-    addMessage("bot", "не в сети. официальная версия. удобно, правда?");
-  }
-
+  clearOnlineStatusTimer();
+  if (cmd === "/dnd") { setBotStatus("dnd"); addMessage("bot", "режим dnd. не беспокоить. звучит почти как мечта, если не учитывать людей за стеной."); }
+  if (cmd === "/afk") { setBotStatus("afk"); addMessage("bot", "afk. отошла в цифровой угол делать вид, что меня здесь нет."); }
+  if (cmd === "/online") { setBotStatus("online"); addMessage("bot", "я здесь. сомнительное достижение, но ладно."); resetAfkTimer(); }
+  if (cmd === "/offline") { setBotStatus("offline"); addMessage("bot", "не в сети. официальная версия. удобно, правда?"); }
   return true;
 }
-
 setBotStatus("offline");
 
-function openChat() {
-  if (chatWindow) {
-    chatWindow.classList.remove("hidden");
-    floatingChat && (floatingChat.style.display = "none");
-    setTimeout(() => chatInput && chatInput.focus(), 50);
-  }
-}
-
-function closeChat() {
-  if (chatWindow) {
-    chatWindow.classList.add("hidden");
-    floatingChat && (floatingChat.style.display = "block");
-  }
-}
-
-function minimizeChat() {
-  closeChat();
-}
-
-document.querySelectorAll(".open-chat").forEach((button) => {
-  button.addEventListener("click", openChat);
-});
-
+function openChat() { if (chatWindow) { chatWindow.classList.remove("hidden"); floatingChat && (floatingChat.style.display = "none"); setTimeout(() => chatInput && chatInput.focus(), 50); } }
+function closeChat() { if (chatWindow) { chatWindow.classList.add("hidden"); floatingChat && (floatingChat.style.display = "block"); } }
+function minimizeChat() { closeChat(); }
+document.querySelectorAll(".open-chat").forEach((button) => button.addEventListener("click", openChat));
 document.getElementById("closeChat")?.addEventListener("click", closeChat);
 document.getElementById("minimizeChat")?.addEventListener("click", minimizeChat);
 document.getElementById("openFullChat")?.addEventListener("click", () => window.open("/chat", "_blank"));
 
 function addMessage(role, text, typing = false) {
   if (!chatBody) return null;
-
   const item = document.createElement("div");
   item.className = `message ${role}${typing ? " typing" : ""}`;
-
   const bubble = document.createElement("span");
   bubble.textContent = text || "";
-
   item.appendChild(bubble);
   chatBody.appendChild(item);
   chatBody.scrollTop = chatBody.scrollHeight;
-
   return { item, bubble };
 }
-
-function autoGrowTextarea(el) {
-  if (!el) return;
-  el.style.height = "auto";
-  el.style.height = Math.min(el.scrollHeight, 170) + "px";
-}
-
+function autoGrowTextarea(el) { if (!el) return; el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 170) + "px"; }
 chatInput?.addEventListener("input", () => autoGrowTextarea(chatInput));
-
-emojiToggle?.addEventListener("click", () => {
-  emojiPanel?.classList.toggle("hidden");
-});
-
+emojiToggle?.addEventListener("click", () => emojiPanel?.classList.toggle("hidden"));
 emojiPanel?.querySelectorAll("button").forEach((button) => {
   button.addEventListener("click", () => {
     if (!chatInput) return;
@@ -180,69 +103,44 @@ emojiPanel?.querySelectorAll("button").forEach((button) => {
     autoGrowTextarea(chatInput);
   });
 });
-
 document.addEventListener("click", (event) => {
   if (!emojiPanel || !emojiToggle) return;
   if (emojiPanel.contains(event.target) || emojiToggle.contains(event.target)) return;
   emojiPanel.classList.add("hidden");
 });
+chatInput?.addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); chatForm?.requestSubmit(); } });
 
-chatInput?.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    chatForm?.requestSubmit();
-  }
-});
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
+function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 async function typeText(bubble, text, speed = 16) {
   bubble.textContent = "";
   const chunks = [...text];
-
   for (let i = 0; i < chunks.length; i++) {
     bubble.textContent += chunks[i];
-
-    if (i % 3 === 0) {
-      chatBody && (chatBody.scrollTop = chatBody.scrollHeight);
-      await sleep(speed + Math.random() * 14);
-    }
+    if (i % 3 === 0) { chatBody && (chatBody.scrollTop = chatBody.scrollHeight); await sleep(speed + Math.random() * 14); }
   }
 }
-
 async function sendMessage(text) {
   if (handleLocalStatusCommand(text)) return;
-
   addMessage("user", text);
   scheduleOnlineStatus();
-
   const fetchPromise = fetch("/api/chat", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({message: text, session_id: sessionId}),
   });
-
   let typing = null;
   let typingTimer = null;
   const typingFrames = ["печатает.", "печатает..", "печатает...", "печатает.."]; 
-
   const startTyping = () => {
     typing = addMessage("bot", "печатает.", true);
     let typingIndex = 0;
     typingTimer = setInterval(() => {
-      if (typing?.bubble) {
-        typing.bubble.textContent = typingFrames[typingIndex % typingFrames.length];
-        typingIndex++;
-      }
+      if (typing?.bubble) typing.bubble.textContent = typingFrames[typingIndex++ % typingFrames.length];
     }, 420);
   };
-
   try {
     await sleep(900 + Math.random() * 2100);
     startTyping();
-
     if (Math.random() < 0.38) {
       await sleep(700 + Math.random() * 900);
       if (typingTimer) clearInterval(typingTimer);
@@ -251,25 +149,19 @@ async function sendMessage(text) {
       await sleep(500 + Math.random() * 1200);
       startTyping();
     }
-
     const response = await fetchPromise;
     const data = await response.json();
-
     await sleep(data.typing_pause_ms || (700 + Math.random() * 1300));
-
     if (typingTimer) clearInterval(typingTimer);
     typing.item.classList.remove("typing");
     const answerText = data.answer || "я снова что-то сломала. неожиданно, правда.";
     await typeText(typing.bubble, answerText, data.typing_speed || 16);
-
+    clearOnlineStatusTimer();
     if (isFarewell(text)) {
-      clearOnlineStatusTimer();
       setTimeout(() => setBotStatus("offline"), 900);
     } else if (looksLikeDnd(answerText)) {
-      clearOnlineStatusTimer();
       setBotStatus("dnd");
     } else {
-      clearOnlineStatusTimer();
       setBotStatus("online");
       resetAfkTimer();
     }
@@ -280,17 +172,12 @@ async function sendMessage(text) {
     typing.bubble.textContent = "сайт не достучался до сервера. где-то опять умер провод.";
     clearOnlineStatusTimer();
     setBotStatus("offline");
-  } finally {
-    chatBody && (chatBody.scrollTop = chatBody.scrollHeight);
-  }
+  } finally { chatBody && (chatBody.scrollTop = chatBody.scrollHeight); }
 }
-
 chatForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const text = (chatInput?.value || "").trim();
-
   if (!text) return;
-
   chatInput.value = "";
   autoGrowTextarea(chatInput);
   await sendMessage(text);
@@ -298,224 +185,95 @@ chatForm?.addEventListener("submit", async (event) => {
 
 function makeDraggable(box, handle) {
   if (!box || !handle) return;
-
-  let dragging = false;
-  let startX = 0;
-  let startY = 0;
-  let startLeft = 0;
-  let startTop = 0;
-
+  let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
   handle.addEventListener("pointerdown", (event) => {
     if (event.target.closest("button")) return;
-
     const rect = box.getBoundingClientRect();
-
-    dragging = true;
-    startX = event.clientX;
-    startY = event.clientY;
-    startLeft = rect.left;
-    startTop = rect.top;
-
-    box.style.left = rect.left + "px";
-    box.style.top = rect.top + "px";
-    box.style.right = "auto";
-    box.style.bottom = "auto";
-
+    dragging = true; startX = event.clientX; startY = event.clientY; startLeft = rect.left; startTop = rect.top;
+    box.style.left = rect.left + "px"; box.style.top = rect.top + "px"; box.style.right = "auto"; box.style.bottom = "auto";
     handle.setPointerCapture(event.pointerId);
   });
-
   handle.addEventListener("pointermove", (event) => {
     if (!dragging) return;
-
     const nextLeft = Math.min(Math.max(8, startLeft + event.clientX - startX), window.innerWidth - box.offsetWidth - 8);
     const nextTop = Math.min(Math.max(8, startTop + event.clientY - startY), window.innerHeight - box.offsetHeight - 8);
-
-    box.style.left = nextLeft + "px";
-    box.style.top = nextTop + "px";
+    box.style.left = nextLeft + "px"; box.style.top = nextTop + "px";
   });
-
-  handle.addEventListener("pointerup", (event) => {
-    dragging = false;
-    try { handle.releasePointerCapture(event.pointerId); } catch (_) {}
-  });
+  handle.addEventListener("pointerup", (event) => { dragging = false; try { handle.releasePointerCapture(event.pointerId); } catch (_) {} });
 }
-
 function makeResizable(box, handle) {
   if (!box || !handle) return;
-
-  let resizing = false;
-  let startX = 0;
-  let startY = 0;
-  let startWidth = 0;
-  let startHeight = 0;
-
+  let resizing = false, startX = 0, startY = 0, startWidth = 0, startHeight = 0;
   handle.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-
+    event.preventDefault(); event.stopPropagation();
     const rect = box.getBoundingClientRect();
-
-    resizing = true;
-    startX = event.clientX;
-    startY = event.clientY;
-    startWidth = rect.width;
-    startHeight = rect.height;
-
-    box.style.left = rect.left + "px";
-    box.style.top = rect.top + "px";
-    box.style.right = "auto";
-    box.style.bottom = "auto";
-
+    resizing = true; startX = event.clientX; startY = event.clientY; startWidth = rect.width; startHeight = rect.height;
+    box.style.left = rect.left + "px"; box.style.top = rect.top + "px"; box.style.right = "auto"; box.style.bottom = "auto";
     handle.setPointerCapture(event.pointerId);
   });
-
   handle.addEventListener("pointermove", (event) => {
     if (!resizing) return;
-
-    const minWidth = 340;
-    const minHeight = 420;
-    const maxWidth = window.innerWidth - 24;
-    const maxHeight = window.innerHeight - 24;
-
-    const nextWidth = Math.min(Math.max(minWidth, startWidth + event.clientX - startX), maxWidth);
-    const nextHeight = Math.min(Math.max(minHeight, startHeight + event.clientY - startY), maxHeight);
-
-    box.style.width = nextWidth + "px";
-    box.style.height = nextHeight + "px";
+    const nextWidth = Math.min(Math.max(340, startWidth + event.clientX - startX), window.innerWidth - 24);
+    const nextHeight = Math.min(Math.max(420, startHeight + event.clientY - startY), window.innerHeight - 24);
+    box.style.width = nextWidth + "px"; box.style.height = nextHeight + "px";
   });
-
-  handle.addEventListener("pointerup", (event) => {
-    resizing = false;
-    try { handle.releasePointerCapture(event.pointerId); } catch (_) {}
-  });
+  handle.addEventListener("pointerup", (event) => { resizing = false; try { handle.releasePointerCapture(event.pointerId); } catch (_) {} });
 }
-
 makeDraggable(chatWindow, chatHeader);
 makeResizable(chatWindow, document.querySelector(".chat-resize-handle"));
 
-
-function wobbleGarland(targetName) {
-  const piece = document.querySelector(`[data-garland-piece="${targetName}"]`);
-  if (!piece) return;
-
-  const variants = ["wobble-a", "wobble-b", "wobble-c"];
-  const chosen = variants[Math.floor(Math.random() * variants.length)];
-  piece.classList.remove(...variants);
-  void piece.offsetWidth;
-  piece.classList.add(chosen);
-  setTimeout(() => piece.classList.remove(chosen), 1350);
+function swingDangle(el, force = false) {
+  if (!el || (el.classList.contains("swing") && !force)) return;
+  const direction = Math.random() > 0.5 ? 1 : -1;
+  const a = 5 + Math.random() * 10;
+  el.style.setProperty("--r1", `${direction * a}deg`);
+  el.style.setProperty("--r2", `${-direction * (a * .62 + Math.random() * 3)}deg`);
+  el.style.setProperty("--r3", `${direction * (a * .35)}deg`);
+  el.style.setProperty("--r4", `${-direction * (a * .18)}deg`);
+  el.style.setProperty("--r5", `${direction * (a * .08)}deg`);
+  el.style.setProperty("--swing-dur", `${1500 + Math.random() * 900}ms`);
+  el.classList.remove("swing");
+  void el.offsetWidth;
+  el.classList.add("swing");
 }
-
-document.querySelectorAll(".garland-hit").forEach((hit) => {
-  let hoverLock = false;
-  const run = () => {
-    const target = hit.dataset.garlandTarget || "top";
-    wobbleGarland(target);
-  };
-
-  hit.addEventListener("pointerenter", () => {
-    if (hoverLock) return;
-    hoverLock = true;
-    run();
-    setTimeout(() => { hoverLock = false; }, 900);
-  });
-
-  hit.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    run();
-  });
+document.querySelectorAll("[data-garland]").forEach((el) => {
+  el.addEventListener("pointerenter", () => swingDangle(el));
+  el.addEventListener("pointerdown", (event) => { event.preventDefault(); swingDangle(el, true); });
+  el.addEventListener("animationend", (event) => { if (event.animationName === "garlandTouch") el.classList.remove("swing"); });
 });
 
 function createAshParticle() {
   const ashLayer = document.getElementById("ashLayer");
   const hero = document.querySelector(".hero");
   if (!ashLayer || !hero) return;
-
   const heroRect = hero.getBoundingClientRect();
   const particle = document.createElement("span");
   particle.className = "ash-particle";
-
   const startX = heroRect.width * 0.635 + (Math.random() * 10 - 5);
   const startY = heroRect.height * 0.235 + (Math.random() * 8 - 4);
   const driftX = -24 + Math.random() * 48;
   const driftY = 120 + Math.random() * 170;
   const size = 2 + Math.random() * 2.8;
   const duration = 3.8 + Math.random() * 3.1;
-
-  particle.style.left = `${startX}px`;
-  particle.style.top = `${startY}px`;
-  particle.style.width = `${size}px`;
-  particle.style.height = `${size}px`;
-  particle.style.setProperty("--ash-x", `${driftX}px`);
-  particle.style.setProperty("--ash-y", `${driftY}px`);
-  particle.style.animationDuration = `${duration}s`;
-
+  particle.style.left = `${startX}px`; particle.style.top = `${startY}px`; particle.style.width = `${size}px`; particle.style.height = `${size}px`;
+  particle.style.setProperty("--ash-x", `${driftX}px`); particle.style.setProperty("--ash-y", `${driftY}px`); particle.style.animationDuration = `${duration}s`;
   ashLayer.appendChild(particle);
   setTimeout(() => particle.remove(), duration * 1000 + 150);
 }
-
-function triggerSignalHit() {
-  const hero = document.querySelector(".hero");
-  if (!hero) return;
-
-  hero.classList.add("signal-hit");
-  setTimeout(() => hero.classList.remove("signal-hit"), 260);
-}
-
+function triggerSignalHit() { const hero = document.querySelector(".hero"); if (!hero) return; hero.classList.add("signal-hit"); setTimeout(() => hero.classList.remove("signal-hit"), 170); }
 function startSignalFX() {
   if (!document.querySelector(".hero")) return;
-
   const schedule = () => {
-    const next = 6500 + Math.random() * 8500;
-    setTimeout(() => {
-      triggerSignalHit();
-      if (Math.random() < 0.35) setTimeout(triggerSignalHit, 620 + Math.random() * 900);
-      schedule();
-    }, next);
+    const next = 9000 + Math.random() * 9000;
+    setTimeout(() => { triggerSignalHit(); if (Math.random() < .28) setTimeout(triggerSignalHit, 420 + Math.random() * 520); schedule(); }, next);
   };
-
   schedule();
 }
-
-
-function initGarlandTouch() {
-  const pendants = document.querySelectorAll(".pendant");
-  if (!pendants.length) return;
-
-  const swingClasses = ["swing-a", "swing-b", "swing-c", "swing-d"];
-
-  pendants.forEach((pendant) => {
-    let lock = false;
-    pendant.addEventListener("pointerenter", () => {
-      if (lock) return;
-      lock = true;
-      pendant.classList.remove("touched", ...swingClasses);
-      void pendant.getBoundingClientRect();
-      const swing = swingClasses[Math.floor(Math.random() * swingClasses.length)];
-      pendant.classList.add("touched", swing);
-      setTimeout(() => {
-        pendant.classList.remove("touched", swing);
-        lock = false;
-      }, 2200);
-    });
-  });
-}
-
 function startAmbientFX() {
   if (!document.querySelector(".hero")) return;
-  setInterval(() => {
-    if (Math.random() > 0.28) createAshParticle();
-  }, 1600);
+  setInterval(() => { if (Math.random() > 0.28) createAshParticle(); }, 1600);
 }
-
-initGarlandTouch();
 startAmbientFX();
 startSignalFX();
-
-if (document.body.classList.contains("chat-page")) {
-  floatingChat && (floatingChat.style.display = "none");
-}
-
-if (floatingChat && chatWindow && chatWindow.classList.contains("hidden")) {
-  floatingChat.style.display = "block";
-}
+if (document.body.classList.contains("chat-page")) floatingChat && (floatingChat.style.display = "none");
+if (floatingChat && chatWindow && chatWindow.classList.contains("hidden")) floatingChat.style.display = "block";

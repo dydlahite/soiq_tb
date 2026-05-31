@@ -25,18 +25,141 @@
 
   <main>
     <section class="hero" id="home" aria-label="Главная">
-      <div class="hero-garlands template-garlands" aria-hidden="true">
-        <img class="garland-img garland-top-img" data-garland-piece="top" src="/assets/garland_top.png" alt="" />
-        <img class="garland-img garland-left-img" data-garland-piece="left" src="/assets/garland_left.png" alt="" />
-        <img class="garland-img garland-right-img" data-garland-piece="right" src="/assets/garland_right.png" alt="" />
-
-        <button class="garland-hit gh-top gh1" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
-        <button class="garland-hit gh-top gh2" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
-        <button class="garland-hit gh-top gh3" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
-        <button class="garland-hit gh-top gh4" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
-        <button class="garland-hit gh-top gh5" type="button" aria-label="качнуть гирлянду" data-garland-target="top"></button>
-        <button class="garland-hit gh-side gh-left" type="button" aria-label="качнуть левую гирлянду" data-garland-target="left"></button>
-        <button class="garland-hit gh-side gh-right" type="button" aria-label="качнуть правую гирлянду" data-garland-target="right"></button>
+      <div class="hero-garlands dom-garland" aria-hidden="true">
+        <svg class="garland-curves" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
+          <path class="curve-line faint" d="M -20 46 C 80 96 150 4 240 56 S 385 108 470 45 S 610 8 700 58 S 850 116 1020 36" />
+          <path class="curve-beads c1" d="M -20 46 C 80 96 150 4 240 56 S 385 108 470 45 S 610 8 700 58 S 850 116 1020 36" />
+          <path class="curve-line faint" d="M 8 138 C 110 188 220 100 315 148 S 520 210 634 120 S 790 96 1010 165" />
+          <path class="curve-beads c2" d="M 8 138 C 110 188 220 100 315 148 S 520 210 634 120 S 790 96 1010 165" />
+          <path class="curve-line faint soft" d="M 85 20 C 170 92 286 22 372 92 S 545 140 630 55 S 820 18 940 82" />
+          <path class="curve-beads c3" d="M 85 20 C 170 92 286 22 372 92 S 545 140 630 55 S 820 18 940 82" />
+        </svg>
+        <div class="dangle d1" data-garland style="--x:2.7%; --top:0px; --len:420px; --size:56px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/pendant_chain_star_moon.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d2" data-garland style="--x:8.5%; --top:0px; --len:145px; --size:50px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/moon_small.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d3" data-garland style="--x:13.5%; --top:6px; --len:205px; --size:38px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/star_small.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d4" data-garland style="--x:20.5%; --top:0px; --len:250px; --size:64px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/moon_large.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d5" data-garland style="--x:27.5%; --top:4px; --len:170px; --size:50px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/star_large.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d6" data-garland style="--x:35.8%; --top:0px; --len:235px; --size:42px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/crystal_drop.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d7" data-garland style="--x:43.0%; --top:2px; --len:190px; --size:52px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/moon_ring.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d8" data-garland style="--x:49.5%; --top:0px; --len:315px; --size:116px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/sun_big.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d9" data-garland style="--x:57.0%; --top:5px; --len:170px; --size:34px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/star_small.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d10" data-garland style="--x:63.5%; --top:0px; --len:220px; --size:46px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/moon_small.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d11" data-garland style="--x:70.3%; --top:4px; --len:155px; --size:48px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/star_large.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d12" data-garland style="--x:77.4%; --top:0px; --len:260px; --size:42px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/crystal_ball.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d13" data-garland style="--x:83.8%; --top:2px; --len:178px; --size:58px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/moon_large.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d14" data-garland style="--x:91.4%; --top:0px; --len:350px; --size:58px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/pendant_moon_crystal.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d15" data-garland style="--x:96.7%; --top:0px; --len:455px; --size:38px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/crystal_long.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d16" data-garland style="--x:33.0%; --top:54px; --len:120px; --size:30px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/star_small.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d17" data-garland style="--x:59.5%; --top:68px; --len:125px; --size:30px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/star_small.png" alt="" /></span>
+          </div>
+        </div>
+        <div class="dangle d18" data-garland style="--x:74.5%; --top:72px; --len:120px; --size:28px;">
+          <div class="dangle-inner">
+            <span class="dangle-thread"></span>
+            <span class="dangle-beads"></span>
+            <span class="pendant-wrap"><img src="/assets/garland_parts/star_small.png" alt="" /></span>
+          </div>
+        </div>
       </div>
       <img class="hero-bg" src="/assets/soiqweqq_clean_layer_hero.webp" alt="Soiqweqq background art" />
 
@@ -61,7 +184,7 @@
         <section class="hero-card">
           <div class="kicker">/ digital shadow</div>
           <h1 class="glitch-title neon-sign" aria-label="Soiqweqq">
-            <span class="letter lit flicker-slow">S</span><span class="letter lit">o</span><span class="letter lit">i</span><span class="letter dim broken">q</span><span class="letter lit flicker-fast">w</span><span class="letter lit">e</span><span class="letter dim">q</span><span class="letter lit">q</span>
+            <span class="letter lit flicker-slow">S</span><span class="letter lit">o</span><span class="letter lit">i</span><span class="letter dim">q</span><span class="letter lit flicker-fast">w</span><span class="letter lit">e</span><span class="letter dim">q</span><span class="letter lit">q</span>
           </h1>
           <p class="hero-tagline">твоя цифровая тень<br>в этом сломанном мире.</p>
           <p class="hero-description">
@@ -71,7 +194,7 @@
 
           <!-- Тексты кнопок главного экрана меняются прямо здесь, в web/index.html -->
           <div class="hero-actions">
-            <a class="btn btn-primary" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
+            <a class="btn btn-primary" data-telegram-link href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noreferrer">
               <span>➤</span> Запустить бота
             </a>
             <button class="btn btn-secondary open-chat" type="button">
