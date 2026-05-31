@@ -91,6 +91,24 @@ def build_web_time_context(payload: ChatRequest):
     )
 
 
+
+def read_site_track():
+    path = BASE_DIR / "site_track.txt"
+    if not path.exists():
+        path.write_text("Неизвестен | Неизвестно | 0.37\n", encoding="utf-8")
+    raw = path.read_text(encoding="utf-8").strip()
+    line = next((x.strip() for x in raw.splitlines() if x.strip() and not x.strip().startswith("#")), "")
+    parts = [p.strip() for p in line.split("|")]
+    artist = parts[0] if len(parts) > 0 and parts[0] else "Неизвестен"
+    title = parts[1] if len(parts) > 1 and parts[1] else "Неизвестно"
+    try:
+        progress = float(parts[2]) if len(parts) > 2 else 0.37
+    except Exception:
+        progress = 0.37
+    progress = max(0.0, min(1.0, progress))
+    return {"artist": artist, "title": title, "progress": progress}
+
+
 @app.get("/api/health")
 def health():
     return {"ok": True, "service": "soiqweqq-web", "mode": "alive"}
@@ -131,6 +149,13 @@ def chat(payload: ChatRequest):
         "bot_timezone": BOT_TIMEZONE,
         "bot_time": now_in_zone(BOT_TIMEZONE).isoformat(timespec="seconds"),
     }
+
+
+
+
+@app.get("/api/track")
+def track():
+    return {"ok": True, **read_site_track()}
 
 
 @app.get("/")
