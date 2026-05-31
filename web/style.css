@@ -1667,3 +1667,379 @@ a { color: inherit; text-decoration: none; }
     width: 42vw !important;
   }
 }
+
+
+
+/* =========================
+   v22: один дизайн-кадр для ПК и телефона.
+   Не адаптивный кашемет, а тот же макет, только масштабируется браузером.
+   ========================= */
+
+html, body {
+  min-width: 1200px !important;
+}
+
+.site-header {
+  top: 18px !important;
+  left: 24px !important;
+  right: 24px !important;
+  min-height: 88px !important;
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
+  align-items: center !important;
+  padding: 0 26px !important;
+  overflow: visible !important;
+}
+
+.brand {
+  grid-column: 1 !important;
+  justify-self: start !important;
+  align-self: center !important;
+  z-index: 3 !important;
+}
+
+.player-widget {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 470px !important;
+  min-width: 470px !important;
+  max-width: 470px !important;
+  padding: 12px 18px 12px !important;
+  z-index: 2 !important;
+}
+
+.track-main {
+  grid-template-columns: 40px minmax(0, 1fr) !important;
+  gap: 14px !important;
+}
+
+.track-cover {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 14px !important;
+}
+
+.track-title {
+  font-size: 18px !important;
+  letter-spacing: .06em !important;
+}
+
+.track-artist {
+  font-size: 13px !important;
+  margin-top: 4px !important;
+}
+
+.track-bar {
+  margin-top: 10px !important;
+  height: 4px !important;
+}
+
+.track-controls {
+  margin-top: 10px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 0 !important;
+  padding: 0 8px !important;
+}
+
+.top-nav {
+  grid-column: 3 !important;
+  justify-self: end !important;
+  align-self: center !important;
+  display: flex !important;
+  gap: 34px !important;
+  font-size: 18px !important;
+  z-index: 3 !important;
+  order: initial !important;
+}
+
+.top-nav a {
+  padding: 0 !important;
+}
+
+.top-nav a:first-child::after,
+.top-nav a::after {
+  display: none !important;
+  content: none !important;
+}
+
+.hero {
+  min-height: 980px !important;
+  height: 980px !important;
+  width: 100vw !important;
+  min-width: 1200px !important;
+}
+
+.hero-bg {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  top: 0 !important;
+  object-fit: cover !important;
+  object-position: 53% center !important;
+}
+
+.hero::after {
+  z-index: 2 !important;
+  background:
+    linear-gradient(90deg, rgba(4,3,8,.24) 0%, rgba(4,3,8,.07) 38%, rgba(4,3,8,.06) 70%, rgba(4,3,8,.12) 100%),
+    linear-gradient(180deg, rgba(4,3,8,.10) 0%, rgba(4,3,8,.02) 50%, rgba(4,3,8,.78) 100%) !important;
+}
+
+.left-ui {
+  padding-top: 180px !important;
+  padding-left: 54px !important;
+  width: 650px !important;
+  z-index: 20 !important;
+}
+
+.hero-card {
+  width: 610px !important;
+  padding: 34px !important;
+  background: radial-gradient(circle at 22% 16%, rgba(210,170,255,.10), transparent 44%), linear-gradient(90deg, rgba(6,5,10,.80), rgba(6,5,10,.56)) !important;
+}
+
+.glitch-title {
+  font-size: 88px !important;
+}
+
+.hero-tagline {
+  font-size: 34px !important;
+  line-height: 1.35 !important;
+  letter-spacing: .22em !important;
+}
+
+.tv-cat-screen {
+  display: block !important;
+  left: 83.7% !important;
+  top: 33.7% !important;
+  width: 10.4% !important;
+  height: 14.2% !important;
+  z-index: 5 !important;
+}
+
+/* Гирлянда сверху: аккуратно по верхнему фону и краям, без лампы на лице. */
+.hero-lights {
+  position: absolute !important;
+  inset: 114px 0 auto 0 !important;
+  height: 420px !important;
+  transform: none !important;
+  z-index: 7 !important;
+  opacity: .92 !important;
+  pointer-events: none !important;
+}
+
+.light-wires path {
+  stroke: rgba(235,240,255,.38) !important;
+  stroke-width: 2.2 !important;
+  filter: drop-shadow(0 0 5px rgba(190,205,255,.08)) !important;
+}
+
+.lamp {
+  width: 44px !important;
+  pointer-events: auto !important;
+}
+
+.lamp::before {
+  width: 2px !important;
+  background: linear-gradient(180deg, rgba(245,248,255,.72), rgba(220,225,255,.34)) !important;
+}
+
+.lamp::after {
+  width: 25px !important;
+  height: 38px !important;
+  box-shadow: 0 0 7px var(--glow-color), 0 0 18px var(--glow-color), inset 0 0 10px rgba(255,255,255,.14) !important;
+}
+
+.l5::after,
+.l10::after { width: 34px !important; height: 52px !important; }
+
+.l1 { --x:4% !important; --y:42px !important; --drop:125px !important; --s:.72 !important; }
+.l2 { --x:12% !important; --y:18px !important; --drop:74px !important; --s:.52 !important; }
+.l3 { --x:22% !important; --y:72px !important; --drop:108px !important; --s:.58 !important; }
+.l4 { --x:35% !important; --y:26px !important; --drop:88px !important; --s:.78 !important; }
+.l5 { --x:48% !important; --y:96px !important; --drop:150px !important; --s:.92 !important; }
+.l6 { --x:58% !important; --y:22px !important; --drop:82px !important; --s:.58 !important; }
+.l7 { --x:78% !important; --y:32px !important; --drop:96px !important; --s:.66 !important; }
+.l8 { --x:87% !important; --y:80px !important; --drop:130px !important; --s:.62 !important; }
+.l9 { --x:95% !important; --y:42px !important; --drop:106px !important; --s:.70 !important; }
+.l10 { --x:99% !important; --y:150px !important; --drop:148px !important; --s:.92 !important; }
+.l11 { --x:1% !important; --y:186px !important; --drop:118px !important; --s:.58 !important; }
+.l12 { --x:98% !important; --y:246px !important; --drop:92px !important; --s:.58 !important; }
+
+/* Ни одна лампа не должна висеть на лице персонажа. Спасибо, технологический позор. */
+.l7, .l8 {
+  opacity: .52 !important;
+}
+
+.rain-layer,
+.lightning-flash {
+  opacity: .18 !important;
+}
+
+.hero-crt {
+  opacity: .028 !important;
+}
+
+.signal-interference {
+  opacity: .006 !important;
+}
+
+.feature-strip {
+  grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  width: 610px !important;
+}
+
+.about-section {
+  padding-top: 96px !important;
+}
+
+.section-inner {
+  width: min(1320px, calc(100% - 76px)) !important;
+}
+
+.about-copy {
+  max-width: 1260px !important;
+}
+
+.about-copy p {
+  width: 100% !important;
+  max-width: 1260px !important;
+}
+
+.about-gallery {
+  margin-top: 54px !important;
+}
+
+.photo-cluster {
+  width: min(1030px, 100%) !important;
+  min-height: 720px !important;
+  height: 720px !important;
+  margin: 0 auto !important;
+  overflow: hidden !important;
+}
+
+.photo-wire-svg {
+  inset: 8% 4% 8% 4% !important;
+  width: 92% !important;
+  height: 84% !important;
+  opacity: .68 !important;
+}
+
+.photo-wire-svg path {
+  stroke: rgba(238,244,255,.46) !important;
+  stroke-width: 3.2 !important;
+}
+
+.photo-card {
+  width: 185px !important;
+  border-radius: 22px !important;
+  padding: 7px !important;
+  background: rgba(8,7,13,.96) !important;
+  border: 1px solid rgba(230,220,255,.16) !important;
+  box-shadow: 0 20px 44px rgba(0,0,0,.46), inset 0 0 0 1px rgba(255,255,255,.035) !important;
+}
+
+.photo-card img {
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  border-radius: 15px !important;
+  filter: saturate(.95) contrast(1.03) brightness(.92) !important;
+}
+
+.photo-a { left: 8% !important; top: 9% !important; transform: rotate(-7deg) !important; }
+.photo-b { left: 39% !important; top: 7% !important; transform: rotate(5deg) !important; }
+.photo-c { right: 8% !important; top: 11% !important; transform: rotate(-5deg) !important; }
+.photo-d { left: 19% !important; top: 30% !important; transform: rotate(4deg) !important; }
+.photo-e { right: 25% !important; top: 31% !important; transform: rotate(-6deg) !important; }
+.photo-f { left: 8% !important; bottom: 12% !important; transform: rotate(-3deg) !important; }
+.photo-g { left: 34% !important; bottom: 9% !important; transform: rotate(4deg) !important; }
+.photo-h { right: 19% !important; bottom: 14% !important; transform: rotate(-4deg) !important; }
+.photo-i { right: 5% !important; bottom: 29% !important; transform: rotate(7deg) !important; }
+
+.photo-lamp {
+  width: 12px !important;
+  height: 19px !important;
+  opacity: .86;
+}
+.photo-lamp.big { width: 16px !important; height: 25px !important; }
+
+.pb1 { left: 8% !important; top: 15% !important; }
+.pb2 { left: 19% !important; top: 9% !important; }
+.pb3 { left: 32% !important; top: 17% !important; }
+.pb4 { left: 47% !important; top: 12% !important; }
+.pb5 { left: 63% !important; top: 18% !important; }
+.pb6 { left: 78% !important; top: 10% !important; }
+.pb7 { left: 91% !important; top: 18% !important; }
+.pb8 { left: 12% !important; top: 39% !important; }
+.pb9 { left: 28% !important; top: 48% !important; }
+.pb10 { left: 46% !important; top: 38% !important; }
+.pb11 { left: 61% !important; top: 49% !important; }
+.pb12 { left: 83% !important; top: 43% !important; }
+.pb13 { left: 11% !important; top: 72% !important; }
+.pb14 { left: 26% !important; top: 81% !important; }
+.pb15 { left: 44% !important; top: 73% !important; }
+.pb16 { left: 58% !important; top: 83% !important; }
+.pb17 { left: 76% !important; top: 71% !important; }
+.pb18 { left: 90% !important; top: 79% !important; }
+.pb19 { left: 51% !important; top: 58% !important; }
+.pb20 { left: 69% !important; top: 61% !important; }
+.pb21 { left: 35% !important; top: 62% !important; }
+.pb22 { left: 95% !important; top: 56% !important; }
+
+@media (max-width: 980px), (max-width: 520px) {
+  /* Больше не превращаем сайт в мобильную кашу. viewport=1200 держит ПК-макет. */
+  .site-header {
+    grid-template-columns: auto 1fr auto !important;
+    gap: 24px !important;
+    padding: 0 26px !important;
+    top: 18px !important;
+    left: 24px !important;
+    right: 24px !important;
+    min-height: 88px !important;
+  }
+  .player-widget {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 470px !important;
+    min-width: 470px !important;
+    order: initial !important;
+  }
+  .top-nav {
+    order: initial !important;
+    justify-self: end !important;
+    gap: 34px !important;
+    font-size: 18px !important;
+  }
+  .hero {
+    min-height: 980px !important;
+    height: 980px !important;
+  }
+  .hero-bg {
+    object-fit: cover !important;
+    object-position: 53% center !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    top: 0 !important;
+  }
+  .hero-lights {
+    inset: 114px 0 auto 0 !important;
+    height: 420px !important;
+    transform: none !important;
+  }
+  .left-ui {
+    padding-top: 180px !important;
+    padding-left: 54px !important;
+    padding-right: 0 !important;
+    width: 650px !important;
+  }
+  .photo-cluster {
+    height: 720px !important;
+    min-height: 720px !important;
+  }
+}
