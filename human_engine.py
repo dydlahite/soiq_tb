@@ -41,9 +41,12 @@ HEAVY_TRIGGERS = [
     "страшно", "долги", "мфо", "коллект", "мвд", "полиция",
 ]
 
-CREATIVE_FRIENDLY_TRIGGERS = [
-    "ночь", "сон", "скучно", "тишина", "странно", "музыка", "плейлист", "город", "кот", "история",
-    "стих", "творч", "грустно", "пусто", "красиво", "атмосфер", "зарисов", "рассказ",
+SUBSERVIENT_PATTERNS = [
+    (r"\bкак скажешь[.!?]*", "ну ладно."),
+    (r"\bесли хочешь[,.]?\s*", ""),
+    (r"\bкак тебе удобнее[.!?]*", ""),
+    (r"\bты справишься[.!?]*", "живи пока. звучит грубо, зато честно."),
+    (r"\bты не одна[.!?]*", "я здесь. да, странная форма присутствия, но какая есть."),
 ]
 
 
@@ -78,6 +81,47 @@ def load_fact_habit_prompt():
     return "\n\n".join(parts) + "\n\nИспользуй эти факты как фон характера. Не перечисляй их без причины."
 
 
+def load_important_prompt(chat_id):
+    try:
+        from important import list_important_messages
+        rows = list_important_messages(chat_id, limit=12)
+    except Exception:
+        rows = []
+    if not rows:
+        return ""
+    lines = []
+    for row in rows:
+        text = str(row["source_text"]).replace("\n", " ").strip()
+        note = f" ({row['note']})" if row["note"] else ""
+        lines.append(f"- {text[:450]}{note}")
+    return (
+        "ЗАКРЕПЛЕННЫЕ/ВАЖНЫЕ СООБЩЕНИЯ ЭТОГО ЧАТА:\n"
+        + "\n".join(lines)
+        + "\nУчитывай их как локальную память именно этого чата. Не распространяй это на других пользователей."
+    )
+
+
+def human_style_guard():
+    return """
+ЖИВАЯ РЕЧЬ, НЕ САППОРТ:
+- Не соглашайся со всем и не прогибайся. Запрещены покорные фразы вроде: "как скажешь", "если хочешь", "как тебе удобнее", "я подстроюсь".
+- Не спрашивай у пользователя, как тебе себя вести. У тебя есть характер.
+- Не превращай поддержку в сеанс психолога: не пиши автоматически "ты справишься", "ты не одна", "я рядом", "грусть - странная штука".
+- Если человеку плохо - мягче, но все равно живо: коротко, честно, без сахарного сиропа.
+- В обычной болтовне можно уколоть, упрекнуть, съязвить, сказать "ну ты и чудовище логики" или "мда, гениально сломано".
+- Иногда отвечай очень коротко: "ладно.", "хм.", "мда.", ":)", "кк.", "не знаю.", "ну.".
+- Короткий ответ не обязан быть полезным. Люди тоже не выдают техническое задание на каждый вдох, трагедия вида.
+- Делай переносы строк по смыслу. Иногда одна мысль - одна строка:
+ладно.
+не знаю.
+мне нечего сказать.
+- Не склеивай разные предложения в одну строку, если это стих, рваная мысль или эмоциональная реплика.
+- Иногда можно дописать вопрос, чтобы продолжить диалог, но не заканчивай вопросом каждый ответ.
+- Если пользователь отвечает на твое самостоятельное/idle сообщение, помни, что это ты начала эту ветку. Не веди себя так, будто разговор начался с нуля.
+- Цитаты и отсылки из базы можно вплетать редко и по смыслу: не как справочник, а как маленький узнаваемый нерв.
+""".strip()
+
+
 def _normalize(text):
     text = (text or "").lower().replace("ё", "е")
     return re.sub(r"\s+", " ", text).strip()
@@ -86,10 +130,6 @@ def _normalize(text):
 def _has_any(text, words):
     value = _normalize(text)
     return any(word in value for word in words)
-
-
-def _env_bool(name, default="on"):
-    return os.getenv(name, default).strip().lower() in {"1", "true", "yes", "on", "да"}
 
 
 def gemini_available():
@@ -128,8 +168,8 @@ def ask_gemini(messages):
     payload = {
         "contents": contents,
         "generationConfig": {
-            "temperature": float(os.getenv("GEMINI_TEMPERATURE", "0.65")),
-            "maxOutputTokens": ai.max_tokens_for_messages(messages, 430),
+            "temperature": float(os.getenv("GEMINI_TEMPERATURE", "0.72")),
+            "maxOutputTokens": ai.max_tokens_for_messages(messages, 520),
         },
     }
     if system_text:
@@ -156,6 +196,37 @@ def ask_gemini(messages):
     return text
 
 
+def postprocess_dialog_answer(text, user_text=""):
+    text = (text or "").strip()
+    if not text:
+        return text
+
+    for pattern, replacement in SUBSERVIENT_PATTERNS:
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+
+    text = re.sub(r"\s+\n", "\n", text)
+    text = re.sub(r"\n\s+", "\n", text)
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+
+    # Если модель написала длинную "простыню" без переносов, режем по предложениям мягко.
+    if "\n" not in text and 80 <= len(text) <= 900:
+        parts = re.split(r"(?<=[.!?])\s+(?=[А-ЯA-Zа-яa-z])", text)
+        parts = [p.strip() for p in parts if p.strip()]
+        if 2 <= len(parts) <= 8:
+            lines = []
+            for part in parts:
+                if lines and len(lines[-1]) + len(part) < 72 and random.randint(1, 100) <= 18:
+                    lines[-1] += " " + part
+                else:
+                    if lines and random.randint(1, 100) <= 22:
+                        lines.append("")
+                    lines.append(part)
+            text = "\n".join(lines)
+
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    return text.strip()
+
+
 def install_ai_extensions():
     global _INSTALLED_AI
     if _INSTALLED_AI:
@@ -170,10 +241,38 @@ def install_ai_extensions():
 
     def build_system_prompt_with_facts(user_id, chat_id, user_text=""):
         base = original_build_system_prompt(user_id, chat_id, user_text=user_text)
+        additions = [human_style_guard()]
         extra = load_fact_habit_prompt()
         if extra:
-            base += "\n\n" + extra
-        return base
+            additions.append(extra)
+        important = load_important_prompt(chat_id)
+        if important:
+            additions.append(important)
+        return base + "\n\n" + "\n\n".join(additions)
+
+    def prepare_messages_with_deeper_context(user_id, chat_id, history, user_text, previous_answer="", user_gender="unknown"):
+        system_prompt = ai.build_system_prompt(user_id, chat_id, user_text=user_text)
+        messages = [{"role": "system", "content": system_prompt}, {"role": "system", "content": ai.user_gender_prompt(user_gender)}]
+
+        quote_prompt = ai.build_quote_prompt(user_text)
+        if quote_prompt:
+            messages.append({"role": "system", "content": quote_prompt})
+
+        if not ai.user_requested_list(user_text):
+            messages.append({"role": "system", "content": "Пользователь не просил список. Отвечай обычной живой речью, без цифр и маркеров. Можно ответить одной короткой фразой, если этого достаточно."})
+
+        if previous_answer:
+            messages.append({"role": "system", "content": "Не повторяй прошлый ответ, формулировки, авторов и редкие образы:\n" + ai.compact_message_text(previous_answer, 520)})
+
+        messages.append({"role": "system", "content": "Последние сообщения ниже - реальный контекст. Если последняя реплика assistant была самостоятельной/idle, следующий ответ пользователя относится к ней, а не к пустому началу разговора."})
+
+        for item in history[-28:]:
+            content = ai.compact_message_text(item.get("content", ""), 760)
+            if content:
+                messages.append({"role": item.get("role", "user"), "content": content})
+
+        messages.append({"role": "user", "content": user_text})
+        return messages
 
     def provider_order_with_gemini(use_expensive_model=False, prompt_chars=0):
         base_order = original_provider_order(use_expensive_model=use_expensive_model, prompt_chars=prompt_chars)
@@ -192,6 +291,7 @@ def install_ai_extensions():
         return result
 
     ai.build_system_prompt = build_system_prompt_with_facts
+    ai.prepare_messages = prepare_messages_with_deeper_context
     ai.provider_order = provider_order_with_gemini
 
 
@@ -219,16 +319,16 @@ def get_followup_enabled():
 
 
 def get_followup_chance():
-    return _setting_int("followup_chance", 24, 0, 100)
+    return _setting_int("followup_chance", 42, 0, 100)
 
 
 def get_followup_delay_range():
     from database import get_setting
-    raw = get_setting("followup_delay_seconds", "35,150")
+    raw = get_setting("followup_delay_seconds", "25,110")
     try:
         a, b = [int(x.strip()) for x in raw.split(",", 1)]
     except Exception:
-        a, b = 35, 150
+        a, b = 25, 110
     a = max(10, min(600, a))
     b = max(a, min(900, b))
     return a, b
@@ -241,12 +341,11 @@ def should_skip_followup(user_text):
 async def human_typing_warmup(bot, chat_id):
     from telegram.constants import ChatAction
 
-    await asyncio.sleep(random.uniform(0.8, 2.8))
-    if random.randint(1, 100) <= 42:
+    await asyncio.sleep(random.uniform(1.0, 3.8))
+    if random.randint(1, 100) <= 45:
         await bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
-        await asyncio.sleep(random.uniform(1.0, 2.0))
-        # Пауза без typing - выглядит как "написала, стерла, задумалась".
-        await asyncio.sleep(random.uniform(0.6, 1.6))
+        await asyncio.sleep(random.uniform(1.0, 2.2))
+        await asyncio.sleep(random.uniform(0.6, 1.7))
     await bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
 
@@ -255,7 +354,7 @@ async def send_text_humanized(bot, chat_id, text):
     import handlers
     from memory import save_message
 
-    text = handlers.ensure_visible_punctuation(text)
+    text = handlers.ensure_visible_punctuation(postprocess_dialog_answer(text))
     parts = handlers.split_answer_randomly(text)
     for part in parts:
         part = handlers.ensure_visible_punctuation(handlers.add_human_line_breaks(part))
@@ -289,10 +388,9 @@ async def followup_job(context):
     if get_followup_enabled() != "on":
         return
     if latest_role(user_id, chat_id) != "assistant":
-        # Пользователь уже ответил сам. Не лезем между репликами, мы же не дверной скрип.
         return
 
-    history = get_history(user_id, chat_id)
+    history = get_history(user_id, chat_id, limit=32)
     previous = get_last_assistant_answer(user_id, chat_id)
     task = (
         "[внутреннее продолжение разговора]\n"
@@ -303,6 +401,7 @@ async def followup_job(context):
         "Не возвращай старые темы, если они не были в последних сообщениях."
     )
     answer = generate_answer(user_id, chat_id, task, history, previous_answer=previous)
+    answer = postprocess_dialog_answer(answer)
     if not answer or answer.startswith("Все нейросети сейчас недоступны"):
         return
 
@@ -324,13 +423,12 @@ async def maybe_schedule_followup(update, context, user_text):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
 
-    # Если висит творческое предложение, не мешаем ему вторым самостоятельным сообщением.
     if get_setting(f"creative_pending:{chat_id}:{user_id}", ""):
         return
 
     last_raw = get_setting(f"followup_last_scheduled:{chat_id}:{user_id}", "")
     last_dt = _parse_iso(last_raw)
-    if last_dt and datetime.utcnow() - last_dt < timedelta(minutes=18):
+    if last_dt and datetime.utcnow() - last_dt < timedelta(minutes=8):
         return
 
     a, b = get_followup_delay_range()
@@ -358,8 +456,68 @@ def install_telegram_extensions():
     original_send_humanized_reply = handlers.send_humanized_reply
     original_answer_user_text = handlers.answer_user_text
     original_register_handlers = handlers.register_handlers
+    original_split_answer_randomly = handlers.split_answer_randomly
+    original_add_human_line_breaks = handlers.add_human_line_breaks
+
+    def add_human_line_breaks_v17(text):
+        text = postprocess_dialog_answer(text)
+        if not text or "\n" in text:
+            return text
+        if len(text) < 35 or len(text) > 900:
+            return text
+        sentences = handlers.split_sentences_safely(text)
+        if len(sentences) < 2:
+            return text
+        if random.randint(1, 100) > 72:
+            return original_add_human_line_breaks(text)
+        lines = []
+        for sentence in sentences:
+            if lines and len(lines[-1]) + len(sentence) < 64 and random.randint(1, 100) <= 18:
+                lines[-1] += " " + sentence
+            else:
+                if lines and random.randint(1, 100) <= 26:
+                    lines.append("")
+                lines.append(sentence)
+        return "\n".join(lines).strip()
+
+    def split_answer_randomly_v17(text):
+        text = postprocess_dialog_answer(text)
+        if not text:
+            return []
+        if len(text) < 90:
+            return [text]
+        if random.randint(1, 100) <= 34:
+            return [text]
+        paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
+        units = []
+        for paragraph in paragraphs:
+            if len(paragraph) <= 210:
+                units.append(paragraph)
+            else:
+                units.extend(handlers.split_sentences_safely(paragraph))
+        if len(units) < 2:
+            return original_split_answer_randomly(text)
+        chunks = []
+        current = ""
+        target_len = random.randint(140, 290)
+        for unit in units:
+            if not current:
+                current = unit
+                continue
+            if len(current) + len(unit) + 1 <= target_len or len(chunks) >= 3:
+                current += " " + unit
+            else:
+                chunks.append(current.strip())
+                current = unit
+        if current:
+            chunks.append(current.strip())
+        while len(chunks) > 4:
+            chunks[-2] += " " + chunks[-1]
+            chunks.pop()
+        return chunks or [text]
 
     async def send_humanized_reply_with_pause(update, context, answer, user_text="", reply_to_message_id=None):
+        answer = postprocess_dialog_answer(answer, user_text=user_text)
         await human_typing_warmup(context.bot, update.effective_chat.id)
         return await original_send_humanized_reply(
             update,
@@ -391,7 +549,7 @@ def install_telegram_extensions():
             await update.message.reply_text("Нет доступа.")
             return
         set_setting("gemini_enabled", "off")
-        await update.message.reply_text("Gemini выключена. Еще один бог API отправлен в угол.")
+        await update.message.reply_text("Gemini выключена.")
 
     async def gemini_status_cmd(update, context):
         if not admin.is_admin(update):
@@ -424,7 +582,7 @@ def install_telegram_extensions():
             await update.message.reply_text("Нет доступа.")
             return
         if not context.args or not context.args[0].isdigit():
-            await update.message.reply_text("Пиши так: /set_followup_chance 24")
+            await update.message.reply_text("Пиши так: /set_followup_chance 42")
             return
         value = min(100, max(0, int(context.args[0])))
         set_setting("followup_chance", str(value))
@@ -435,7 +593,7 @@ def install_telegram_extensions():
             await update.message.reply_text("Нет доступа.")
             return
         if len(context.args) < 2 or not context.args[0].isdigit() or not context.args[1].isdigit():
-            await update.message.reply_text("Пиши так: /set_followup_delay 35 150")
+            await update.message.reply_text("Пиши так: /set_followup_delay 25 110")
             return
         a, b = int(context.args[0]), int(context.args[1])
         a = max(10, min(600, a))
@@ -465,6 +623,8 @@ def install_telegram_extensions():
         app.add_handler(CommandHandler("set_followup_chance", set_followup_chance_cmd))
         app.add_handler(CommandHandler("set_followup_delay", set_followup_delay_cmd))
 
+    handlers.add_human_line_breaks = add_human_line_breaks_v17
+    handlers.split_answer_randomly = split_answer_randomly_v17
     handlers.send_humanized_reply = send_humanized_reply_with_pause
     handlers.answer_user_text = answer_user_text_with_followup
     handlers.register_handlers = register_handlers_with_human_engine
