@@ -1,4 +1,4 @@
-const TELEGRAM_BOT_URL = "https://t.me/soiqweqq_bot";
+const TELEGRAM_BOT_URL = "https://t.me/YOUR_BOT_USERNAME";
 
 const chatWindow = document.getElementById("chatWindow");
 const chatHeader = document.getElementById("chatHeader");
@@ -10,6 +10,10 @@ const emojiToggle = document.querySelector(".emoji-toggle");
 const emojiPanel = document.getElementById("emojiPanel");
 const statusText = document.querySelector(".status-text");
 const statusDot = document.querySelector(".status-dot");
+const trackPlay = document.querySelector(".track-play");
+const trackArtist = document.querySelector(".track-artist");
+const trackTitle = document.querySelector(".track-title");
+const trackProgress = document.querySelector(".track-progress");
 let idleStatusTimer = null;
 let onlineStatusTimer = null;
 let currentBotStatus = "offline";
