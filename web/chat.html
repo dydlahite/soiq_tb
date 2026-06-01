@@ -2,49 +2,31 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Чат с Soiqweqq</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css?v=23" />
 </head>
-<body class="chat-page">
-  <div class="noise"></div>
-
-  <main class="full-chat-shell">
-    <section class="full-chat-card">
-      <header class="full-chat-head">
-        <a href="/" class="back-link">← на главную</a>
-        <div>
-          <h1>Чат с Soiqweqq</h1>
-          <p><span class="status-dot status-offline"></span><span class="status-text">не в сети</span></p>
-        </div>
-      </header>
-
-      <div class="chat-body full" id="chatBody">
-        <div class="message bot">
-          <span>я здесь. отдельная вкладка, отдельная маленькая комната с проводами. пиши.</span>
-        </div>
+<body class="chat-page-body">
+  <main class="full-chat-page">
+    <header class="full-chat-header">
+      <a href="/" aria-label="Назад">←</a>
+      <div>
+        <strong>Чат с Soiqweqq</strong>
+        <small><span class="status-dot status-offline"></span><span class="status-text">не в сети</span></small>
       </div>
-
-      <form class="chat-form full" id="chatForm">
-        <textarea id="chatInput" rows="2" placeholder="Напиши сообщение... Shift + Enter - перенос строки"></textarea>
-        <button class="emoji-toggle" type="button" title="Смайлики">♡</button>
-        <button type="submit">➤</button>
-        <div class="emoji-panel hidden" id="emojiPanel" aria-label="Смайлики">
-          <button type="button">😁</button>
-          <button type="button">🥰</button>
-          <button type="button">🥲</button>
-          <button type="button">😭</button>
-          <button type="button">😡</button>
-          <button type="button">🤡</button>
-          <button type="button">✨</button>
-          <button type="button">👍</button>
-          <button type="button">❤</button>
-          <button type="button">💔</button>
-        </div>
-      </form>
-    </section>
+    </header>
+    <div class="chat-body full" id="chatBody">
+      <div class="message bot"><span>ну вот. отдельная вкладка. теперь всё выглядит почти серьёзно.</span><time></time></div>
+    </div>
+    <form class="chat-form full" id="chatForm">
+      <textarea id="chatInput" rows="1" placeholder="Напиши сообщение..."></textarea>
+      <button class="emoji-toggle" type="button" title="Смайлики">♡</button>
+      <button class="send-button" type="submit" title="Отправить">➤</button>
+      <div class="emoji-panel hidden" id="emojiPanel" aria-label="Смайлики">
+        <button type="button">😁</button><button type="button">🥰</button><button type="button">🥲</button><button type="button">😭</button><button type="button">😡</button><button type="button">🤡</button><button type="button">✨</button><button type="button">👍</button><button type="button">❤</button><button type="button">💔</button>
+      </div>
+    </form>
   </main>
-
-  <script src="/app.js"></script>
+  <script src="/app.js?v=23"></script>
 </body>
 </html>

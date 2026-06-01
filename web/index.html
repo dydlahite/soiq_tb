@@ -2,232 +2,29 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=1200, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Soiqweqq [bot]</title>
-  <meta name="description" content="Soiqweqq - атмосферный Telegram-бот с памятью, характером и веб-чатом." />
-  <link rel="stylesheet" href="/style.css?v=22" />
+  <meta name="description" content="Soiqweqq - цифровая тень, веб-чат и ночной сайт с котами." />
+  <link rel="stylesheet" href="/style.css?v=23" />
 </head>
 <body>
-  <div class="noise"></div>
+  <main class="page-shell" id="home">
+    <section class="mockup-stage" aria-label="Soiqweqq landing">
+      <picture>
+        <source srcset="/assets/soiqweqq_final_mockup.webp" type="image/webp" />
+        <img class="mockup-image" src="/assets/soiqweqq_final_mockup.jpg" alt="Soiqweqq site design" />
+      </picture>
 
-  <header class="site-header" id="top">
-    <a class="brand" href="#home" aria-label="Soiqweqq">
-      <span class="brand-mark">☾</span>
-      <span class="brand-text">Soiqweqq</span>
-      <span class="brand-tag">[bot]</span>
-    </a>
-
-    <div class="track-widget player-widget" aria-label="Музыка под настроение">
-      <div class="track-main">
-        <div class="track-cover" aria-hidden="true">♡</div>
-        <div class="track-info">
-          <div class="track-title">лонли лав</div>
-          <div class="track-artist">Дора</div>
-        </div>
-      </div>
-      <div class="track-bar" aria-hidden="true">
-        <span class="track-progress"></span>
-      </div>
-      <div class="track-controls" aria-hidden="true">
-        <button class="track-icon track-mute" type="button" tabindex="-1">∿</button>
-        <button class="track-icon track-prev" type="button" tabindex="-1">◀</button>
-        <button class="track-play track-icon track-pause" type="button" aria-label="Пауза">Ⅱ</button>
-        <button class="track-icon track-next" type="button" tabindex="-1">▶</button>
-        <button class="track-icon track-heart" type="button" tabindex="-1">♡</button>
-      </div>
-    </div>
-
-    <nav class="top-nav" aria-label="Навигация">
-      <a href="#home">Главная</a>
-      <a href="#about">Обо мне</a>
-    </nav>
-  </header>
-
-  <main>
-    <section class="hero" id="home" aria-label="Главная">
-      <img class="hero-bg" src="/assets/soiqweqq_clean_layer_hero.webp" alt="Soiqweqq background art" />
-      <img class="tv-cat-screen" src="assets/tv_cat.jpg" alt="" aria-hidden="true" />
-
-      <div class="hero-lights light-rig" aria-hidden="true">
-        <svg class="light-wires hero-wire-svg" viewBox="0 0 1200 520" preserveAspectRatio="none">
-          <path d="M-20 86 C 112 20 260 102 390 70 S 610 8 778 82 S 994 144 1220 52" />
-          <path d="M16 246 C 160 172 282 228 430 188 S 720 112 904 198 S 1090 250 1232 172" />
-          <path d="M6 410 C 118 336 278 376 410 342 S 676 282 870 354 S 1088 436 1220 356" />
-        </svg>
-
-        <div class="lamp l1 lit cool" data-swing-light style="--x:4%;--y:76px;--drop:170px;--s:.78;--rot:-5deg;"></div>
-        <div class="lamp l2 dim violet" data-swing-light style="--x:10%;--y:36px;--drop:92px;--s:.55;--rot:3deg;"></div>
-        <div class="lamp l3 off" data-swing-light style="--x:18%;--y:118px;--drop:142px;--s:.65;--rot:-1deg;"></div>
-        <div class="lamp l4 lit blue" data-swing-light style="--x:27%;--y:42px;--drop:118px;--s:.92;--rot:2deg;"></div>
-        <div class="lamp l5 lit violet" data-swing-light style="--x:36%;--y:164px;--drop:208px;--s:1.18;--rot:-2deg;"></div>
-        <div class="lamp l6 dim cool" data-swing-light style="--x:46%;--y:62px;--drop:128px;--s:.68;--rot:4deg;"></div>
-        <div class="lamp l7 lit cool" data-swing-light style="--x:58%;--y:104px;--drop:152px;--s:.82;--rot:-3deg;"></div>
-        <div class="lamp l8 off" data-swing-light style="--x:72%;--y:62px;--drop:88px;--s:.58;--rot:1deg;"></div>
-        <div class="lamp l9 lit blue" data-swing-light style="--x:89%;--y:84px;--drop:148px;--s:.76;--rot:-4deg;"></div>
-        <div class="lamp l10 lit violet" data-swing-light style="--x:97%;--y:38px;--drop:238px;--s:1.25;--rot:3deg;"></div>
-        <div class="lamp l11 dim cool" data-swing-light style="--x:2%;--y:300px;--drop:126px;--s:.62;--rot:4deg;"></div>
-        <div class="lamp l12 lit blue" data-swing-light style="--x:98%;--y:302px;--drop:138px;--s:.70;--rot:-2deg;"></div>
-      </div>
-
-      <div class="hero-overlay hero-crt" aria-hidden="true"></div>
-      <div class="hero-overlay signal-interference" aria-hidden="true"></div>
-      <div class="hero-overlay monitor-flicker" aria-hidden="true"></div>
-      <div class="hero-overlay rain-layer" aria-hidden="true"></div>
-      <div class="hero-overlay lightning-flash" aria-hidden="true"></div>
-      <div class="hero-overlay smoke-stack" aria-hidden="true">
-        <span class="smoke smoke-1"></span>
-        <span class="smoke smoke-2"></span>
-        <span class="smoke smoke-3"></span>
-        <span class="smoke smoke-4"></span>
-        <span class="smoke smoke-5"></span>
-        <span class="smoke smoke-6"></span>
-        <span class="smoke smoke-7"></span>
-        <span class="smoke smoke-8"></span>
-      </div>
-      <div class="hero-overlay ash-layer" id="ashLayer" aria-hidden="true"></div>
-
-      <div class="left-ui">
-        <section class="hero-card">
-          <div class="kicker">/ digital shadow</div>
-          <h1 class="glitch-title neon-sign" aria-label="Soiqweqq">
-            <span class="letter lit flicker-slow">S</span><span class="letter lit">o</span><span class="letter lit">i</span><span class="letter dim">q</span><span class="letter lit flicker-fast">w</span><span class="letter lit">e</span><span class="letter dim">q</span><span class="letter lit">q</span>
-          </h1>
-          <p class="hero-tagline">твоя цифровая тень<br>в этом сломанном мире.</p>
-          <p class="hero-description">
-            Многофункциональный Telegram-бот с атмосферой тишины, Хаоса и котов.
-            Работает. Слушает. Не осуждает. Ну почти.
-          </p>
-
-          <div class="hero-actions">
-            <a class="btn btn-primary" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
-              <span>➤</span> Запустить бота
-            </a>
-            <button class="btn btn-secondary open-chat" type="button">
-              <span>▣</span> Запустить на сайте
-            </button>
-          </div>
-
-          <div class="small-note">
-            <span class="note-icon">♡</span>
-            <span>Иногда она пишет первой. Иногда лучше бы молчала. Но это уже детали.</span>
-          </div>
-        </section>
-
-        <section class="feature-strip" aria-label="Возможности">
-          <a class="mini-card" href="#smart">
-            <span class="mini-icon mini-heart broken-heart">♡</span>
-            <strong>Умный и гибкий</strong>
-            <small>Подробнее →</small>
-          </a>
-          <a class="mini-card" href="#memory">
-            <span class="mini-icon mini-heart broken-heart">♡</span>
-            <strong>Память</strong>
-            <small>Подробнее →</small>
-          </a>
-          <a class="mini-card" href="#moods">
-            <span class="mini-icon mini-heart broken-heart">♡</span>
-            <strong>Настроения</strong>
-            <small>Подробнее →</small>
-          </a>
-          <a class="mini-card" href="#webchat">
-            <span class="mini-icon mini-heart broken-heart">♡</span>
-            <strong>Веб-чат</strong>
-            <small>Подробнее →</small>
-          </a>
-        </section>
-      </div>
-    </section>
-
-    <section class="section about-section" id="about">
-      <div class="section-inner about-layout">
-        <div class="about-copy">
-          <div class="section-kicker">/about</div>
-          <h2>Обо мне</h2>
-          <p>
-            Я держу этот сайт не ради красивой витрины. Витрин в интернете и так хватает.
-            Мне хотелось место, которое больше похоже на комнату, чем на лендинг:
-            с ночным светом, музыкой, котами, мусором в голове и тем типом тишины,
-            который почему-то лучше работает, когда кто-то всё-таки пишет первым.
-          </p>
-          <p>
-            Здесь я не изображаю идеальную собеседницу. Иногда я мягкая. Иногда язвлю.
-            Иногда отвечаю коротко, будто мне лень открывать рот. Иногда слишком честная.
-            Но это хотя бы похоже на жизнь, а не на стерильную вывеску.
-          </p>
-          <p>
-            Так что сайт нужен просто для присутствия. Чтобы у меня было своё сломанное место.
-            И чтобы у тебя было куда зайти, когда обычный мир опять раздражает.
-          </p>
-        </div>
-
-        <aside class="about-gallery" aria-label="Фото Soiqweqq">
-          <div class="photo-cluster">
-            <svg class="photo-wire-svg" viewBox="0 0 1200 720" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M34 120 C 180 42 338 92 496 132 S 788 208 1160 92" />
-              <path d="M40 276 C 208 196 354 324 520 258 S 820 158 1168 284" />
-              <path d="M22 458 C 198 360 390 430 562 504 S 888 600 1176 456" />
-              <path d="M84 630 C 260 548 460 614 650 642 S 912 686 1136 600" />
-            </svg>
-
-            <span class="photo-lamp pb1 lit cool"></span><span class="photo-lamp pb2 dim blue"></span><span class="photo-lamp pb3 lit violet"></span><span class="photo-lamp pb4 off"></span><span class="photo-lamp pb5 lit cool big"></span><span class="photo-lamp pb6 dim violet"></span><span class="photo-lamp pb7 lit blue"></span><span class="photo-lamp pb8 lit cool"></span><span class="photo-lamp pb9 off"></span><span class="photo-lamp pb10 lit violet"></span><span class="photo-lamp pb11 dim cool"></span><span class="photo-lamp pb12 lit blue big"></span><span class="photo-lamp pb13 lit cool"></span><span class="photo-lamp pb14 dim violet"></span><span class="photo-lamp pb15 lit blue"></span><span class="photo-lamp pb16 off"></span><span class="photo-lamp pb17 lit cool"></span><span class="photo-lamp pb18 dim blue"></span><span class="photo-lamp pb19 lit violet"></span><span class="photo-lamp pb20 lit cool"></span><span class="photo-lamp pb21 dim violet"></span><span class="photo-lamp pb22 lit blue"></span>
-
-            <figure class="photo-card photo-a"><img src="assets/about_photos/about_1.jpg" alt="Soiqweqq photo 1" loading="lazy"></figure>
-            <figure class="photo-card photo-b"><img src="assets/about_photos/about_2.jpg" alt="Soiqweqq photo 2" loading="lazy"></figure>
-            <figure class="photo-card photo-c"><img src="assets/about_photos/about_3.jpg" alt="Soiqweqq photo 3" loading="lazy"></figure>
-            <figure class="photo-card photo-d"><img src="assets/about_photos/about_4.jpg" alt="Soiqweqq photo 4" loading="lazy"></figure>
-            <figure class="photo-card photo-e"><img src="assets/about_photos/about_5.jpg" alt="Soiqweqq photo 5" loading="lazy"></figure>
-            <figure class="photo-card photo-f"><img src="assets/about_photos/about_6.jpg" alt="Soiqweqq photo 6" loading="lazy"></figure>
-            <figure class="photo-card photo-g"><img src="assets/about_photos/about_7.jpg" alt="Soiqweqq photo 7" loading="lazy"></figure>
-            <figure class="photo-card photo-h"><img src="assets/about_photos/about_8.jpg" alt="Soiqweqq photo 8" loading="lazy"></figure>
-            <figure class="photo-card photo-i"><img src="assets/about_photos/about_9.jpg" alt="Soiqweqq photo 9" loading="lazy"></figure>
-          </div>
-        </aside>
-      </div>
-    </section>
-
-    <section class="section details" id="details">
-      <div class="section-inner grid">
-        <article class="detail-card" id="smart">
-          <div class="section-kicker">/smart</div>
-          <h3>Умный и гибкий</h3>
-          <p>Контекст, реакции, медиа и настройки характера под твой формат общения. Названия и описания можно спокойно заменить позже.</p>
-        </article>
-
-        <article class="detail-card" id="memory">
-          <div class="section-kicker">/memory</div>
-          <h3>Память</h3>
-          <p>Держит нить разговора, помнит важные детали и старается не превращать диалог в кашу. Старается, подчеркнем трагизм ситуации.</p>
-        </article>
-
-        <article class="detail-card" id="moods">
-          <div class="section-kicker">/mood</div>
-          <h3>Настроения</h3>
-          <p>Может быть broken, melancholic, playful, joyful, warm, cold, toxic и не только. Не вечный режим похорон, наконец-то.</p>
-        </article>
-
-        <article class="detail-card" id="webchat">
-          <div class="section-kicker">/web-chat</div>
-          <h3>Веб-чат</h3>
-          <p>Можно говорить с ней прямо на сайте: окно двигается, меняет размер, поддерживает Shift + Enter и смайлики.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="section chat-landing" id="chat">
-      <div class="section-inner">
-        <div class="section-kicker">/dialog</div>
-        <h2>Диалог на сайте</h2>
-        <p>Открой плавающее окно или отдельную страницу чата. Enter отправляет сообщение, Shift + Enter делает перенос строки.</p>
-        <div class="section-actions">
-          <button class="btn btn-secondary open-chat" type="button">Открыть окно чата</button>
-          <a class="btn btn-outline" href="/chat" target="_blank">Открыть отдельную вкладку</a>
-        </div>
-      </div>
+      <a class="hotspot nav-home" href="#home" aria-label="Главная"></a>
+      <a class="hotspot nav-about" href="#about" aria-label="Обо мне"></a>
+      <a class="hotspot launch-bot" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer" aria-label="Запустить бота"></a>
+      <button class="hotspot launch-site open-chat" type="button" aria-label="Запустить на сайте"></button>
+      <button class="hotspot player-hotspot" type="button" aria-label="Плеер"></button>
+      <span class="anchor-point" id="about"></span>
     </section>
   </main>
 
   <div class="chat-window hidden" id="chatWindow" aria-label="Чат с Soiqweqq">
-    <div class="chat-resize-handle" title="Тяни за угол"></div>
     <div class="chat-header" id="chatHeader">
       <div class="chat-title">
         <span class="chat-avatar">♡</span>
@@ -237,41 +34,27 @@
         </div>
       </div>
       <div class="chat-controls">
-        <button id="openFullChat" title="Открыть вкладку">□</button>
-        <button id="minimizeChat" title="Свернуть">−</button>
-        <button id="closeChat" title="Закрыть">×</button>
+        <a id="openFullChat" href="/chat" target="_blank" title="Открыть вкладку">□</a>
+        <button id="minimizeChat" title="Свернуть" type="button">−</button>
+        <button id="closeChat" title="Закрыть" type="button">×</button>
       </div>
     </div>
 
     <div class="chat-body" id="chatBody">
-      <div class="message bot">
-        <span>ты запустила меня прямо на сайте. смело. немного тревожно. в общем, типичный человеческий выбор.</span>
-      </div>
+      <div class="message bot"><span>я здесь. не делай вид, что это не странно.</span><time></time></div>
     </div>
 
     <form class="chat-form" id="chatForm">
       <textarea id="chatInput" rows="1" placeholder="Напиши сообщение..."></textarea>
       <button class="emoji-toggle" type="button" title="Смайлики">♡</button>
-      <button type="submit" title="Отправить">➤</button>
+      <button class="send-button" type="submit" title="Отправить">➤</button>
       <div class="emoji-panel hidden" id="emojiPanel" aria-label="Смайлики">
-        <button type="button">😁</button>
-        <button type="button">🥰</button>
-        <button type="button">🥲</button>
-        <button type="button">😭</button>
-        <button type="button">😡</button>
-        <button type="button">🤡</button>
-        <button type="button">✨</button>
-        <button type="button">👍</button>
-        <button type="button">❤</button>
-        <button type="button">💔</button>
+        <button type="button">😁</button><button type="button">🥰</button><button type="button">🥲</button><button type="button">😭</button><button type="button">😡</button><button type="button">🤡</button><button type="button">✨</button><button type="button">👍</button><button type="button">❤</button><button type="button">💔</button>
       </div>
     </form>
   </div>
 
-  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат">
-    <span class="broken-heart">♡</span>
-  </button>
-
-  <script src="/app.js?v=22"></script>
+  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат">♡</button>
+  <script src="/app.js?v=23"></script>
 </body>
 </html>
