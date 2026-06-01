@@ -5,18 +5,25 @@ document.querySelectorAll("[data-telegram-link]").forEach((el) => {
 });
 
 const chatWindow = document.getElementById("chatWindow");
+const chatHeader = document.getElementById("chatHeader");
 const chatBody = document.getElementById("chatBody");
 const chatForm = document.getElementById("chatForm");
 const chatInput = document.getElementById("chatInput");
 const closeChat = document.getElementById("closeChat");
 const minimizeChat = document.getElementById("minimizeChat");
+const maximizeChat = document.getElementById("maximizeChat");
 const emojiToggle = document.querySelector(".emoji-toggle");
 const emojiPanel = document.getElementById("emojiPanel");
 const statusDot = document.querySelector(".status-dot");
 const statusText = document.querySelector(".status-text");
+const headerTyping = document.getElementById("headerTyping");
 const trackTitle = document.getElementById("trackTitle");
 const trackArtist = document.getElementById("trackArtist");
 const trackProgress = document.getElementById("trackProgress");
+
+let queue = [];
+let sending = false;
+let dragState = null;
 
 const sessionId = (() => {
   const key = "soiqweqq_web_session";
@@ -35,6 +42,7 @@ function openChat() {
 function closeChatWindow() {
   chatWindow?.classList.add("hidden");
   setOffline();
+  hideTyping();
 }
 
 function setOnline() {
@@ -49,12 +57,37 @@ function setOffline() {
   if (statusText) statusText.textContent = "не в сети";
 }
 
+function showTyping() {
+  headerTyping?.classList.remove("hidden");
+  if (statusText) statusText.textContent = "онлайн";
+  statusDot?.classList.add("status-online");
+}
+
+function hideTyping() {
+  headerTyping?.classList.add("hidden");
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 document.querySelectorAll(".open-chat").forEach((button) => {
   button.addEventListener("click", openChat);
 });
 
 closeChat?.addEventListener("click", closeChatWindow);
 minimizeChat?.addEventListener("click", closeChatWindow);
+
+maximizeChat?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  if (!chatWindow) return;
+  chatWindow.classList.toggle("maximized");
+  chatWindow.style.left = "";
+  chatWindow.style.right = "";
+  chatWindow.style.top = "";
+  chatWindow.style.bottom = "";
+});
 
 emojiToggle?.addEventListener("click", () => {
   emojiPanel?.classList.toggle("hidden");
@@ -64,6 +97,7 @@ emojiPanel?.querySelectorAll("button").forEach((button) => {
   button.addEventListener("click", () => {
     chatInput.value += button.textContent;
     chatInput.focus();
+    resizeInput();
   });
 });
 
@@ -75,9 +109,16 @@ function messageTime() {
   }).format(new Date());
 }
 
+function normalizeInitialTimes() {
+  document.querySelectorAll(".message-time").forEach((time) => {
+    if (!time.textContent || time.textContent === "--:--") time.textContent = messageTime();
+  });
+}
+
 function addMessage(text, role = "bot") {
   const item = document.createElement("div");
   item.className = `message ${role}`;
+
   const span = document.createElement("span");
   span.textContent = text;
   item.appendChild(span);
@@ -91,53 +132,61 @@ function addMessage(text, role = "bot") {
   chatBody.scrollTop = chatBody.scrollHeight;
 }
 
-function addTyping() {
-  const typing = document.createElement("div");
-  typing.className = "message bot typing";
-  typing.innerHTML = "<span>печатает<span class='dots'>...</span></span>";
-  chatBody.appendChild(typing);
-  chatBody.scrollTop = chatBody.scrollHeight;
-  return typing;
+async function processQueue() {
+  if (sending || !queue.length) return;
+  sending = true;
+
+  while (queue.length) {
+    const text = queue.shift();
+
+    await wait(1800 + Math.random() * 2200);
+    setOnline();
+    showTyping();
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          session_id: sessionId,
+          client_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          client_time: new Date().toISOString(),
+        }),
+      });
+
+      const data = await response.json();
+      await wait(data.pre_typing_delay_ms || 1200);
+      hideTyping();
+
+      if (data?.ok) {
+        const parts = String(data.answer || "")
+          .split(/\n{2,}/)
+          .map((x) => x.trim())
+          .filter(Boolean)
+          .slice(0, 4);
+
+        for (const part of parts.length ? parts : [data.answer]) {
+          addMessage(part, "bot");
+          await wait(450 + Math.random() * 900);
+        }
+        setOnline();
+      } else {
+        addMessage(data?.answer || "что-то пошло не так. мда.", "bot");
+      }
+    } catch (error) {
+      hideTyping();
+      addMessage("сайт опять подавился проводами. попробуй еще раз.", "bot");
+    }
+  }
+
+  sending = false;
 }
 
-async function sendMessage(text) {
+function sendMessage(text) {
   addMessage(text, "user");
-
-  await new Promise((resolve) => setTimeout(resolve, 900 + Math.random() * 1400));
-  setOnline();
-
-  const typing = addTyping();
-
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: text,
-        session_id: sessionId,
-        client_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        client_time: new Date().toISOString(),
-      }),
-    });
-
-    const data = await response.json();
-    await new Promise((resolve) => setTimeout(resolve, data.pre_typing_delay_ms || 1200));
-    typing.remove();
-
-    if (data?.ok) {
-      const parts = String(data.answer || "").split(/\n{2,}/).filter(Boolean).slice(0, 4);
-      for (const part of parts.length ? parts : [data.answer]) {
-        addMessage(part.trim(), "bot");
-        await new Promise((resolve) => setTimeout(resolve, 450 + Math.random() * 900));
-      }
-      setOnline();
-    } else {
-      addMessage(data?.answer || "что-то пошло не так. мда.", "bot");
-    }
-  } catch (error) {
-    typing.remove();
-    addMessage("сайт опять подавился проводами. попробуй еще раз.", "bot");
-  }
+  queue.push(text);
+  processQueue();
 }
 
 chatForm?.addEventListener("submit", (event) => {
@@ -145,13 +194,17 @@ chatForm?.addEventListener("submit", (event) => {
   const text = chatInput.value.trim();
   if (!text) return;
   chatInput.value = "";
+  resizeInput();
   sendMessage(text);
 });
 
-chatInput?.addEventListener("input", () => {
+function resizeInput() {
+  if (!chatInput) return;
   chatInput.style.height = "auto";
-  chatInput.style.height = `${Math.min(chatInput.scrollHeight, 120)}px`;
-});
+  chatInput.style.height = `${Math.min(chatInput.scrollHeight, 138)}px`;
+}
+
+chatInput?.addEventListener("input", resizeInput);
 
 chatInput?.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey) {
@@ -172,14 +225,49 @@ async function loadTrackInfo() {
   } catch (_) {}
 }
 
+function enableChatDrag() {
+  if (!chatWindow || !chatHeader || chatWindow.classList.contains("standalone")) return;
+
+  chatHeader.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("button")) return;
+    if (window.matchMedia("(max-width: 820px)").matches) return;
+    if (chatWindow.classList.contains("maximized")) return;
+
+    const rect = chatWindow.getBoundingClientRect();
+    dragState = {
+      dx: event.clientX - rect.left,
+      dy: event.clientY - rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+    chatHeader.setPointerCapture(event.pointerId);
+    chatHeader.style.cursor = "grabbing";
+  });
+
+  chatHeader.addEventListener("pointermove", (event) => {
+    if (!dragState) return;
+
+    const maxLeft = window.innerWidth - dragState.width - 10;
+    const maxTop = window.innerHeight - dragState.height - 10;
+    const left = Math.max(10, Math.min(maxLeft, event.clientX - dragState.dx));
+    const top = Math.max(10, Math.min(maxTop, event.clientY - dragState.dy));
+
+    chatWindow.style.left = `${left}px`;
+    chatWindow.style.top = `${top}px`;
+    chatWindow.style.right = "auto";
+    chatWindow.style.bottom = "auto";
+  });
+
+  const endDrag = () => {
+    dragState = null;
+    chatHeader.style.cursor = "grab";
+  };
+
+  chatHeader.addEventListener("pointerup", endDrag);
+  chatHeader.addEventListener("pointercancel", endDrag);
+}
+
 loadTrackInfo();
 setInterval(loadTrackInfo, 60000);
-
-document.querySelectorAll(".bulb, .photo-bulb").forEach((bulb) => {
-  bulb.addEventListener("mouseenter", () => {
-    bulb.style.animationDuration = `${1.1 + Math.random() * 1.2}s`;
-  });
-  bulb.addEventListener("mouseleave", () => {
-    bulb.style.animationDuration = "";
-  });
-});
+normalizeInitialTimes();
+enableChatDrag();
