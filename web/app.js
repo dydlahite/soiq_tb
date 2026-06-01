@@ -14,6 +14,9 @@ const emojiToggle = document.querySelector(".emoji-toggle");
 const emojiPanel = document.getElementById("emojiPanel");
 const statusDot = document.querySelector(".status-dot");
 const statusText = document.querySelector(".status-text");
+const trackTitle = document.getElementById("trackTitle");
+const trackArtist = document.getElementById("trackArtist");
+const trackProgress = document.getElementById("trackProgress");
 
 const sessionId = (() => {
   const key = "soiqweqq_web_session";
@@ -25,7 +28,46 @@ const sessionId = (() => {
   return value;
 })();
 
-function krasTime() {
+function openChat() {
+  chatWindow?.classList.remove("hidden");
+}
+
+function closeChatWindow() {
+  chatWindow?.classList.add("hidden");
+  setOffline();
+}
+
+function setOnline() {
+  statusDot?.classList.add("status-online");
+  statusDot?.classList.remove("status-offline");
+  if (statusText) statusText.textContent = "онлайн";
+}
+
+function setOffline() {
+  statusDot?.classList.remove("status-online");
+  statusDot?.classList.add("status-offline");
+  if (statusText) statusText.textContent = "не в сети";
+}
+
+document.querySelectorAll(".open-chat").forEach((button) => {
+  button.addEventListener("click", openChat);
+});
+
+closeChat?.addEventListener("click", closeChatWindow);
+minimizeChat?.addEventListener("click", closeChatWindow);
+
+emojiToggle?.addEventListener("click", () => {
+  emojiPanel?.classList.toggle("hidden");
+});
+
+emojiPanel?.querySelectorAll("button").forEach((button) => {
+  button.addEventListener("click", () => {
+    chatInput.value += button.textContent;
+    chatInput.focus();
+  });
+});
+
+function messageTime() {
   return new Intl.DateTimeFormat("ru-RU", {
     timeZone: "Asia/Krasnoyarsk",
     hour: "2-digit",
@@ -33,74 +75,38 @@ function krasTime() {
   }).format(new Date());
 }
 
-function setStatus(mode, text) {
-  if (!statusDot || !statusText) return;
-  statusDot.className = `status-dot status-${mode}`;
-  statusText.textContent = text;
-}
-
-function openChat() {
-  if (!chatWindow) return;
-  chatWindow.classList.remove("hidden");
-  setTimeout(() => chatInput?.focus(), 60);
-}
-
-function closeOrHideChat() {
-  chatWindow?.classList.add("hidden");
-  setStatus("offline", "не в сети");
-}
-
-document.querySelectorAll(".open-chat").forEach((button) => button.addEventListener("click", openChat));
-closeChat?.addEventListener("click", closeOrHideChat);
-minimizeChat?.addEventListener("click", () => chatWindow?.classList.add("hidden"));
-
-emojiToggle?.addEventListener("click", () => emojiPanel?.classList.toggle("hidden"));
-emojiPanel?.addEventListener("click", (event) => {
-  const button = event.target.closest("button");
-  if (!button || !chatInput) return;
-  chatInput.value += button.textContent;
-  chatInput.focus();
-});
-
-function addMessage(role, text, extraClass = "") {
-  if (!chatBody) return null;
-  const message = document.createElement("div");
-  message.className = `message ${role} ${extraClass}`.trim();
+function addMessage(text, role = "bot") {
+  const item = document.createElement("div");
+  item.className = `message ${role}`;
   const span = document.createElement("span");
   span.textContent = text;
-  const time = document.createElement("time");
-  time.textContent = krasTime();
-  message.append(span, time);
-  chatBody.appendChild(message);
+  item.appendChild(span);
+
+  const time = document.createElement("small");
+  time.className = "message-time";
+  time.textContent = messageTime();
+  item.appendChild(time);
+
+  chatBody.appendChild(item);
   chatBody.scrollTop = chatBody.scrollHeight;
-  return message;
 }
 
-function autosizeTextarea() {
-  if (!chatInput) return;
-  chatInput.style.height = "auto";
-  chatInput.style.height = `${Math.min(chatInput.scrollHeight, 150)}px`;
+function addTyping() {
+  const typing = document.createElement("div");
+  typing.className = "message bot typing";
+  typing.innerHTML = "<span>печатает<span class='dots'>...</span></span>";
+  chatBody.appendChild(typing);
+  chatBody.scrollTop = chatBody.scrollHeight;
+  return typing;
 }
-chatInput?.addEventListener("input", autosizeTextarea);
-
-chatInput?.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    chatForm?.requestSubmit();
-  }
-});
-
-function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
 async function sendMessage(text) {
-  addMessage("user", text);
-  chatInput.value = "";
-  autosizeTextarea();
+  addMessage(text, "user");
 
-  setStatus("offline", "не в сети");
-  await sleep(900 + Math.random() * 1700);
-  const typing = addMessage("bot", "печатает…", "typing");
-  setStatus("online", "онлайн");
+  await new Promise((resolve) => setTimeout(resolve, 900 + Math.random() * 1400));
+  setOnline();
+
+  const typing = addTyping();
 
   try {
     const response = await fetch("/api/chat", {
@@ -113,32 +119,67 @@ async function sendMessage(text) {
         client_time: new Date().toISOString(),
       }),
     });
+
     const data = await response.json();
-    await sleep(data?.pre_typing_delay_ms || 900);
-    typing?.remove();
-    addMessage("bot", data?.answer || "мда. оно сломалось. неожиданно, но не удивительно.");
-    setStatus("online", "онлайн");
+    await new Promise((resolve) => setTimeout(resolve, data.pre_typing_delay_ms || 1200));
+    typing.remove();
+
+    if (data?.ok) {
+      const parts = String(data.answer || "").split(/\n{2,}/).filter(Boolean).slice(0, 4);
+      for (const part of parts.length ? parts : [data.answer]) {
+        addMessage(part.trim(), "bot");
+        await new Promise((resolve) => setTimeout(resolve, 450 + Math.random() * 900));
+      }
+      setOnline();
+    } else {
+      addMessage(data?.answer || "что-то пошло не так. мда.", "bot");
+    }
   } catch (error) {
-    typing?.remove();
-    addMessage("bot", "сервер не ответил. великолепно. техника снова делает вид, что она живая.");
-    setStatus("offline", "не в сети");
+    typing.remove();
+    addMessage("сайт опять подавился проводами. попробуй еще раз.", "bot");
   }
 }
 
 chatForm?.addEventListener("submit", (event) => {
   event.preventDefault();
-  const text = chatInput?.value.trim();
+  const text = chatInput.value.trim();
   if (!text) return;
-  openChat();
+  chatInput.value = "";
   sendMessage(text);
 });
 
-let afkTimer = null;
-function resetAfk() {
-  clearTimeout(afkTimer);
-  afkTimer = setTimeout(() => {
-    if (!chatWindow?.classList.contains("hidden")) setStatus("afk", "afk");
-  }, 180000);
+chatInput?.addEventListener("input", () => {
+  chatInput.style.height = "auto";
+  chatInput.style.height = `${Math.min(chatInput.scrollHeight, 120)}px`;
+});
+
+chatInput?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    chatForm?.requestSubmit();
+  }
+});
+
+async function loadTrackInfo() {
+  try {
+    const response = await fetch("/api/track", { cache: "no-store" });
+    const data = await response.json();
+    if (data?.ok) {
+      if (trackTitle) trackTitle.textContent = data.title || "Неизвестно";
+      if (trackArtist) trackArtist.textContent = data.artist || "Неизвестен";
+      if (trackProgress) trackProgress.style.width = `${Math.max(0, Math.min(1, data.progress ?? .82)) * 100}%`;
+    }
+  } catch (_) {}
 }
-["mousemove", "keydown", "touchstart", "click"].forEach((eventName) => document.addEventListener(eventName, resetAfk, { passive: true }));
-resetAfk();
+
+loadTrackInfo();
+setInterval(loadTrackInfo, 60000);
+
+document.querySelectorAll(".bulb, .photo-bulb").forEach((bulb) => {
+  bulb.addEventListener("mouseenter", () => {
+    bulb.style.animationDuration = `${1.1 + Math.random() * 1.2}s`;
+  });
+  bulb.addEventListener("mouseleave", () => {
+    bulb.style.animationDuration = "";
+  });
+});

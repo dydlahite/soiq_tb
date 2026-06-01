@@ -5,22 +5,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Soiqweqq [bot]</title>
   <meta name="description" content="Soiqweqq - цифровая тень, веб-чат и ночной сайт с котами." />
-  <link rel="stylesheet" href="/style.css?v=23" />
+  <link rel="stylesheet" href="/style.css?v=24" />
 </head>
 <body>
-  <main class="page-shell" id="home">
-    <section class="mockup-stage" aria-label="Soiqweqq landing">
-      <picture>
-        <source srcset="/assets/soiqweqq_final_mockup.webp" type="image/webp" />
-        <img class="mockup-image" src="/assets/soiqweqq_final_mockup.jpg" alt="Soiqweqq site design" />
-      </picture>
+  <div class="page-noise" aria-hidden="true"></div>
 
-      <a class="hotspot nav-home" href="#home" aria-label="Главная"></a>
-      <a class="hotspot nav-about" href="#about" aria-label="Обо мне"></a>
-      <a class="hotspot launch-bot" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer" aria-label="Запустить бота"></a>
-      <button class="hotspot launch-site open-chat" type="button" aria-label="Запустить на сайте"></button>
-      <button class="hotspot player-hotspot" type="button" aria-label="Плеер"></button>
-      <span class="anchor-point" id="about"></span>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="Soiqweqq">
+      <span class="brand-mark">☾</span>
+      <span class="brand-name">Soiqweqq</span>
+      <span class="brand-tag">[bot]</span>
+    </a>
+
+    <section class="music-player" aria-label="Музыка под настроение">
+      <div class="player-cover" aria-hidden="true">♥</div>
+      <div class="player-meta">
+        <strong id="trackTitle">лонли лав</strong>
+        <span id="trackArtist">Дора</span>
+      </div>
+      <div class="player-line">
+        <span class="player-time">01:41</span>
+        <div class="player-progress" aria-hidden="true"><span id="trackProgress"></span></div>
+        <span class="player-time">02:59</span>
+      </div>
+      <div class="player-controls" aria-hidden="true">
+        <button type="button">⌁</button>
+        <button type="button">◂</button>
+        <button type="button" class="pause">Ⅱ</button>
+        <button type="button">▸</button>
+        <button type="button">♡</button>
+      </div>
+    </section>
+
+    <nav class="top-nav" aria-label="Навигация">
+      <a href="#home">Главная</a>
+      <a href="#about">Обо мне</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <img class="hero-art" src="/assets/soiqweqq_clean_layer_hero.webp" alt="" aria-hidden="true" />
+
+      <div class="top-garland" aria-hidden="true">
+        <svg viewBox="0 0 1400 460" preserveAspectRatio="none">
+          <path d="M-40 76 C 145 16 296 112 470 62 S 756 20 926 90 S 1188 130 1440 44" />
+          <path d="M-28 252 C 156 184 324 236 506 194 S 820 120 1010 212 S 1228 268 1448 174" />
+          <path d="M-12 384 C 156 318 326 354 512 324 S 790 284 966 340 S 1210 420 1430 330" />
+        </svg>
+
+        <span class="bulb b1 big on"></span>
+        <span class="bulb b2 small off"></span>
+        <span class="bulb b3 medium dim"></span>
+        <span class="bulb b4 small on"></span>
+        <span class="bulb b5 medium on violet"></span>
+        <span class="bulb b6 small dim"></span>
+        <span class="bulb b7 big on blue"></span>
+        <span class="bulb b8 small off"></span>
+        <span class="bulb b9 medium on"></span>
+        <span class="bulb b10 small dim violet"></span>
+        <span class="bulb b11 medium on blue"></span>
+        <span class="bulb b12 big dim"></span>
+        <span class="bulb b13 small on"></span>
+        <span class="bulb b14 medium off"></span>
+        <span class="bulb b15 small on violet"></span>
+        <span class="bulb b16 medium dim"></span>
+        <span class="bulb b17 big on blue"></span>
+        <span class="bulb b18 small off"></span>
+      </div>
+
+      <section class="hero-copy">
+        <h1>Soiqweqq</h1>
+        <p class="subtitle">твоя цифровая тень в этом<br>сломaнном мире.</p>
+        <div class="pulse-line" aria-hidden="true"></div>
+        <p class="description">
+          Музыка, мысли, кошки и немного меня. Здесь нет идеальных ответов, только честность,
+          сарказм и комфорт ночью. Оставайся, если тебе тоже не по пути с этим миром.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn primary" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
+            <span>↗</span> Запустить бота
+          </a>
+          <button class="btn secondary open-chat" type="button">
+            <span>◎</span> Запустить на сайте
+          </button>
+        </div>
+      </section>
+    </section>
+
+    <section class="about" id="about">
+      <div class="about-copy">
+        <span class="section-label">/about</span>
+        <h2>Обо мне</h2>
+
+        <p>
+          Я веду этот сайт не как витрину, а как комнату, в которую приятно возвращаться ночью.
+          Тут и музыка, и мысли, и рисунки того, кому слишком местные мысли.
+        </p>
+        <p>
+          Я не идеальная помощница. Иногда злюсь, иногда молчу, иногда крадусь,
+          иногда слишком откровенна. Просто кто-то своя.
+        </p>
+        <p>
+          Если обычный мир начинает душить - заходи. Здесь можно выдохнуть,
+          положить их просто быть рядом.
+        </p>
+      </div>
+
+      <section class="photo-collage" aria-label="Фотографии Soiqweqq">
+        <div class="collage-lights" aria-hidden="true">
+          <svg viewBox="0 0 1300 900" preserveAspectRatio="none">
+            <path d="M45 166 C 230 70 418 110 582 184 S 890 254 1248 114" />
+            <path d="M20 330 C 220 226 390 356 580 286 S 900 190 1260 330" />
+            <path d="M60 560 C 230 450 430 514 626 600 S 902 690 1246 520" />
+            <path d="M100 760 C 288 670 500 746 710 778 S 980 832 1230 704" />
+          </svg>
+
+          <span class="photo-bulb p1 on"></span><span class="photo-bulb p2 dim"></span><span class="photo-bulb p3 on blue"></span><span class="photo-bulb p4 off"></span><span class="photo-bulb p5 on violet"></span><span class="photo-bulb p6 dim"></span><span class="photo-bulb p7 on"></span><span class="photo-bulb p8 on blue"></span><span class="photo-bulb p9 dim violet"></span><span class="photo-bulb p10 on"></span><span class="photo-bulb p11 off"></span><span class="photo-bulb p12 on blue"></span><span class="photo-bulb p13 dim"></span><span class="photo-bulb p14 on violet"></span><span class="photo-bulb p15 on"></span><span class="photo-bulb p16 dim blue"></span><span class="photo-bulb p17 off"></span><span class="photo-bulb p18 on"></span><span class="photo-bulb p19 on violet"></span><span class="photo-bulb p20 dim"></span><span class="photo-bulb p21 on blue"></span><span class="photo-bulb p22 on"></span>
+        </div>
+
+        <figure class="photo-card c1"><img src="/assets/about_photos/about_1.jpg" alt="Soiqweqq photo 1"></figure>
+        <figure class="photo-card c2"><img src="/assets/about_photos/about_2.jpg" alt="Soiqweqq photo 2"></figure>
+        <figure class="photo-card c3"><img src="/assets/about_photos/about_3.jpg" alt="Soiqweqq photo 3"></figure>
+        <figure class="photo-card c4"><img src="/assets/about_photos/about_4.jpg" alt="Soiqweqq photo 4"></figure>
+        <figure class="photo-card c5"><img src="/assets/about_photos/about_5.jpg" alt="Soiqweqq photo 5"></figure>
+        <figure class="photo-card c6"><img src="/assets/about_photos/about_6.jpg" alt="Soiqweqq photo 6"></figure>
+        <figure class="photo-card c7"><img src="/assets/about_photos/about_7.jpg" alt="Soiqweqq photo 7"></figure>
+        <figure class="photo-card c8"><img src="/assets/about_photos/about_8.jpg" alt="Soiqweqq photo 8"></figure>
+        <figure class="photo-card c9"><img src="/assets/about_photos/about_9.jpg" alt="Soiqweqq photo 9"></figure>
+      </section>
     </section>
   </main>
 
@@ -34,27 +148,31 @@
         </div>
       </div>
       <div class="chat-controls">
-        <a id="openFullChat" href="/chat" target="_blank" title="Открыть вкладку">□</a>
-        <button id="minimizeChat" title="Свернуть" type="button">−</button>
-        <button id="closeChat" title="Закрыть" type="button">×</button>
+        <button id="minimizeChat" title="Свернуть">−</button>
+        <button id="closeChat" title="Закрыть">×</button>
       </div>
     </div>
 
     <div class="chat-body" id="chatBody">
-      <div class="message bot"><span>я здесь. не делай вид, что это не странно.</span><time></time></div>
+      <div class="message bot">
+        <span>я здесь. почти. не начинай с глупостей, у меня сегодня мало терпения.</span>
+      </div>
     </div>
 
     <form class="chat-form" id="chatForm">
       <textarea id="chatInput" rows="1" placeholder="Напиши сообщение..."></textarea>
       <button class="emoji-toggle" type="button" title="Смайлики">♡</button>
-      <button class="send-button" type="submit" title="Отправить">➤</button>
+      <button type="submit" title="Отправить">➤</button>
       <div class="emoji-panel hidden" id="emojiPanel" aria-label="Смайлики">
         <button type="button">😁</button><button type="button">🥰</button><button type="button">🥲</button><button type="button">😭</button><button type="button">😡</button><button type="button">🤡</button><button type="button">✨</button><button type="button">👍</button><button type="button">❤</button><button type="button">💔</button>
       </div>
     </form>
   </div>
 
-  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат">♡</button>
-  <script src="/app.js?v=23"></script>
+  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат">
+    <span>♡</span>
+  </button>
+
+  <script src="/app.js?v=24"></script>
 </body>
 </html>

@@ -4,29 +4,31 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Чат с Soiqweqq</title>
-  <link rel="stylesheet" href="/style.css?v=23" />
+  <link rel="stylesheet" href="/style.css?v=24" />
 </head>
 <body class="chat-page-body">
-  <main class="full-chat-page">
-    <header class="full-chat-header">
-      <a href="/" aria-label="Назад">←</a>
-      <div>
-        <strong>Чат с Soiqweqq</strong>
-        <small><span class="status-dot status-offline"></span><span class="status-text">не в сети</span></small>
+  <div class="chat-window standalone" id="chatWindow">
+    <div class="chat-header" id="chatHeader">
+      <div class="chat-title">
+        <span class="chat-avatar">♡</span>
+        <div>
+          <strong>Чат с Soiqweqq</strong>
+          <small><span class="status-dot status-offline"></span><span class="status-text">не в сети</span></small>
+        </div>
       </div>
-    </header>
-    <div class="chat-body full" id="chatBody">
-      <div class="message bot"><span>ну вот. отдельная вкладка. теперь всё выглядит почти серьёзно.</span><time></time></div>
     </div>
-    <form class="chat-form full" id="chatForm">
+    <div class="chat-body" id="chatBody">
+      <div class="message bot"><span>ну вот. отдельная вкладка. почти как отдельная жизнь, только дешевле.</span></div>
+    </div>
+    <form class="chat-form" id="chatForm">
       <textarea id="chatInput" rows="1" placeholder="Напиши сообщение..."></textarea>
-      <button class="emoji-toggle" type="button" title="Смайлики">♡</button>
-      <button class="send-button" type="submit" title="Отправить">➤</button>
-      <div class="emoji-panel hidden" id="emojiPanel" aria-label="Смайлики">
+      <button class="emoji-toggle" type="button">♡</button>
+      <button type="submit">➤</button>
+      <div class="emoji-panel hidden" id="emojiPanel">
         <button type="button">😁</button><button type="button">🥰</button><button type="button">🥲</button><button type="button">😭</button><button type="button">😡</button><button type="button">🤡</button><button type="button">✨</button><button type="button">👍</button><button type="button">❤</button><button type="button">💔</button>
       </div>
     </form>
-  </main>
-  <script src="/app.js?v=23"></script>
+  </div>
+  <script src="/app.js?v=24"></script>
 </body>
 </html>
