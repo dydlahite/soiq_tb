@@ -37,10 +37,12 @@ const sessionId = (() => {
 
 function openChat() {
   chatWindow?.classList.remove("hidden");
+  chatInput?.focus();
 }
 
 function closeChatWindow() {
   chatWindow?.classList.add("hidden");
+  emojiPanel?.classList.add("hidden");
   setOffline();
   hideTyping();
 }
@@ -59,8 +61,7 @@ function setOffline() {
 
 function showTyping() {
   headerTyping?.classList.remove("hidden");
-  if (statusText) statusText.textContent = "онлайн";
-  statusDot?.classList.add("status-online");
+  setOnline();
 }
 
 function hideTyping() {
@@ -138,9 +139,8 @@ async function processQueue() {
 
   while (queue.length) {
     const text = queue.shift();
-
-    await wait(1800 + Math.random() * 2200);
     setOnline();
+    await wait(500 + Math.random() * 700);
     showTyping();
 
     try {
@@ -156,7 +156,7 @@ async function processQueue() {
       });
 
       const data = await response.json();
-      await wait(data.pre_typing_delay_ms || 1200);
+      await wait(data.pre_typing_delay_ms || 900);
       hideTyping();
 
       if (data?.ok) {
@@ -166,9 +166,9 @@ async function processQueue() {
           .filter(Boolean)
           .slice(0, 4);
 
-        for (const part of parts.length ? parts : [data.answer]) {
+        for (const part of (parts.length ? parts : [data.answer])) {
           addMessage(part, "bot");
-          await wait(450 + Math.random() * 900);
+          await wait(350 + Math.random() * 550);
         }
         setOnline();
       } else {
@@ -191,11 +191,11 @@ function sendMessage(text) {
 
 chatForm?.addEventListener("submit", (event) => {
   event.preventDefault();
-  const text = chatInput.value.trim();
-  if (!text) return;
+  const rawText = chatInput.value.replace(/\r\n/g, "\n");
+  if (!rawText.trim()) return;
   chatInput.value = "";
   resizeInput();
-  sendMessage(text);
+  sendMessage(rawText);
 });
 
 function resizeInput() {
@@ -270,4 +270,5 @@ function enableChatDrag() {
 loadTrackInfo();
 setInterval(loadTrackInfo, 60000);
 normalizeInitialTimes();
+resizeInput();
 enableChatDrag();
