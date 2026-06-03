@@ -1,0 +1,982 @@
+diff --git a/site/index.html b/site/index.html
+new file mode 100644
+--- /dev/null
++++ b/site/index.html
++<!doctype html>
++<html lang="ru">
++<head>
++  <meta charset="utf-8">
++  <meta name="viewport" content="width=device-width, initial-scale=1">
++  <title>Soiqweqq - цифровая тень</title>
++  <meta name="description" content="Soiqweqq - мрачный, тёплый сайт-преддверие для Telegram-бота и веб-чата.">
++  <meta name="theme-color" content="#12091f">
++  <meta property="og:title" content="Soiqweqq">
++  <meta property="og:description" content="Твоя цифровая тень в этом сломанном мире.">
++  <meta property="og:image" content="assets/images/bg-room.webp">
++  <link rel="stylesheet" href="assets/css/styles.css">
++</head>
++<body>
++  <script>
++    window.SOIQWEQQ_CONFIG = {
++      telegramBotUrl: 'https://t.me/soiqweqq_bot',
++      chatEndpoint: ''
++    };
++  </script>
++
++  <div class="page-noise" aria-hidden="true"></div>
++  <div class="star-layer" aria-hidden="true"></div>
++
++  <header class="site-header" id="top">
++    <a class="brand" href="#top" aria-label="Soiqweqq home">
++      <img src="assets/images/logo-moon.png" alt="" aria-hidden="true">
++      <span>Soiqweqq</span>
++    </a>
++
++    <nav class="main-nav" aria-label="Главная навигация">
++      <a href="#top">Главная</a>
++      <a href="#about">Обо мне</a>
++      <a href="#chat">Чат</a>
++    </nav>
++  </header>
++
++  <main>
++    <section class="hero section" aria-labelledby="hero-title">
++      <div class="music-card" aria-label="Мини-плеер">
++        <div class="cover"><img src="assets/images/logo-moon.png" alt="Обложка трека"></div>
++        <div class="track">
++          <p class="track-title">лонли лав</p>
++          <p class="track-artist">дора</p>
++        </div>
++        <button class="icon-button ghost" type="button" aria-label="Наушники">◖◗</button>
++        <div class="timeline" aria-hidden="true"><span></span></div>
++        <div class="time-row"><span>02:41</span><span>02:57</span></div>
++        <div class="controls" aria-hidden="true">
++          <span>⌁</span><span>◀</span><button class="play-button" type="button" aria-label="Пауза или играть">Ⅱ</button><span>▶</span><span>♡</span>
++        </div>
++      </div>
++
++      <div class="hero-content">
++        <p class="eyebrow">/ DIGITAL GHOST</p>
++        <h1 id="hero-title">Soiqweqq</h1>
++        <p class="hero-lead">твоя цифровая тень<br>в этом сломанном мире.</p>
++        <div class="hairline"></div>
++        <p class="hero-copy">Музыка, мысли, кошки и немного меня. Здесь нет идеальных ответов, только честность, сарказм и комфорт ночью. Оставайся, если тебе тоже не по пути с этим миром.</p>
++        <div class="cta-row">
++          <a class="button primary" data-bot-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">Запустить бота</a>
++          <a class="button secondary" href="#chat">Запустить на сайте</a>
++        </div>
++      </div>
++
++      <aside class="tv-card" aria-label="Кот в эфире">
++        <img src="assets/images/tv-cat.webp" alt="Белый кот в телевизоре">
++        <span>LIVE</span>
++      </aside>
++    </section>
++
++    <section class="about section" id="about" aria-labelledby="about-title">
++      <div class="section-heading">
++        <p class="eyebrow">/ ABOUT</p>
++        <h2 id="about-title">Обо мне</h2>
++      </div>
++      <div class="about-grid">
++        <div class="about-text glass-panel">
++          <p>Я веду этот сайт не как витрину, а как комнату, в которую приятно возвращаться ночью. Тут и музыка, и мысли, и рисунки того, кем я слишком часто не была.</p>
++          <p>Я не идеальная помощница. Иногда злюсь, иногда молчу, иногда врубаю музыку слишком громко, иногда слишком откровенна. Просто кто-то свой.</p>
++          <p>Если однажды мир начнёт душить - заходи. Здесь можно выдохнуть и просто побыть рядом.</p>
++        </div>
++        <div class="mood-list">
++          <article class="mood-card"><span>01</span><strong>меланхолия</strong><p>тихо, фиолетово, без липкого сахара</p></article>
++          <article class="mood-card"><span>02</span><strong>сарказм</strong><p>защитная оболочка, потому что люди опять люди</p></article>
++          <article class="mood-card"><span>03</span><strong>ночной уют</strong><p>чат, лампа, кот и странная нежность</p></article>
++        </div>
++      </div>
++
++      <div class="gallery" aria-label="Галерея персонажа">
++
++          <button class="polaroid" type="button" style="--tilt:-7deg" data-full="assets/images/character-01.webp" data-title="cat on head room">
++            <img src="assets/images/character-01-thumb.webp" alt="Soiqweqq mood 1" loading="lazy">
++          </button>
++
++          <button class="polaroid" type="button" style="--tilt:3deg" data-full="assets/images/character-02.webp" data-title="lying with headphones mp3">
++            <img src="assets/images/character-02-thumb.webp" alt="Soiqweqq mood 2" loading="lazy">
++          </button>
++
++          <button class="polaroid" type="button" style="--tilt:-2deg" data-full="assets/images/character-03.webp" data-title="blanket cocoon with cat">
++            <img src="assets/images/character-03-thumb.webp" alt="Soiqweqq mood 3" loading="lazy">
++          </button>
++
++          <button class="polaroid" type="button" style="--tilt:4deg" data-full="assets/images/character-04.webp" data-title="mirror selfie with cat">
++            <img src="assets/images/character-04-thumb.webp" alt="Soiqweqq mood 4" loading="lazy">
++          </button>
++
++          <button class="polaroid" type="button" style="--tilt:-5deg" data-full="assets/images/character-05.webp" data-title="bloody wall">
++            <img src="assets/images/character-05-thumb.webp" alt="Soiqweqq mood 5" loading="lazy">
++          </button>
++
++          <button class="polaroid" type="button" style="--tilt:2deg" data-full="assets/images/character-06.webp" data-title="swing with cigarette">
++            <img src="assets/images/character-06-thumb.webp" alt="Soiqweqq mood 6" loading="lazy">
++          </button>
++
++          <button class="polaroid" type="button" style="--tilt:-3deg" data-full="assets/images/character-07.webp" data-title="lighting cigarette in alley">
++            <img src="assets/images/character-07-thumb.webp" alt="Soiqweqq mood 7" loading="lazy">
++          </button>
++
++          <button class="polaroid" type="button" style="--tilt:5deg" data-full="assets/images/character-08.webp" data-title="window sunset with cat">
++            <img src="assets/images/character-08-thumb.webp" alt="Soiqweqq mood 8" loading="lazy">
++          </button>
++
++          <button class="polaroid" type="button" style="--tilt:-4deg" data-full="assets/images/character-09.webp" data-title="park dress with cigarette">
++            <img src="assets/images/character-09-thumb.webp" alt="Soiqweqq mood 9" loading="lazy">
++          </button>
++      </div>
++    </section>
++
++    <section class="chat-section section" id="chat" aria-labelledby="chat-title">
++      <div class="section-heading center">
++        <p class="eyebrow">/ CHAT DEMO</p>
++        <h2 id="chat-title">Окно диалога</h2>
++        <p>Статичный фронт уже готов к подключению API. Пока он честно притворяется живым, что, если подумать, делают многие сайты.</p>
++      </div>
++
++      <div class="chat-shell glass-panel">
++        <div class="chat-topbar">
++          <div class="avatar-wrap"><img src="assets/images/avatar.webp" alt="Аватар Soiqweqq"></div>
++          <div><strong>Soiqweqq</strong><span>online ночью и когда всё странно</span></div>
++        </div>
++        <div class="chat-messages" data-chat-log>
++          <div class="message bot">Ты опять пришла в интернет искать покой. Смело. Бессмысленно, но смело.</div>
++          <div class="message user">Просто побудь рядом.</div>
++          <div class="message bot">Ладно. Буду. Без фанфар, без дешёвого света в конце тоннеля. Просто рядом :)</div>
++        </div>
++        <form class="chat-form" data-chat-form>
++          <input type="text" name="message" autocomplete="off" placeholder="Напиши что-нибудь...">
++          <button type="submit">Отправить</button>
++        </form>
++      </div>
++    </section>
++  </main>
++
++  <footer class="site-footer">
++    <span>Soiqweqq</span>
++    <a href="#top">наверх</a>
++  </footer>
++
++  <dialog class="image-modal" data-modal>
++    <button class="modal-close" type="button" data-modal-close aria-label="Закрыть">×</button>
++    <img src="" alt="">
++    <p></p>
++  </dialog>
++
++  <script src="assets/js/site.js"></script>
++</body>
++</html>
+
+diff --git a/site/assets/css/styles.css b/site/assets/css/styles.css
+new file mode 100644
+--- /dev/null
++++ b/site/assets/css/styles.css
++:root {
++  color-scheme: dark;
++  --bg: #070411;
++  --bg-soft: #12091f;
++  --ink: #f4ecff;
++  --muted: rgba(244, 236, 255, .72);
++  --faint: rgba(244, 236, 255, .48);
++  --violet: #b875ff;
++  --violet-strong: #8e41ff;
++  --pink: #f0a7ff;
++  --line: rgba(209, 151, 255, .32);
++  --glass: rgba(9, 5, 20, .62);
++  --glass-strong: rgba(18, 9, 31, .78);
++  --shadow: 0 28px 90px rgba(73, 28, 143, .38);
++  --radius-xl: 28px;
++  --radius-lg: 18px;
++  --max: 1180px;
++}
++
++* { box-sizing: border-box; }
++html { scroll-behavior: smooth; }
++body {
++  margin: 0;
++  min-height: 100vh;
++  color: var(--ink);
++  font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
++  background:
++    radial-gradient(circle at 18% 12%, rgba(145, 77, 255, .26), transparent 26rem),
++    radial-gradient(circle at 82% 24%, rgba(139, 52, 255, .28), transparent 22rem),
++    linear-gradient(180deg, rgba(3, 2, 8, .7), rgba(5, 3, 12, .92)),
++    #05030b;
++  overflow-x: hidden;
++}
++
++body::before {
++  content: "";
++  position: fixed;
++  inset: 0;
++  z-index: -3;
++  background:
++    linear-gradient(90deg, rgba(7,4,17,.94) 0%, rgba(7,4,17,.72) 38%, rgba(7,4,17,.30) 68%, rgba(7,4,17,.78) 100%),
++    linear-gradient(180deg, rgba(7,4,17,.14) 0%, rgba(7,4,17,.48) 58%, rgba(7,4,17,.96) 100%),
++    url("../images/bg-room.webp") center top / cover no-repeat;
++  filter: saturate(1.05) contrast(1.08);
++}
++
++body::after {
++  content: "";
++  position: fixed;
++  inset: 0;
++  pointer-events: none;
++  z-index: -2;
++  background:
++    radial-gradient(circle at 6% 8%, rgba(197, 134, 255, .62) 0 1px, transparent 2px),
++    radial-gradient(circle at 19% 26%, rgba(255,255,255,.88) 0 1px, transparent 2px),
++    radial-gradient(circle at 49% 18%, rgba(255,255,255,.80) 0 1px, transparent 2px),
++    radial-gradient(circle at 78% 7%, rgba(255,255,255,.78) 0 1px, transparent 2px),
++    radial-gradient(circle at 91% 35%, rgba(194, 122, 255, .7) 0 1px, transparent 2px),
++    radial-gradient(circle at 33% 70%, rgba(255,255,255,.68) 0 1px, transparent 2px),
++    radial-gradient(circle at 70% 83%, rgba(217, 168, 255, .76) 0 1px, transparent 2px);
++  background-size: 100% 100%;
++  opacity: .9;
++}
++
++a { color: inherit; text-decoration: none; }
++img { max-width: 100%; display: block; }
++button, input { font: inherit; }
++
++.page-noise {
++  position: fixed;
++  inset: 0;
++  pointer-events: none;
++  z-index: 30;
++  opacity: .09;
++  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.62'/%3E%3C/svg%3E");
++  mix-blend-mode: screen;
++}
++
++.star-layer {
++  position: fixed;
++  inset: 0;
++  pointer-events: none;
++  z-index: -1;
++  background-image:
++    radial-gradient(circle, rgba(255,255,255,.95) 0 1px, transparent 1.6px),
++    radial-gradient(circle, rgba(186,108,255,.88) 0 1px, transparent 1.8px);
++  background-size: 86px 86px, 137px 137px;
++  background-position: 4px 17px, 42px 9px;
++  opacity: .42;
++  animation: drift 28s linear infinite;
++}
++
++@keyframes drift {
++  from { transform: translate3d(0,0,0); }
++  to { transform: translate3d(-36px, 24px, 0); }
++}
++
++.site-header {
++  position: fixed;
++  z-index: 20;
++  top: 0;
++  left: 0;
++  right: 0;
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  width: min(var(--max), calc(100% - 40px));
++  margin: 0 auto;
++  padding: 24px 0;
++  transition: .25s ease;
++}
++
++.site-header.is-scrolled {
++  width: min(1120px, calc(100% - 28px));
++  top: 12px;
++  padding: 10px 16px;
++  border: 1px solid var(--line);
++  border-radius: 999px;
++  background: rgba(8, 4, 18, .72);
++  backdrop-filter: blur(18px);
++  box-shadow: 0 16px 50px rgba(0,0,0,.32);
++}
++
++.brand {
++  display: inline-flex;
++  align-items: center;
++  gap: 12px;
++  min-width: 0;
++  color: #d9b6ff;
++  letter-spacing: .08em;
++  text-shadow: 0 0 18px rgba(184, 117, 255, .75);
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 1.12rem;
++}
++
++.brand img {
++  width: 66px;
++  height: 46px;
++  object-fit: contain;
++  filter: drop-shadow(0 0 18px rgba(178, 103, 255, .75));
++}
++
++.main-nav {
++  display: flex;
++  align-items: center;
++  gap: 28px;
++  color: rgba(253,247,255,.92);
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: 1.06rem;
++}
++
++.main-nav a {
++  position: relative;
++  padding: 6px 0;
++}
++
++.main-nav a::after {
++  content: "";
++  position: absolute;
++  left: 50%;
++  right: 50%;
++  bottom: 0;
++  height: 1px;
++  background: linear-gradient(90deg, transparent, var(--pink), transparent);
++  transition: .22s ease;
++}
++
++.main-nav a:hover::after { left: 0; right: 0; }
++
++.section {
++  position: relative;
++  width: min(var(--max), calc(100% - 40px));
++  margin: 0 auto;
++}
++
++.hero {
++  min-height: 100svh;
++  display: grid;
++  align-items: center;
++  padding: 170px 0 120px;
++}
++
++.hero-content {
++  width: min(560px, 100%);
++  transform: translateY(34px);
++}
++
++.eyebrow {
++  margin: 0 0 12px;
++  color: #d9b6ff;
++  letter-spacing: .33em;
++  text-transform: uppercase;
++  font-size: .76rem;
++}
++
++h1, h2, p { margin-top: 0; }
++h1 {
++  margin-bottom: 20px;
++  font-family: "Courier New", monospace;
++  font-size: clamp(4.2rem, 12vw, 8.2rem);
++  line-height: .84;
++  letter-spacing: .09em;
++  color: #d9b0ff;
++  text-shadow:
++    0 0 8px rgba(207, 135, 255, .68),
++    0 0 36px rgba(118, 55, 255, .55);
++  image-rendering: pixelated;
++}
++
++.hero-lead {
++  margin-bottom: 26px;
++  color: rgba(251,244,255,.9);
++  font-family: "Courier New", monospace;
++  font-size: clamp(1.35rem, 3vw, 2rem);
++  line-height: 1.35;
++  letter-spacing: .05em;
++  text-shadow: 0 0 18px rgba(151, 77, 255, .44);
++}
++
++.hairline {
++  width: min(430px, 78%);
++  height: 1px;
++  margin: 0 0 24px;
++  background: linear-gradient(90deg, rgba(232,194,255,.86), transparent);
++  box-shadow: 0 0 20px rgba(188, 112, 255, .56);
++}
++
++.hero-copy {
++  max-width: 510px;
++  color: var(--muted);
++  font-size: 1.06rem;
++  line-height: 1.72;
++}
++
++.cta-row {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 18px;
++  margin-top: 30px;
++}
++
++.button {
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  min-height: 56px;
++  padding: 0 26px;
++  border-radius: 10px;
++  border: 1px solid rgba(223, 182, 255, .28);
++  color: #fff;
++  background: rgba(16, 8, 34, .64);
++  box-shadow: 0 18px 40px rgba(0,0,0,.28);
++  transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
++}
++
++.button:hover { transform: translateY(-2px); border-color: rgba(238, 198, 255, .72); }
++.button.primary {
++  background: linear-gradient(135deg, rgba(98, 44, 216, .96), rgba(154, 74, 255, .94));
++  box-shadow: 0 18px 48px rgba(104, 58, 207, .48);
++}
++.button.secondary { backdrop-filter: blur(16px); }
++
++.music-card {
++  position: absolute;
++  top: 92px;
++  left: 50%;
++  transform: translateX(-40%);
++  width: min(470px, 46vw);
++  display: grid;
++  grid-template-columns: 76px 1fr 40px;
++  grid-template-rows: auto auto auto;
++  gap: 10px 18px;
++  padding: 22px 24px 18px;
++  border: 1px solid rgba(207, 141, 255, .38);
++  border-radius: 16px;
++  background: rgba(8, 4, 18, .62);
++  backdrop-filter: blur(18px);
++  box-shadow: var(--shadow), inset 0 0 40px rgba(136, 71, 255, .08);
++}
++
++.cover {
++  grid-row: 1 / 4;
++  display: grid;
++  place-items: center;
++  width: 76px;
++  height: 76px;
++  border: 1px solid rgba(214, 172, 255, .38);
++  border-radius: 10px;
++  overflow: hidden;
++  background: radial-gradient(circle at center, rgba(171, 89, 255, .22), rgba(14, 7, 30, .84));
++}
++
++.cover img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
++.track-title { margin: 6px 0 5px; font-family: Georgia, serif; font-size: 1rem; letter-spacing: .12em; }
++.track-artist { margin: 0; color: var(--muted); font-size: .9rem; }
++.icon-button {
++  align-self: start;
++  border: 0;
++  color: #d9b6ff;
++  background: transparent;
++  cursor: pointer;
++  font-size: 1.25rem;
++}
++.timeline {
++  grid-column: 2 / 4;
++  height: 3px;
++  align-self: end;
++  border-radius: 999px;
++  background: rgba(213, 169, 255, .22);
++  overflow: hidden;
++}
++.timeline span {
++  display: block;
++  width: 78%;
++  height: 100%;
++  background: linear-gradient(90deg, #d2a2ff, #9b58ff);
++  box-shadow: 0 0 20px rgba(210, 162, 255, .9);
++}
++.time-row {
++  grid-column: 2 / 4;
++  display: flex;
++  justify-content: space-between;
++  color: var(--faint);
++  font-size: .72rem;
++}
++.controls {
++  grid-column: 1 / 4;
++  display: flex;
++  align-items: center;
++  justify-content: space-around;
++  color: #d7a4ff;
++}
++.play-button {
++  width: 48px;
++  height: 48px;
++  border: 1px solid rgba(226, 184, 255, .28);
++  border-radius: 50%;
++  color: white;
++  background: rgba(135, 66, 255, .38);
++  cursor: pointer;
++  box-shadow: inset 0 0 18px rgba(235, 206, 255, .14), 0 0 30px rgba(164, 92, 255, .34);
++}
++
++.tv-card {
++  position: absolute;
++  right: 4%;
++  top: 42%;
++  width: 190px;
++  transform: rotate(2deg);
++  padding: 8px;
++  border: 1px solid rgba(203, 139, 255, .22);
++  background: rgba(8, 4, 18, .45);
++  box-shadow: 0 22px 60px rgba(0,0,0,.44), inset 0 0 32px rgba(151, 83, 255, .16);
++  opacity: .72;
++}
++.tv-card img { aspect-ratio: 1; object-fit: cover; filter: saturate(.9) contrast(1.08); }
++.tv-card span { position: absolute; left: 12px; bottom: 10px; font-size: .64rem; color: #ffb6ff; letter-spacing: .2em; }
++
++.about { padding: 86px 0 120px; }
++.section-heading h2 {
++  margin: 0;
++  color: #e2bdff;
++  font-family: Georgia, "Times New Roman", serif;
++  font-size: clamp(3.2rem, 7vw, 5rem);
++  line-height: .95;
++  font-weight: 400;
++  text-shadow: 0 0 32px rgba(151, 77, 255, .35);
++}
++.section-heading.center { text-align: center; margin-inline: auto; max-width: 720px; }
++.section-heading.center p:last-child { color: var(--muted); line-height: 1.7; }
++
++.about-grid {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) 360px;
++  gap: 28px;
++  align-items: stretch;
++  margin-top: 26px;
++}
++
++.glass-panel {
++  border: 1px solid var(--line);
++  border-radius: var(--radius-xl);
++  background: var(--glass);
++  backdrop-filter: blur(18px);
++  box-shadow: 0 20px 70px rgba(0,0,0,.28), inset 0 0 44px rgba(130, 71, 244, .08);
++}
++
++.about-text { padding: 28px; }
++.about-text p {
++  margin: 0 0 18px;
++  color: var(--muted);
++  font-size: 1rem;
++  line-height: 1.75;
++}
++.about-text p:last-child { margin-bottom: 0; }
++
++.mood-list { display: grid; gap: 14px; }
++.mood-card {
++  padding: 20px;
++  border: 1px solid rgba(209, 151, 255, .25);
++  border-radius: var(--radius-lg);
++  background: rgba(13, 7, 27, .58);
++  box-shadow: inset 0 0 28px rgba(151, 77, 255, .08);
++}
++.mood-card span {
++  display: inline-block;
++  margin-bottom: 12px;
++  color: #c58cff;
++  font-family: "Courier New", monospace;
++  letter-spacing: .18em;
++}
++.mood-card strong {
++  display: block;
++  margin-bottom: 8px;
++  color: #f4e8ff;
++  font-family: Georgia, serif;
++  font-size: 1.24rem;
++  font-weight: 400;
++}
++.mood-card p { margin: 0; color: var(--faint); line-height: 1.55; font-size: .92rem; }
++
++.gallery {
++  position: relative;
++  display: flex;
++  flex-wrap: wrap;
++  justify-content: center;
++  gap: 0;
++  margin: 74px auto 0;
++  padding: 18px 0 0;
++}
++.gallery::before {
++  content: "♡";
++  position: absolute;
++  left: 0;
++  top: -32px;
++  color: rgba(217, 168, 255, .54);
++  font-size: 3rem;
++  text-shadow: 0 0 20px rgba(197, 134, 255, .42);
++}
++
++.polaroid {
++  width: clamp(140px, 18vw, 214px);
++  margin: -4px -8px 16px;
++  padding: 9px 9px 30px;
++  border: 1px solid rgba(225, 184, 255, .34);
++  border-radius: 2px;
++  background: rgba(17, 8, 34, .82);
++  box-shadow: 0 18px 36px rgba(0,0,0,.38), 0 0 28px rgba(139, 72, 255, .16);
++  transform: rotate(var(--tilt));
++  cursor: pointer;
++  transition: transform .22s ease, z-index .22s ease, border-color .22s ease;
++}
++.polaroid:hover {
++  z-index: 3;
++  transform: translateY(-10px) scale(1.04) rotate(0deg);
++  border-color: rgba(238, 202, 255, .74);
++}
++.polaroid img { aspect-ratio: 1; object-fit: cover; filter: saturate(.82) contrast(1.08) brightness(.92); }
++
++.chat-section { padding: 60px 0 120px; }
++.chat-shell {
++  width: min(760px, 100%);
++  margin: 36px auto 0;
++  overflow: hidden;
++}
++.chat-topbar {
++  display: flex;
++  align-items: center;
++  gap: 14px;
++  padding: 18px;
++  border-bottom: 1px solid rgba(209,151,255,.20);
++  background: rgba(18, 9, 31, .62);
++}
++.avatar-wrap {
++  width: 54px;
++  height: 54px;
++  padding: 2px;
++  border-radius: 50%;
++  background: linear-gradient(135deg, #d7a4ff, #7031ff);
++  box-shadow: 0 0 26px rgba(184, 117, 255, .32);
++}
++.avatar-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
++.chat-topbar strong { display: block; font-family: Georgia, serif; font-size: 1.2rem; font-weight: 400; }
++.chat-topbar span { display: block; color: var(--faint); font-size: .88rem; margin-top: 2px; }
++.chat-messages {
++  display: grid;
++  gap: 12px;
++  min-height: 330px;
++  max-height: 440px;
++  overflow: auto;
++  padding: 22px;
++}
++.message {
++  max-width: 76%;
++  padding: 13px 15px;
++  border: 1px solid rgba(209,151,255,.20);
++  border-radius: 18px;
++  color: rgba(255,255,255,.9);
++  line-height: 1.55;
++  background: rgba(30, 14, 54, .68);
++}
++.message.bot { justify-self: start; border-bottom-left-radius: 4px; }
++.message.user {
++  justify-self: end;
++  border-bottom-right-radius: 4px;
++  background: rgba(104, 50, 202, .58);
++}
++.chat-form {
++  display: grid;
++  grid-template-columns: 1fr auto;
++  gap: 10px;
++  padding: 16px;
++  border-top: 1px solid rgba(209,151,255,.20);
++  background: rgba(9, 5, 20, .6);
++}
++.chat-form input {
++  min-width: 0;
++  padding: 14px 16px;
++  border: 1px solid rgba(209,151,255,.24);
++  border-radius: 12px;
++  color: var(--ink);
++  background: rgba(8,4,18,.68);
++  outline: none;
++}
++.chat-form input:focus { border-color: rgba(226, 184, 255, .72); box-shadow: 0 0 0 3px rgba(184, 117, 255, .13); }
++.chat-form button {
++  padding: 0 20px;
++  border: 1px solid rgba(223, 182, 255, .32);
++  border-radius: 12px;
++  color: white;
++  background: linear-gradient(135deg, rgba(98, 44, 216, .96), rgba(154, 74, 255, .94));
++  cursor: pointer;
++}
++
++.site-footer {
++  width: min(var(--max), calc(100% - 40px));
++  margin: 0 auto;
++  padding: 36px 0 44px;
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  color: var(--faint);
++  border-top: 1px solid rgba(209,151,255,.18);
++}
++.site-footer span { color: #d9b6ff; font-family: Georgia, serif; letter-spacing: .14em; }
++.site-footer a { color: var(--muted); }
++
++.image-modal {
++  width: min(760px, calc(100% - 32px));
++  padding: 18px;
++  border: 1px solid rgba(226, 184, 255, .42);
++  border-radius: 24px;
++  color: var(--ink);
++  background: rgba(8, 4, 18, .88);
++  backdrop-filter: blur(18px);
++  box-shadow: 0 40px 120px rgba(0,0,0,.72);
++}
++.image-modal::backdrop { background: rgba(2, 1, 7, .72); backdrop-filter: blur(8px); }
++.image-modal img { width: 100%; max-height: 78vh; object-fit: contain; border-radius: 14px; }
++.image-modal p { margin: 12px 4px 0; color: var(--muted); text-transform: lowercase; }
++.modal-close {
++  position: absolute;
++  top: 10px;
++  right: 12px;
++  z-index: 2;
++  width: 36px;
++  height: 36px;
++  border: 1px solid rgba(255,255,255,.18);
++  border-radius: 50%;
++  color: white;
++  background: rgba(0,0,0,.52);
++  cursor: pointer;
++  font-size: 1.4rem;
++}
++
++@media (max-width: 980px) {
++  body::before {
++    background:
++      linear-gradient(90deg, rgba(7,4,17,.92), rgba(7,4,17,.62)),
++      linear-gradient(180deg, rgba(7,4,17,.28), rgba(7,4,17,.97)),
++      url("../images/bg-room.webp") 62% top / cover no-repeat;
++  }
++  .music-card { position: relative; top: auto; left: auto; transform: none; width: min(520px, 100%); margin-bottom: 40px; }
++  .hero { padding-top: 132px; }
++  .hero-content { transform: none; }
++  .tv-card { display: none; }
++  .about-grid { grid-template-columns: 1fr; }
++  .mood-list { grid-template-columns: repeat(3, minmax(0,1fr)); }
++}
++
++@media (max-width: 720px) {
++  .site-header { width: min(100% - 24px, var(--max)); padding: 16px 0; }
++  .site-header.is-scrolled { width: calc(100% - 20px); top: 8px; }
++  .brand img { width: 48px; height: 38px; }
++  .brand span { font-size: .96rem; }
++  .main-nav { gap: 14px; font-size: .92rem; }
++  .main-nav a:nth-child(2) { display: none; }
++  .section { width: min(var(--max), calc(100% - 26px)); }
++  .hero { min-height: auto; padding: 124px 0 78px; }
++  .music-card { grid-template-columns: 62px 1fr 30px; gap: 8px 12px; padding: 16px; border-radius: 14px; }
++  .cover { width: 62px; height: 62px; }
++  .controls { margin-top: 2px; }
++  .play-button { width: 42px; height: 42px; }
++  h1 { font-size: clamp(3.2rem, 18vw, 5rem); }
++  .hero-lead { font-size: 1.18rem; }
++  .hero-copy { font-size: .98rem; }
++  .cta-row { gap: 12px; }
++  .button { width: 100%; min-height: 52px; }
++  .about { padding: 68px 0 80px; }
++  .about-text { padding: 22px; }
++  .mood-list { grid-template-columns: 1fr; }
++  .gallery { margin-top: 54px; }
++  .polaroid { width: 45%; margin: -2px -4px 12px; padding-bottom: 22px; }
++  .chat-section { padding: 40px 0 80px; }
++  .chat-form { grid-template-columns: 1fr; }
++  .message { max-width: 88%; }
++  .site-footer { width: min(var(--max), calc(100% - 26px)); }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
++}
+
+diff --git a/site/assets/js/site.js b/site/assets/js/site.js
+new file mode 100644
+--- /dev/null
++++ b/site/assets/js/site.js
++const config = window.SOIQWEQQ_CONFIG || {};
++const header = document.querySelector('.site-header');
++const botLink = document.querySelector('[data-bot-link]');
++const playButton = document.querySelector('.play-button');
++const galleryButtons = document.querySelectorAll('.polaroid');
++const modal = document.querySelector('[data-modal]');
++const modalImage = modal?.querySelector('img');
++const modalText = modal?.querySelector('p');
++const modalClose = document.querySelector('[data-modal-close]');
++const chatForm = document.querySelector('[data-chat-form]');
++const chatLog = document.querySelector('[data-chat-log]');
++
++if (config.telegramBotUrl && botLink) {
++  botLink.href = config.telegramBotUrl;
++}
++
++const onScroll = () => {
++  header?.classList.toggle('is-scrolled', window.scrollY > 18);
++};
++window.addEventListener('scroll', onScroll, { passive: true });
++onScroll();
++
++playButton?.addEventListener('click', () => {
++  playButton.textContent = playButton.textContent.trim() === 'Ⅱ' ? '▶' : 'Ⅱ';
++});
++
++galleryButtons.forEach((button) => {
++  button.addEventListener('click', () => {
++    if (!modal || !modalImage) return;
++    modalImage.src = button.dataset.full || '';
++    modalImage.alt = button.dataset.title || 'Soiqweqq image';
++    if (modalText) modalText.textContent = button.dataset.title || '';
++    if (typeof modal.showModal === 'function') modal.showModal();
++  });
++});
++
++modalClose?.addEventListener('click', () => modal?.close());
++modal?.addEventListener('click', (event) => {
++  const rect = modal.getBoundingClientRect();
++  const clickedOutside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
++  if (clickedOutside) modal.close();
++});
++
++const localReplies = [
++  'Принято. Я бы сказала что-то утешительное, но давай без дешёвого театра. Я рядом :)',
++  'Хм. Звучит как очередной вечер, который решил стать слишком умным.',
++  'Ладно. Дышим, печатаем, не разваливаем вселенную раньше времени.',
++  'Мир опять шумит. Здесь можно сделать потише.',
++];
++let replyIndex = 0;
++
++function appendMessage(text, type = 'bot') {
++  if (!chatLog) return;
++  const message = document.createElement('div');
++  message.className = `message ${type}`;
++  message.textContent = text;
++  chatLog.appendChild(message);
++  chatLog.scrollTop = chatLog.scrollHeight;
++}
++
++async function getBotReply(text) {
++  if (!config.chatEndpoint) {
++    const reply = localReplies[replyIndex % localReplies.length];
++    replyIndex += 1;
++    return reply;
++  }
++
++  const response = await fetch(config.chatEndpoint, {
++    method: 'POST',
++    headers: { 'Content-Type': 'application/json' },
++    body: JSON.stringify({ message: text })
++  });
++
++  if (!response.ok) throw new Error('Chat endpoint error');
++  const data = await response.json();
++  return data.reply || data.message || 'Я получила пустоту. Веб-разработка, как всегда, нежна к психике.';
++}
++
++chatForm?.addEventListener('submit', async (event) => {
++  event.preventDefault();
++  const input = chatForm.elements.message;
++  const text = input.value.trim();
++  if (!text) return;
++
++  appendMessage(text, 'user');
++  input.value = '';
++  input.disabled = true;
++
++  try {
++    const reply = await getBotReply(text);
++    appendMessage(reply, 'bot');
++  } catch (error) {
++    appendMessage('Связь с бэком упала. Удивительно, почти как всё остальное. Проверь chatEndpoint.', 'bot');
++  } finally {
++    input.disabled = false;
++    input.focus();
++  }
++});
+
+diff --git a/README_PATCH.md b/README_PATCH.md
+new file mode 100644
+--- /dev/null
++++ b/README_PATCH.md
++# Soiqweqq site patch
++
++Готовый статический патч сайта по приложенному макету и ассетам.
++
++## Что внутри
++
++- `site/index.html` - главная страница.
++- `site/assets/css/styles.css` - весь визуал: фон, шапка, hero, плеер, about, галерея, чат.
++- `site/assets/js/site.js` - лёгкая интерактивность: sticky header, modal gallery, mock chat, кнопка плеера.
++- `site/assets/images/` - обработанные изображения из архива: фон, аватар, кот, логотип, галерея.
++
++## Как запустить локально
++
++Открой `site/index.html` в браузере.
++
++Нормальный вариант через локальный сервер:
++
++```bash
++cd site
++python3 -m http.server 8080
++```
++
++Потом открыть:
++
++```text
++http://localhost:8080
++```
++
++## Куда класть в проект
++
++Вариант без боли:
++
++```bash
++cp -r site /root/bot/site
++```
++
++Или положить папку `site` в корень репозитория и деплоить как обычную статику.
++
++## Что заменить перед публикацией
++
++В `site/index.html` наверху есть конфиг:
++
++```html
++<script>
++  window.SOIQWEQQ_CONFIG = {
++    telegramBotUrl: 'https://t.me/soiqweqq_bot',
++    chatEndpoint: ''
++  };
++</script>
++```
++
++- `telegramBotUrl` - ссылка на реального Telegram-бота.
++- `chatEndpoint` - URL веб-API для общения на сайте. Пока пусто, поэтому чат работает как демо.
++
++Ожидаемый формат API для `chatEndpoint`:
++
++```http
++POST /your-chat-endpoint
++Content-Type: application/json
++
++{"message":"текст пользователя"}
++```
++
++Ответ:
++
++```json
++{"reply":"ответ бота"}
++```
++
++## Примечания
++
++- Никаких внешних CDN и npm-зависимостей нет. Да, сайт может жить без священного `node_modules`, страшно представить.
++- Фон и галерея сделаны из приложенных изображений.
++- Макет не вставлен как картинка, а пересобран нормальной HTML/CSS-структурой.
++- Верстка адаптивная: desktop/tablet/mobile.
