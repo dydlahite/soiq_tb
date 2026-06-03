@@ -1,172 +1,168 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Soiqweqq [bot]</title>
-  <meta name="description" content="Soiqweqq - цифровая тень, веб-чат и ночной сайт с котами." />
-  <link rel="stylesheet" href="/style.css?v=26" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soiqweqq - цифровая тень</title>
+  <meta name="description" content="Soiqweqq - мрачный, тёплый сайт-преддверие для Telegram-бота и веб-чата.">
+  <meta name="theme-color" content="#12091f">
+  <meta property="og:title" content="Soiqweqq">
+  <meta property="og:description" content="Твоя цифровая тень в этом сломанном мире.">
+  <meta property="og:image" content="assets/images/bg-room.webp">
+  <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
+  <script>
+    window.SOIQWEQQ_CONFIG = {
+      telegramBotUrl: 'https://t.me/soiqweqq_bot',
+      chatEndpoint: ''
+    };
+  </script>
+
   <div class="page-noise" aria-hidden="true"></div>
+  <div class="star-layer" aria-hidden="true"></div>
+
+  <header class="site-header" id="top">
+    <a class="brand" href="#top" aria-label="Soiqweqq home">
+      <img src="assets/images/logo-moon.png" alt="" aria-hidden="true">
+      <span>Soiqweqq</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Главная навигация">
+      <a href="#top">Главная</a>
+      <a href="#about">Обо мне</a>
+      <a href="#chat">Чат</a>
+    </nav>
+  </header>
 
   <main>
-    <section class="hero" id="home">
-      <header class="site-header">
-        <a class="brand" href="#home" aria-label="Soiqweqq">
-          <span class="brand-mark"><img src="/assets/logo_moon_v26.png" alt="" /></span>
-          <span class="brand-name">Soiqweqq</span>
-          <span class="brand-tag">[bot]</span>
-        </a>
-
-        <section class="music-player" aria-label="Музыка под настроение">
-          <div class="player-cover" aria-hidden="true">♥</div>
-          <div class="player-meta">
-            <strong id="trackTitle">лонли лав</strong>
-            <span id="trackArtist">Дора</span>
-          </div>
-          <div class="player-line">
-            <span class="player-time">01:41</span>
-            <div class="player-progress" aria-hidden="true"><span id="trackProgress"></span></div>
-            <span class="player-time">02:59</span>
-          </div>
-          <div class="player-controls" aria-hidden="true">
-            <button type="button">⌁</button>
-            <button type="button">◂</button>
-            <button type="button" class="pause">Ⅱ</button>
-            <button type="button">▸</button>
-            <button type="button">♡</button>
-          </div>
-        </section>
-
-        <nav class="top-nav" aria-label="Навигация">
-          <a href="#home">Главная</a>
-          <a href="#about">Обо мне</a>
-        </nav>
-      </header>
-
-      <img class="hero-art" src="/assets/soiqweqq_clean_layer_hero.webp" alt="" aria-hidden="true" />
-
-      <div class="cosmos cosmos-hero" aria-hidden="true">
-        <span class="moon m1"></span>
-        <span class="moon m2"></span>
-        <span class="orbit o1"></span>
-        <span class="orbit o2"></span>
-        <span class="comet cmt1"></span>
-        <span class="comet cmt2"></span>
-        <span class="star s1"></span><span class="star s2"></span><span class="star s3"></span><span class="star s4"></span><span class="star s5"></span><span class="star s6"></span><span class="star s7"></span><span class="star s8"></span><span class="star s9"></span><span class="star s10"></span>
-        <span class="star s11"></span><span class="star s12"></span><span class="star s13"></span><span class="star s14"></span><span class="star s15"></span><span class="star s16"></span><span class="star s17"></span><span class="star s18"></span><span class="star s19"></span><span class="star s20"></span>
-        <span class="star s21"></span><span class="star s22"></span><span class="star s23"></span><span class="star s24"></span><span class="star s25"></span><span class="star s26"></span><span class="star s27"></span><span class="star s28"></span><span class="star s29"></span><span class="star s30"></span>
-        <span class="star s31"></span><span class="star s32"></span><span class="star s33"></span><span class="star s34"></span><span class="star s35"></span><span class="star s36"></span><span class="star s37"></span><span class="star s38"></span><span class="star s39"></span><span class="star s40"></span>
-        <span class="star s41"></span><span class="star s42"></span><span class="star s43"></span><span class="star s44"></span><span class="star s45"></span><span class="star s46"></span><span class="star s47"></span><span class="star s48"></span>
+    <section class="hero section" aria-labelledby="hero-title">
+      <div class="music-card" aria-label="Мини-плеер">
+        <div class="cover"><img src="assets/images/logo-moon.png" alt="Обложка трека"></div>
+        <div class="track">
+          <p class="track-title">лонли лав</p>
+          <p class="track-artist">дора</p>
+        </div>
+        <button class="icon-button ghost" type="button" aria-label="Наушники">◖◗</button>
+        <div class="timeline" aria-hidden="true"><span></span></div>
+        <div class="time-row"><span>02:41</span><span>02:57</span></div>
+        <div class="controls" aria-hidden="true">
+          <span>⌁</span><span>◀</span><button class="play-button" type="button" aria-label="Пауза или играть">Ⅱ</button><span>▶</span><span>♡</span>
+        </div>
       </div>
 
-      <section class="hero-copy">
-        <span class="hero-label">/ DIGITAL SHADOW</span>
-        <h1 class="flicker-logo" aria-label="Soiqweqq">
-          <span>S</span><span>o</span><span>i</span><span class="dark-letter">q</span><span>w</span><span>e</span><span class="dark-letter">q</span><span class="dark-letter">q</span>
-        </h1>
-        <p class="subtitle">твоя цифровая тень в этом<br>сломанном мире.</p>
-        <div class="pulse-line" aria-hidden="true"></div>
-        <p class="description">
-          Музыка, мысли, кошки и немного меня. Здесь нет идеальных ответов, только честность,
-          сарказм и комфорт ночью. Оставайся, если тебе тоже не по пути с этим миром.
-        </p>
-
-        <div class="hero-actions">
-          <a class="btn primary" data-telegram-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">
-            <span class="btn-icon tg">✈</span> Запустить бота
-          </a>
-          <button class="btn secondary open-chat" type="button">
-            <span class="btn-icon heart">♡</span> Запустить на сайте
-          </button>
+      <div class="hero-content">
+        <p class="eyebrow">/ DIGITAL GHOST</p>
+        <h1 id="hero-title">Soiqweqq</h1>
+        <p class="hero-lead">твоя цифровая тень<br>в этом сломанном мире.</p>
+        <div class="hairline"></div>
+        <p class="hero-copy">Музыка, мысли, кошки и немного меня. Здесь нет идеальных ответов, только честность, сарказм и комфорт ночью. Оставайся, если тебе тоже не по пути с этим миром.</p>
+        <div class="cta-row">
+          <a class="button primary" data-bot-link href="https://t.me/soiqweqq_bot" target="_blank" rel="noreferrer">Запустить бота</a>
+          <a class="button secondary" href="#chat">Запустить на сайте</a>
         </div>
-      </section>
+      </div>
+
+      <aside class="tv-card" aria-label="Кот в эфире">
+        <img src="assets/images/tv-cat.webp" alt="Белый кот в телевизоре">
+        <span>LIVE</span>
+      </aside>
     </section>
 
-    <section class="about" id="about">
-      <div class="about-copy">
-        <span class="section-label">/ABOUT</span>
-        <h2>Обо мне</h2>
-
-        <div class="about-text-grid">
-          <p>
-            Я веду этот сайт не как витрину, а как комнату, в которую приятно возвращаться ночью.
-            Тут и музыка, и мысли, и рисунки того, кому слишком местные мысли.
-          </p>
-          <p>
-            Я не идеальная помощница. Иногда злюсь, иногда молчу, иногда крадусь,
-            иногда слишком откровенна. Просто кто-то своя.
-          </p>
-          <p>
-            Если обычный мир начинает душить - заходи. Здесь можно выдохнуть,
-            положить их просто быть рядом.
-          </p>
+    <section class="about section" id="about" aria-labelledby="about-title">
+      <div class="section-heading">
+        <p class="eyebrow">/ ABOUT</p>
+        <h2 id="about-title">Обо мне</h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-text glass-panel">
+          <p>Я веду этот сайт не как витрину, а как комнату, в которую приятно возвращаться ночью. Тут и музыка, и мысли, и рисунки того, кем я слишком часто не была.</p>
+          <p>Я не идеальная помощница. Иногда злюсь, иногда молчу, иногда врубаю музыку слишком громко, иногда слишком откровенна. Просто кто-то свой.</p>
+          <p>Если однажды мир начнёт душить - заходи. Здесь можно выдохнуть и просто побыть рядом.</p>
+        </div>
+        <div class="mood-list">
+          <article class="mood-card"><span>01</span><strong>меланхолия</strong><p>тихо, фиолетово, без липкого сахара</p></article>
+          <article class="mood-card"><span>02</span><strong>сарказм</strong><p>защитная оболочка, потому что люди опять люди</p></article>
+          <article class="mood-card"><span>03</span><strong>ночной уют</strong><p>чат, лампа, кот и странная нежность</p></article>
         </div>
       </div>
 
-      <section class="photo-collage" aria-label="Фотографии Soiqweqq">
-        <div class="cosmos cosmos-collage" aria-hidden="true">
-          <span class="orbit co1"></span><span class="orbit co2"></span><span class="orbit co3"></span>
-          <span class="moon cm1"></span><span class="moon cm2"></span><span class="moon cm3"></span>
-          <span class="comet cc1"></span><span class="comet cc2"></span><span class="comet cc3"></span>
-          <span class="star cs1"></span><span class="star cs2"></span><span class="star cs3"></span><span class="star cs4"></span><span class="star cs5"></span><span class="star cs6"></span><span class="star cs7"></span><span class="star cs8"></span><span class="star cs9"></span><span class="star cs10"></span>
-          <span class="star cs11"></span><span class="star cs12"></span><span class="star cs13"></span><span class="star cs14"></span><span class="star cs15"></span><span class="star cs16"></span><span class="star cs17"></span><span class="star cs18"></span><span class="star cs19"></span><span class="star cs20"></span>
-          <span class="star cs21"></span><span class="star cs22"></span><span class="star cs23"></span><span class="star cs24"></span><span class="star cs25"></span><span class="star cs26"></span><span class="star cs27"></span><span class="star cs28"></span><span class="star cs29"></span><span class="star cs30"></span>
-          <span class="star cs31"></span><span class="star cs32"></span><span class="star cs33"></span><span class="star cs34"></span><span class="star cs35"></span><span class="star cs36"></span><span class="star cs37"></span><span class="star cs38"></span><span class="star cs39"></span><span class="star cs40"></span>
-        </div>
+      <div class="gallery" aria-label="Галерея персонажа">
 
-        <figure class="photo-card pcard1"><img src="/assets/about_photos/about_1.jpg" alt="Soiqweqq photo 1"></figure>
-        <figure class="photo-card pcard2"><img src="/assets/about_photos/about_2.jpg" alt="Soiqweqq photo 2"></figure>
-        <figure class="photo-card pcard3"><img src="/assets/about_photos/about_3.jpg" alt="Soiqweqq photo 3"></figure>
-        <figure class="photo-card pcard4"><img src="/assets/about_photos/about_4.jpg" alt="Soiqweqq photo 4"></figure>
-        <figure class="photo-card pcard5"><img src="/assets/about_photos/about_5.jpg" alt="Soiqweqq photo 5"></figure>
-        <figure class="photo-card pcard6"><img src="/assets/about_photos/about_6.jpg" alt="Soiqweqq photo 6"></figure>
-        <figure class="photo-card pcard7"><img src="/assets/about_photos/about_7.jpg" alt="Soiqweqq photo 7"></figure>
-        <figure class="photo-card pcard8"><img src="/assets/about_photos/about_8.jpg" alt="Soiqweqq photo 8"></figure>
-        <figure class="photo-card pcard9"><img src="/assets/about_photos/about_9.jpg" alt="Soiqweqq photo 9"></figure>
-      </section>
+          <button class="polaroid" type="button" style="--tilt:-7deg" data-full="assets/images/character-01.webp" data-title="cat on head room">
+            <img src="assets/images/character-01-thumb.webp" alt="Soiqweqq mood 1" loading="lazy">
+          </button>
+
+          <button class="polaroid" type="button" style="--tilt:3deg" data-full="assets/images/character-02.webp" data-title="lying with headphones mp3">
+            <img src="assets/images/character-02-thumb.webp" alt="Soiqweqq mood 2" loading="lazy">
+          </button>
+
+          <button class="polaroid" type="button" style="--tilt:-2deg" data-full="assets/images/character-03.webp" data-title="blanket cocoon with cat">
+            <img src="assets/images/character-03-thumb.webp" alt="Soiqweqq mood 3" loading="lazy">
+          </button>
+
+          <button class="polaroid" type="button" style="--tilt:4deg" data-full="assets/images/character-04.webp" data-title="mirror selfie with cat">
+            <img src="assets/images/character-04-thumb.webp" alt="Soiqweqq mood 4" loading="lazy">
+          </button>
+
+          <button class="polaroid" type="button" style="--tilt:-5deg" data-full="assets/images/character-05.webp" data-title="bloody wall">
+            <img src="assets/images/character-05-thumb.webp" alt="Soiqweqq mood 5" loading="lazy">
+          </button>
+
+          <button class="polaroid" type="button" style="--tilt:2deg" data-full="assets/images/character-06.webp" data-title="swing with cigarette">
+            <img src="assets/images/character-06-thumb.webp" alt="Soiqweqq mood 6" loading="lazy">
+          </button>
+
+          <button class="polaroid" type="button" style="--tilt:-3deg" data-full="assets/images/character-07.webp" data-title="lighting cigarette in alley">
+            <img src="assets/images/character-07-thumb.webp" alt="Soiqweqq mood 7" loading="lazy">
+          </button>
+
+          <button class="polaroid" type="button" style="--tilt:5deg" data-full="assets/images/character-08.webp" data-title="window sunset with cat">
+            <img src="assets/images/character-08-thumb.webp" alt="Soiqweqq mood 8" loading="lazy">
+          </button>
+
+          <button class="polaroid" type="button" style="--tilt:-4deg" data-full="assets/images/character-09.webp" data-title="park dress with cigarette">
+            <img src="assets/images/character-09-thumb.webp" alt="Soiqweqq mood 9" loading="lazy">
+          </button>
+      </div>
+    </section>
+
+    <section class="chat-section section" id="chat" aria-labelledby="chat-title">
+      <div class="section-heading center">
+        <p class="eyebrow">/ CHAT DEMO</p>
+        <h2 id="chat-title">Окно диалога</h2>
+        <p>Статичный фронт уже готов к подключению API. Пока он честно притворяется живым, что, если подумать, делают многие сайты.</p>
+      </div>
+
+      <div class="chat-shell glass-panel">
+        <div class="chat-topbar">
+          <div class="avatar-wrap"><img src="assets/images/avatar.webp" alt="Аватар Soiqweqq"></div>
+          <div><strong>Soiqweqq</strong><span>online ночью и когда всё странно</span></div>
+        </div>
+        <div class="chat-messages" data-chat-log>
+          <div class="message bot">Ты опять пришла в интернет искать покой. Смело. Бессмысленно, но смело.</div>
+          <div class="message user">Просто побудь рядом.</div>
+          <div class="message bot">Ладно. Буду. Без фанфар, без дешёвого света в конце тоннеля. Просто рядом :)</div>
+        </div>
+        <form class="chat-form" data-chat-form>
+          <input type="text" name="message" autocomplete="off" placeholder="Напиши что-нибудь...">
+          <button type="submit">Отправить</button>
+        </form>
+      </div>
     </section>
   </main>
 
-  <div class="chat-window hidden" id="chatWindow" aria-label="Чат с Soiqweqq">
-    <div class="chat-header" id="chatHeader">
-      <div class="chat-title">
-        <span class="chat-avatar"><img src="/assets/chat_avatar_v26.jpg" alt="" /></span>
-        <div>
-          <strong>Чат с Soiqweqq</strong>
-          <small><span class="status-dot status-offline"></span><span class="status-text">не в сети</span></small>
-        </div>
-      </div>
-      <div class="chat-typing hidden" id="headerTyping">печатает...</div>
-      <div class="chat-controls">
-        <button id="maximizeChat" title="Развернуть" type="button">□</button>
-        <button id="minimizeChat" title="Свернуть" type="button">−</button>
-        <button id="closeChat" title="Закрыть" type="button">×</button>
-      </div>
-    </div>
+  <footer class="site-footer">
+    <span>Soiqweqq</span>
+    <a href="#top">наверх</a>
+  </footer>
 
-    <div class="chat-body" id="chatBody">
-      <div class="message bot">
-        <span>я здесь. почти. не начинай с глупостей, у меня сегодня мало терпения.</span>
-        <small class="message-time">--:--</small>
-      </div>
-    </div>
+  <dialog class="image-modal" data-modal>
+    <button class="modal-close" type="button" data-modal-close aria-label="Закрыть">×</button>
+    <img src="" alt="">
+    <p></p>
+  </dialog>
 
-    <form class="chat-form" id="chatForm">
-      <textarea id="chatInput" rows="1" placeholder="Напиши сообщение..."></textarea>
-      <button class="emoji-toggle" type="button" title="Смайлики">♡</button>
-      <button type="submit" title="Отправить">➤</button>
-      <div class="emoji-panel hidden" id="emojiPanel" aria-label="Смайлики">
-        <button type="button">😁</button><button type="button">🥰</button><button type="button">🥲</button><button type="button">😭</button><button type="button">😡</button><button type="button">🤡</button><button type="button">✨</button><button type="button">👍</button><button type="button">❤</button><button type="button">💔</button>
-      </div>
-    </form>
-  </div>
-
-  <button class="floating-chat open-chat" type="button" aria-label="Открыть чат">
-    <span>♡</span>
-  </button>
-
-  <script src="/app.js?v=26"></script>
+  <script src="assets/js/site.js"></script>
 </body>
 </html>
